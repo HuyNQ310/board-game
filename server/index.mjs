@@ -9,6 +9,7 @@ import * as errorsModule from './errors.mjs';
 import * as engineModule from '../shared/engine.mjs';
 import * as handlersModule from './handlers.mjs';
 import { DisconnectTimers } from './timers.mjs';
+import { createRateLimiter } from './handlers.mjs';
 
 // ============================================================================
 // RoomStore Defensive Adapter
@@ -227,6 +228,10 @@ async function handlePlayerDisconnect(code, playerId) {
 const TURN_TIMEOUT_MS = Number(process.env.TURN_TIMEOUT_MS) || 30000;
 const turnTimers = new DisconnectTimers();
 
+// Separate rate limiter instance for chat (D12's 10/s applies per-socket per
+// concern; chat shouldn't share a budget with game actions or vice versa).
+const chatRateLimiter = createRateLimiter();
+
 function scheduleTurnTimer(room) {
   if (!room?.game || room.game.phase === 'over' || !room.game.currentPlayerId) {
     turnTimers.cancel(room.code);
@@ -305,6 +310,52 @@ io.on('connection', (socket) => {
     handlePlayerDisconnect(code, playerId).catch((err) => {
       console.error('handlePlayerDisconnect error:', err);
     });
+  });
+
+  // ==========================================================================
+  // Real-time chat (owner-requested, section 0's original v1 scope explicitly
+  // excluded chat -- changed per direct request, same pattern as the turn
+  // timer above). Ephemeral only: relayed to the room, not persisted, no
+  // history sent to new joiners (keeps this consistent with "lưu lịch sử dài
+  // hạn" staying out of scope). Rate-limited with the same per-socket sliding
+  // window handlers.mjs already uses for game events, so chat spam can't
+  // starve real game actions or vice versa (separate limiter instance).
+  // ==========================================================================
+  socket.on('chat:message', (payload, ack) => {
+    const safeAck = typeof ack === 'function' ? ack : () => {};
+    if (!chatRateLimiter.consume(socket.id)) {
+      safeAck({ ok: false, code: 'RATE_LIMIT', message: 'Thao tác quá nhanh, thử lại sau chút' });
+      return;
+    }
+
+    const playerId = socket.data?.playerId ?? socket.playerId;
+    const code = socket.data?.roomCode ?? socket.roomCode;
+    const rawText = payload?.text;
+
+    if (!playerId || !code) {
+      safeAck({ ok: false, code: 'NOT_IN_ROOM', message: 'Bạn không còn trong phòng này' });
+      return;
+    }
+    if (typeof rawText !== 'string' || !rawText.trim()) {
+      safeAck({ ok: false, code: 'INVALID_ACTION', message: 'Tin nhắn không hợp lệ' });
+      return;
+    }
+    const text = rawText.trim().slice(0, 500);
+
+    const room = roomStore.getRoom?.(code);
+    const player = room?.players?.find((p) => p.id === playerId);
+    if (!room || !player) {
+      safeAck({ ok: false, code: 'NOT_IN_ROOM', message: 'Bạn không còn trong phòng này' });
+      return;
+    }
+
+    io.to(code).emit('chat:message', {
+      playerId,
+      name: player.name,
+      text,
+      at: Date.now(),
+    });
+    safeAck({ ok: true });
   });
 });
 

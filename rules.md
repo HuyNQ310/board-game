@@ -8,7 +8,9 @@
 
 Một nhóm 4 người vào phòng bằng mã trên điện thoại, chơi trọn một ván đến khi có người thắng, một người rớt mạng giữa chừng rồi quay lại và ván tiếp tục đúng, không có lỗi nào làm treo ván. Sau đó bấm "Chơi lại" và chơi ván thứ hai.
 
-Ngoài phạm vi v1: credit, giới hạn lượt theo ngày, quảng cáo, thanh toán, tài khoản, bạn bè, bảng xếp hạng, lưu lịch sử dài hạn, ứng dụng gốc iOS/Android, bot, chat, hẹn giờ mỗi lượt.
+Ngoài phạm vi v1: credit, giới hạn lượt theo ngày, quảng cáo, thanh toán, tài khoản, bạn bè, bảng xếp hạng, lưu lịch sử dài hạn, ứng dụng gốc iOS/Android, bot.
+
+Đã đổi so với bản gốc, theo yêu cầu trực tiếp của chủ dự án: **hẹn giờ mỗi lượt** (xem D3) và **chat** (xem mục 6.3/6.4: sự kiện `chat:message`, relay trong phòng, không lưu lịch sử) nay nằm trong phạm vi v1.
 
 ---
 
