@@ -633,8 +633,8 @@ describe('Handler: game:start', () => {
       hostId: 'p1',
       status: 'lobby',
       players: [
-        { id: 'p1', connected: true },
-        { id: 'p2', connected: true },
+        { id: 'p1', name: 'Alice', connected: true },
+        { id: 'p2', name: 'Bob', connected: true },
       ],
       game: null,
     };
@@ -642,7 +642,10 @@ describe('Handler: game:start', () => {
     let broadcastedRoom = null;
     const fakeEngine = {
       createGame: (playerIds) => {
-        assert.deepEqual(playerIds, ['p1', 'p2']);
+        assert.deepEqual(playerIds, [
+          { id: 'p1', name: 'Alice' },
+          { id: 'p2', name: 'Bob' },
+        ]);
         return { version: 0, phase: 'play' };
       },
     };
