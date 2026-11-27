@@ -567,10 +567,14 @@ export function createHandlers(arg1 = {}, arg2 = {}) {
           }
 
           if (!room.game && typeof engine?.createGame === 'function') {
-            const activeIds = room.players
-              ? room.players.filter(p => p.connected !== false).map(p => p.id)
+            // Pass {id, name} objects, not bare id strings -- engine.createGame
+            // falls back to using the id itself as the display name when given
+            // a plain string (see shared/engine.mjs normalizePlayers), which is
+            // exactly how player names ended up showing as raw UUIDs in-game.
+            const activePlayers = room.players
+              ? room.players.filter(p => p.connected !== false).map(p => ({ id: p.id, name: p.name }))
               : [];
-            room.game = engine.createGame(activeIds, rng);
+            room.game = engine.createGame(activePlayers, rng);
             room.status = 'playing';
           }
 
