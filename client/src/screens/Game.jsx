@@ -10,6 +10,7 @@ export function Game({
   myPlayerId = gameState?.myPlayerId,
   currentPlayerId = gameState?.currentPlayerId,
   turnDeadline = gameState?.turnDeadline,
+  chatBubbles = null,
   turnsLeft = gameState?.turnsLeft,
   deckCount = gameState?.deckCount ?? 0,
   discardCount = gameState?.discardCount ?? 0,
@@ -46,6 +47,7 @@ export function Game({
           myPlayerId={myPlayerId}
           currentPlayerId={currentPlayerId}
           turnDeadline={turnDeadline}
+          chatBubbles={chatBubbles}
           centerContent={
             <div className="game-screen__center">
               <DrawPile deckCount={deckCount} t={t} />

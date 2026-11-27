@@ -83,6 +83,8 @@ function AppContent() {
   });
   const [isReconnecting, setIsReconnecting] = useState(false);
   const [chatMessages, setChatMessages] = useState([]);
+  const [chatBubbles, setChatBubbles] = useState({});
+  const chatBubbleTimersRef = useRef({});
   const [helpOpen, setHelpOpen] = useState(false);
   const [leaveConfirmOpen, setLeaveConfirmOpen] = useState(false);
 
@@ -216,6 +218,28 @@ function AppContent() {
 
     const handleChatMessage = (msg) => {
       setChatMessages((prev) => [...prev, msg]);
+
+      // Also show the message as a transient speech bubble over the
+      // sender's avatar on the table (owner request: not just inside the
+      // chat panel). Keyed per-player so simultaneous chatters each get
+      // their own bubble; resets that player's auto-dismiss timer on every
+      // new message from them.
+      if (msg?.playerId && typeof msg.text === 'string' && msg.text.trim()) {
+        const playerId = msg.playerId;
+        setChatBubbles((prev) => ({ ...prev, [playerId]: { text: msg.text, at: msg.at ?? Date.now() } }));
+        if (chatBubbleTimersRef.current[playerId]) {
+          clearTimeout(chatBubbleTimersRef.current[playerId]);
+        }
+        chatBubbleTimersRef.current[playerId] = setTimeout(() => {
+          setChatBubbles((prev) => {
+            if (!(playerId in prev)) return prev;
+            const next = { ...prev };
+            delete next[playerId];
+            return next;
+          });
+          delete chatBubbleTimersRef.current[playerId];
+        }, 5000);
+      }
     };
 
     socket.on('room:state', handleRoomState);
@@ -239,6 +263,8 @@ function AppContent() {
       socket.off('connect', handleConnect);
       socket.off('disconnect', handleDisconnect);
       socket.off('chat:message', handleChatMessage);
+      Object.values(chatBubbleTimersRef.current).forEach(clearTimeout);
+      chatBubbleTimersRef.current = {};
     };
   }, [dispatch, strings]);
 
@@ -1058,6 +1084,7 @@ function AppContent() {
             gameState={gameState}
             myPlayerId={myPlayerId}
             currentPlayerId={gameState?.currentPlayerId}
+            chatBubbles={chatBubbles}
             turnsLeft={gameState?.turnsLeft}
             deckCount={gameState?.deckCount ?? 0}
             discardCount={gameState?.discardCount ?? 0}

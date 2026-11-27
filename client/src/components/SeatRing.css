@@ -217,6 +217,58 @@
 /* -------------------------------------------------------------
  * 6. Internal Seat Content Elements & Turn Timer Ring
  * ------------------------------------------------------------- */
+
+/* Chat speech bubble over the avatar (owner request: chat messages should
+ * show on the player's avatar, not only inside the chat panel). Transient --
+ * App.jsx clears it a few seconds after the message arrives. */
+.seat-ring__chat-bubble {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 8px;
+  max-width: 140px;
+  width: max-content;
+  background-color: #ffffff;
+  color: #4a3a42;
+  border: 2px solid #ff6f91;
+  border-radius: 14px;
+  padding: 6px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.25;
+  text-align: center;
+  box-shadow: 0 3px 10px rgba(107, 63, 92, 0.3);
+  z-index: 20;
+  pointer-events: none;
+  overflow-wrap: break-word;
+  animation: seat-ring-bubble-pop 0.2s ease-out;
+}
+
+.seat-ring__chat-bubble::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 7px solid transparent;
+  border-right: 7px solid transparent;
+  border-top: 7px solid #ff6f91;
+}
+
+@keyframes seat-ring-bubble-pop {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(6px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+}
+
 .seat-ring__avatar-wrap {
   position: relative;
   display: inline-flex;
@@ -599,7 +651,8 @@
   .seat-ring__seat,
   .seat-ring__timer-ring,
   .seat-ring__timer-ring--urgent,
-  .seat-ring__avatar-wrap {
+  .seat-ring__avatar-wrap,
+  .seat-ring__chat-bubble {
     animation: none !important;
     transition: none !important;
   }

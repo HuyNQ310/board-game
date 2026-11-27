@@ -117,6 +117,7 @@ export function SeatRing({
   currentPlayerId,
   centerContent = null,
   turnDeadline,
+  chatBubbles = null,
 }) {
   const [prevTurnDeadline, setPrevTurnDeadline] = useState(turnDeadline);
   const [prevCurrentPlayerId, setPrevCurrentPlayerId] = useState(currentPlayerId);
@@ -231,6 +232,11 @@ export function SeatRing({
         aria-label={`${player.name}${isSelf ? ' (Bạn)' : ''}`}
         style={seatStyle}
       >
+        {chatBubbles?.[player.id] && (
+          <div className="seat-ring__chat-bubble" data-testid={`chat-bubble-${player.id}`} role="status">
+            {chatBubbles[player.id].text}
+          </div>
+        )}
         <div
           className={`seat-ring__avatar-wrap${hasActiveTimer ? ' seat-ring__avatar-wrap--timer' : ''}`}
           style={hasActiveTimer ? { '--ring-progress': `${ringProgress}%` } : undefined}
