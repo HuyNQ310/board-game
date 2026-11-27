@@ -206,9 +206,9 @@ describe('Handler: room:create', () => {
     };
 
     const fakeRoomStore = {
-      createRoom: async (playerId, name) => {
-        assert.equal(playerId, 'p1');
-        assert.equal(name, 'Alice');
+      createRoom: async ({ hostPlayerId, hostName }) => {
+        assert.equal(hostPlayerId, 'p1');
+        assert.equal(hostName, 'Alice');
         return fakeRoom;
       },
     };
@@ -218,7 +218,8 @@ describe('Handler: room:create', () => {
       broadcastState: fakeBroadcast,
     });
 
-    const socket = { id: 'sock-1', join: (c) => assert.equal(c, 'ABCDE') };
+    const joinedRooms = [];
+    const socket = { id: 'sock-1', join: (c) => joinedRooms.push(c) };
     const { ack, getCallCount, getResponse } = createTestAck();
 
     await handlers['room:create'](socket, { playerId: 'p1', name: 'Alice' }, ack);
@@ -230,6 +231,8 @@ describe('Handler: room:create', () => {
     assert.equal(socket.data.roomCode, 'ABCDE');
     assert.equal(socket.data.playerId, 'p1');
     assert.equal(broadcastedRoom, fakeRoom, 'broadcastState should be called with created room');
+    assert.ok(joinedRooms.includes('ABCDE'), 'socket should join the room code channel');
+    assert.ok(joinedRooms.includes('p1'), 'socket should join its own playerId channel for private game:state');
   });
 
   it('rejects invalid names with NAME_INVALID and does NOT broadcast state', async () => {
@@ -315,7 +318,7 @@ describe('Handler: room:join', () => {
 
     let broadcastedRoom = null;
     const fakeRoomStore = {
-      joinRoom: async (code, playerId, name) => {
+      joinRoom: async (code, { playerId, name }) => {
         assert.equal(code, 'ROOM1');
         assert.equal(playerId, 'p2');
         assert.equal(name, 'Guest');
@@ -328,7 +331,8 @@ describe('Handler: room:join', () => {
       broadcastState: (r) => { broadcastedRoom = r; },
     });
 
-    const socket = { id: 's2', join: (c) => assert.equal(c, 'ROOM1') };
+    const joinedRooms = [];
+    const socket = { id: 's2', join: (c) => joinedRooms.push(c) };
     const { ack, getCallCount, getResponse } = createTestAck();
 
     await handlers['room:join'](socket, { playerId: 'p2', name: 'Guest', code: 'room1' }, ack);
@@ -338,6 +342,8 @@ describe('Handler: room:join', () => {
     assert.equal(socket.roomCode, 'ROOM1');
     assert.equal(socket.playerId, 'p2');
     assert.equal(broadcastedRoom, fakeRoom);
+    assert.ok(joinedRooms.includes('ROOM1'), 'socket should join the room code channel');
+    assert.ok(joinedRooms.includes('p2'), 'socket should join its own playerId channel for private game:state');
   });
 
   it('handles ROOM_NOT_FOUND, ROOM_FULL, and ROOM_PLAYING errors without broadcasting', async () => {

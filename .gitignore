@@ -1,2 +1,3 @@
 .agy-sessions/
 node_modules/
+dist/

@@ -301,9 +301,9 @@ export function createHandlers(arg1 = {}, arg2 = {}) {
 
         const name = rawName.trim();
         const room = await invokeRoomStore(
-          roomStore.createRoom,
-          [playerId, name],
-          { playerId, name }
+          roomStore.createRoom.bind(roomStore),
+          [{ hostPlayerId: playerId, hostName: name }],
+          { hostPlayerId: playerId, hostName: name }
         );
 
         if (!room || !room.code) {
@@ -319,6 +319,7 @@ export function createHandlers(arg1 = {}, arg2 = {}) {
           socket.data.roomCode = room.code;
           if (typeof socket.join === 'function') {
             socket.join(room.code);
+            socket.join(playerId);
           }
         }
 
@@ -364,8 +365,8 @@ export function createHandlers(arg1 = {}, arg2 = {}) {
 
         await roomQueue.run(code, async () => {
           const room = await invokeRoomStore(
-            roomStore.joinRoom,
-            [code, playerId, name],
+            roomStore.joinRoom.bind(roomStore),
+            [code, { playerId, name }],
             { code, playerId, name, socketId }
           );
 
@@ -382,6 +383,7 @@ export function createHandlers(arg1 = {}, arg2 = {}) {
             socket.data.roomCode = room.code;
             if (typeof socket.join === 'function') {
               socket.join(room.code);
+              socket.join(playerId);
             }
           }
 
@@ -415,7 +417,7 @@ export function createHandlers(arg1 = {}, arg2 = {}) {
           let oldSocketId = null;
           if (typeof roomStore.getRoom === 'function') {
             try {
-              const prev = await invokeRoomStore(roomStore.getRoom, [code], { code });
+              const prev = await invokeRoomStore(roomStore.getRoom.bind(roomStore), [code], { code });
               const prevPlayer = prev?.players?.find(p => p.id === playerId);
               if (prevPlayer?.socketId) {
                 oldSocketId = prevPlayer.socketId;
@@ -424,7 +426,7 @@ export function createHandlers(arg1 = {}, arg2 = {}) {
           }
 
           const res = await invokeRoomStore(
-            roomStore.markReconnected,
+            roomStore.markReconnected.bind(roomStore),
             [code, playerId, socket?.id],
             { code, playerId, socketId: socket?.id }
           );
@@ -453,6 +455,7 @@ export function createHandlers(arg1 = {}, arg2 = {}) {
             socket.data.roomCode = room.code;
             if (typeof socket.join === 'function') {
               socket.join(room.code);
+              socket.join(playerId);
             }
           }
 
@@ -502,7 +505,7 @@ export function createHandlers(arg1 = {}, arg2 = {}) {
 
         await roomQueue.run(code, async () => {
           const room = await invokeRoomStore(
-            roomStore.leaveRoom,
+            roomStore.leaveRoom.bind(roomStore),
             [code, playerId],
             { code, playerId }
           );
@@ -552,7 +555,7 @@ export function createHandlers(arg1 = {}, arg2 = {}) {
 
         await roomQueue.run(code, async () => {
           const room = await invokeRoomStore(
-            roomStore.startGame,
+            roomStore.startGame.bind(roomStore),
             [code, playerId],
             { code, playerId }
           );
@@ -608,7 +611,7 @@ export function createHandlers(arg1 = {}, arg2 = {}) {
         const code = rawCode.trim().toUpperCase();
 
         await roomQueue.run(code, async () => {
-          const room = await invokeRoomStore(roomStore.getRoom, [code], { code });
+          const room = await invokeRoomStore(roomStore.getRoom.bind(roomStore), [code], { code });
           if (!room) {
             safeAck(toErrAck('ROOM_NOT_FOUND'));
             return;
@@ -685,7 +688,7 @@ export function createHandlers(arg1 = {}, arg2 = {}) {
 
         await roomQueue.run(code, async () => {
           const room = await invokeRoomStore(
-            roomStore.rematch,
+            roomStore.rematch.bind(roomStore),
             [code, playerId],
             { code, playerId }
           );

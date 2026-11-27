@@ -91,17 +91,6 @@ const createHandlers =
   handlersModule.default?.createHandlers ||
   handlersModule.default;
 
-const handlers =
-  typeof createHandlers === 'function'
-    ? createHandlers({
-        roomStore,
-        mapGameErrorToCode,
-        toErrorAck,
-        engine,
-        rng: Math.random,
-      })
-    : {};
-
 // Express app and HTTP server setup
 const app = express();
 const server = http.createServer(app);
@@ -111,6 +100,57 @@ const io = new SocketIOServer(server, {
     methods: ['GET', 'POST'],
   },
 });
+
+// ============================================================================
+// broadcastState: per rules.md section 6.4/6.5/6.6.
+// `room:state` goes to everyone in the room (public lobby/seat info).
+// `game:state` is PER-PLAYER PRIVATE (viewFor() hides other hands/deck/peek),
+// sent only to that player's own private channel. Each socket also joins a
+// room named after its own playerId (see server/handlers.mjs) so a player
+// can be targeted here even across reconnects/multiple tabs.
+// ============================================================================
+function buildRoomStatePayload(room) {
+  return {
+    code: room.code,
+    hostId: room.hostId,
+    status: room.status,
+    players: (room.players || []).map((p, i) => ({
+      id: p.id,
+      name: p.name,
+      connected: p.connected,
+      seat: i,
+    })),
+  };
+}
+
+async function broadcastState(room) {
+  if (!room || !room.code) return;
+  io.to(room.code).emit('room:state', buildRoomStatePayload(room));
+
+  if (room.game && typeof engine.viewFor === 'function') {
+    for (const player of room.players || []) {
+      try {
+        const view = engine.viewFor(room.game, player.id);
+        io.to(player.id).emit('game:state', { ...view, version: room.game.version });
+      } catch (err) {
+        console.error('broadcastState: viewFor failed for player', player.id, err);
+      }
+    }
+  }
+}
+
+const handlers =
+  typeof createHandlers === 'function'
+    ? createHandlers({
+        roomStore,
+        mapGameErrorToCode,
+        toErrorAck,
+        engine,
+        rng: Math.random,
+        broadcastState,
+        io,
+      })
+    : {};
 
 // Wire Socket.IO event handlers on connection
 io.on('connection', (socket) => {
