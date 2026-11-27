@@ -33,18 +33,39 @@ export function getSocket() {
  * @param {any} [payload]
  * @returns {Promise<{ ok: boolean, [key: string]: any }>}
  */
-export function emitWithAck(event, payload) {
+export function emitWithAck(event, payload, { timeoutMs = 8000, retries = 1 } = {}) {
   const socketInstance = getSocket();
-  return new Promise((resolve) => {
-    if (payload === undefined) {
-      socketInstance.emit(event, (ack) => {
-        resolve(ack);
+  const args = payload === undefined ? [event] : [event, payload];
+
+  const attempt = () =>
+    new Promise((resolve) => {
+      // Socket.IO's own `.timeout()` guarantees the callback always fires,
+      // even if the server's ack is ever dropped/delayed (network hiccup,
+      // a stalled handler, a reconnect race) -- without this, a lost ack
+      // would hang the caller's `await emitWithAck(...)` forever, freezing
+      // the UI with no error (observed in testing: a long multi-player
+      // match followed immediately by room:rematch + game:start could
+      // occasionally lose the second ack).
+      socketInstance.timeout(timeoutMs).emit(...args, (err, ack) => {
+        if (err) {
+          resolve({
+            ok: false,
+            code: 'SERVER_ERROR',
+            message: 'Hết thời gian chờ phản hồi từ máy chủ',
+            _timedOut: true,
+          });
+        } else {
+          resolve(ack);
+        }
       });
-    } else {
-      socketInstance.emit(event, payload, (ack) => {
-        resolve(ack);
-      });
+    });
+
+  return attempt().then((res) => {
+    if (res && res._timedOut && retries > 0) {
+      return emitWithAck(event, payload, { timeoutMs, retries: retries - 1 });
     }
+    if (res && res._timedOut) delete res._timedOut;
+    return res;
   });
 }
 

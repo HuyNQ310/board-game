@@ -8,6 +8,7 @@ import * as roomsModule from './rooms.mjs';
 import * as errorsModule from './errors.mjs';
 import * as engineModule from '../shared/engine.mjs';
 import * as handlersModule from './handlers.mjs';
+import { DisconnectTimers } from './timers.mjs';
 
 // ============================================================================
 // RoomStore Defensive Adapter
@@ -152,16 +153,111 @@ const handlers =
       })
     : {};
 
+// ============================================================================
+// Disconnect handling (rules.md section 5.4, D7, D8).
+// `server/timers.mjs` (DisconnectTimers) is fully unit-tested but was never
+// wired to a real socket event anywhere -- this is that wiring. On a real
+// socket disconnect, mark the player offline immediately, broadcast it, and
+// start a 120s grace timer. If the player reconnects (room:resume succeeds)
+// before it fires, the timer is cancelled. If it fires: lobby/finished ->
+// remove the player entirely (D7); playing -> eliminate via the engine (D8),
+// which also advances the turn if it was theirs.
+// ============================================================================
+const DISCONNECT_GRACE_MS = Number(process.env.DISCONNECT_GRACE_MS) || 120000;
+const disconnectTimers = new DisconnectTimers();
+
+function disconnectKey(code, playerId) {
+  return `${code}:${playerId}`;
+}
+
+function markPlayerConnected(room, playerId, connected) {
+  const player = room?.players?.find((p) => p.id === playerId);
+  if (player) player.connected = connected;
+  return player;
+}
+
+async function handlePlayerDisconnect(code, playerId) {
+  const room = roomStore.getRoom?.(code);
+  if (!room) return;
+  markPlayerConnected(room, playerId, false);
+  await broadcastState(room);
+
+  disconnectTimers.start(
+    disconnectKey(code, playerId),
+    async () => {
+      const current = roomStore.getRoom?.(code);
+      if (!current) return;
+      const player = current.players?.find((p) => p.id === playerId);
+      // Reconnected before the grace period ended -- nothing to do.
+      if (!player || player.connected) return;
+
+      try {
+        if (current.status === 'playing' && current.game && typeof engine.eliminatePlayer === 'function') {
+          current.game = engine.eliminatePlayer(current.game, playerId, 'disconnect', Math.random);
+          if (current.game.winnerId !== undefined && current.game.winnerId !== null) {
+            current.status = 'finished';
+          }
+        } else {
+          roomStore.leaveRoom?.(code, playerId);
+        }
+      } catch (err) {
+        console.error('disconnect grace period expiry error:', err);
+      }
+      await broadcastState(current);
+    },
+    DISCONNECT_GRACE_MS
+  );
+}
+
 // Wire Socket.IO event handlers on connection
 io.on('connection', (socket) => {
   if (handlers && typeof handlers === 'object') {
     for (const [eventName, handler] of Object.entries(handlers)) {
-      if (typeof handler === 'function') {
+      if (typeof handler !== 'function') continue;
+
+      if (eventName === 'room:resume') {
+        // Cancel any pending disconnect timer once a resume actually succeeds.
+        socket.on(eventName, (payload, ack) => {
+          const wrappedAck = (res) => {
+            if (res && res.ok) {
+              const playerId = payload?.playerId;
+              const code = typeof payload?.code === 'string' ? payload.code.trim().toUpperCase() : null;
+              if (playerId && code) disconnectTimers.cancel(disconnectKey(code, playerId));
+            }
+            if (typeof ack === 'function') ack(res);
+          };
+          handler(socket, payload, wrappedAck);
+        });
+      } else {
         socket.on(eventName, (payload, ack) => handler(socket, payload, ack));
       }
     }
   }
+
+  socket.on('disconnect', () => {
+    const playerId = socket.data?.playerId ?? socket.playerId;
+    const code = socket.data?.roomCode ?? socket.roomCode;
+    if (!playerId || !code) return;
+    handlePlayerDisconnect(code, playerId).catch((err) => {
+      console.error('handlePlayerDisconnect error:', err);
+    });
+  });
 });
+
+// ============================================================================
+// Periodic stale-room cleanup (rules.md section 7.4 / D13): every 60s, remove
+// rooms with zero connections whose lastActiveAt is older than 10 minutes.
+// ============================================================================
+const ROOM_CLEANUP_INTERVAL_MS = 60 * 1000;
+if (typeof roomStore.cleanupStaleRooms === 'function') {
+  setInterval(() => {
+    try {
+      roomStore.cleanupStaleRooms(Date.now());
+    } catch (err) {
+      console.error('cleanupStaleRooms error:', err);
+    }
+  }, ROOM_CLEANUP_INTERVAL_MS).unref();
+}
 
 // Health check endpoint (rules.md section 7.5)
 app.get('/healthz', (req, res) => {
