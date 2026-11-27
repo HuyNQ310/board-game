@@ -45,21 +45,23 @@
 }
 
 /* Decorative "cat cafe" play-mat background: moe palette (owner request) --
- * pastel mint-green mat, bubblegum-pink rail, sunny-yellow stitching, with
- * a cream paw-print pattern, instead of a casino-green felt. */
+ * a candy-pink mat is the dominant surface (any shade of green still reads
+ * as "casino felt" regardless of how pastel it is, so green is now only an
+ * accent -- the stitched edge -- not the main surface), sunny-yellow rail,
+ * cream paw-print pattern. */
 .seat-ring__felt {
   position: absolute;
   inset: 16px 10px;
   border-radius: 9999px;
   background:
-    radial-gradient(ellipse 65% 55% at 50% 40%, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.08) 55%, transparent 80%),
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 40 40'%3E%3Cg fill='%23FFF6E0' fill-opacity='0.45'%3E%3Cellipse cx='20' cy='27' rx='10' ry='8'/%3E%3Cellipse cx='9' cy='16' rx='4.3' ry='5.3'/%3E%3Cellipse cx='17' cy='9' rx='4.3' ry='5.3'/%3E%3Cellipse cx='25' cy='9' rx='4.3' ry='5.3'/%3E%3Cellipse cx='33' cy='16' rx='4.3' ry='5.3'/%3E%3C/g%3E%3C/svg%3E"),
-    radial-gradient(ellipse 85% 75% at 50% 44%, #d4f5df 0%, #a7e8bc 45%, #7ed9a1 75%, #5cc98a 100%);
-  border: 5px solid #ff6f91; /* Bubblegum-pink rail */
+    radial-gradient(ellipse 65% 55% at 50% 40%, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0.1) 55%, transparent 80%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 40 40'%3E%3Cg fill='%23FFF6E0' fill-opacity='0.5'%3E%3Cellipse cx='20' cy='27' rx='10' ry='8'/%3E%3Cellipse cx='9' cy='16' rx='4.3' ry='5.3'/%3E%3Cellipse cx='17' cy='9' rx='4.3' ry='5.3'/%3E%3Cellipse cx='25' cy='9' rx='4.3' ry='5.3'/%3E%3Cellipse cx='33' cy='16' rx='4.3' ry='5.3'/%3E%3C/g%3E%3C/svg%3E"),
+    radial-gradient(ellipse 85% 75% at 50% 44%, #ffe3ef 0%, #ffc3dc 45%, #ff9ec4 75%, #ff82b2 100%);
+  border: 5px solid #ffd166; /* Sunny-yellow rail */
   box-shadow:
-    inset 0 0 18px rgba(107, 63, 92, 0.2),
-    inset 0 0 0 3px rgba(255, 241, 200, 0.7), /* Sunny-yellow inlay trim */
-    0 4px 14px rgba(255, 111, 145, 0.25);
+    inset 0 0 18px rgba(107, 63, 92, 0.18),
+    inset 0 0 0 3px rgba(255, 246, 224, 0.8), /* Cream inlay trim */
+    0 4px 14px rgba(255, 209, 102, 0.3);
   pointer-events: none;
   z-index: 1;
 }
@@ -69,7 +71,7 @@
   position: absolute;
   inset: 11px;
   border-radius: 9999px;
-  border: 2px dashed rgba(255, 209, 102, 0.75); /* Sunny-yellow stitched edge */
+  border: 2px dashed rgba(76, 175, 109, 0.6); /* Green stitched edge accent */
   pointer-events: none;
   z-index: 0;
 }
@@ -525,8 +527,8 @@
     background:
       radial-gradient(ellipse 65% 55% at 50% 40%, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.02) 55%, transparent 80%),
       url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 40 40'%3E%3Cg fill='%23FFF1C8' fill-opacity='0.16'%3E%3Cellipse cx='20' cy='27' rx='10' ry='8'/%3E%3Cellipse cx='9' cy='16' rx='4.3' ry='5.3'/%3E%3Cellipse cx='17' cy='9' rx='4.3' ry='5.3'/%3E%3Cellipse cx='25' cy='9' rx='4.3' ry='5.3'/%3E%3Cellipse cx='33' cy='16' rx='4.3' ry='5.3'/%3E%3C/g%3E%3C/svg%3E"),
-      radial-gradient(ellipse 85% 75% at 50% 44%, #2f5d42 0%, #244a35 45%, #1a3627 75%, #112419 100%);
-    border-color: #ff8fa8;
+      radial-gradient(ellipse 85% 75% at 50% 44%, #5c2e42 0%, #4a2536 45%, #381c29 75%, #26121b 100%);
+    border-color: #ffd166;
     box-shadow:
       inset 0 0 24px rgba(0, 0, 0, 0.5),
       inset 0 0 0 3px rgba(255, 241, 200, 0.3),
@@ -563,8 +565,8 @@
   background:
     radial-gradient(ellipse 65% 55% at 50% 40%, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.02) 55%, transparent 80%),
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 40 40'%3E%3Cg fill='%23FFF1C8' fill-opacity='0.16'%3E%3Cellipse cx='20' cy='27' rx='10' ry='8'/%3E%3Cellipse cx='9' cy='16' rx='4.3' ry='5.3'/%3E%3Cellipse cx='17' cy='9' rx='4.3' ry='5.3'/%3E%3Cellipse cx='25' cy='9' rx='4.3' ry='5.3'/%3E%3Cellipse cx='33' cy='16' rx='4.3' ry='5.3'/%3E%3C/g%3E%3C/svg%3E"),
-    radial-gradient(ellipse 85% 75% at 50% 44%, #2f5d42 0%, #244a35 45%, #1a3627 75%, #112419 100%);
-  border-color: #ff8fa8;
+    radial-gradient(ellipse 85% 75% at 50% 44%, #5c2e42 0%, #4a2536 45%, #381c29 75%, #26121b 100%);
+  border-color: #ffd166;
   box-shadow:
     inset 0 0 24px rgba(0, 0, 0, 0.5),
     inset 0 0 0 3px rgba(255, 241, 200, 0.3),
