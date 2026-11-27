@@ -104,7 +104,7 @@
 /* Desktop screen layout (1024px+) */
 @media (min-width: 1024px) {
   .game-screen {
-    max-width: min(95vw, 1600px);
+    max-width: min(97vw, 1800px);
     padding: 8px 24px;
     gap: 6px;
   }

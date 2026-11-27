@@ -353,11 +353,13 @@
 @media (min-width: 480px) {
   .seat-ring__table {
     max-width: 560px;
-    height: clamp(245px, 34vh, 265px);
+    min-height: 245px;
+    max-height: 420px;
   }
 
   .seat-ring--dense .seat-ring__table {
-    height: clamp(260px, 36vh, 280px);
+    min-height: 260px;
+    max-height: 420px;
   }
 
   .seat-ring__seat {
@@ -394,11 +396,13 @@
 @media (min-width: 768px) {
   .seat-ring__table {
     max-width: 660px;
-    height: clamp(255px, 33vh, 285px);
+    min-height: 255px;
+    max-height: 460px;
   }
 
   .seat-ring--dense .seat-ring__table {
-    height: clamp(270px, 35vh, 300px);
+    min-height: 270px;
+    max-height: 460px;
   }
 
   .seat-ring__seat {
@@ -437,12 +441,14 @@
  * ------------------------------------------------------------- */
 @media (min-width: 1024px) {
   .seat-ring__table {
-    max-width: clamp(760px, 68vw, 1300px);
-    height: clamp(265px, 34vh, 320px);
+    max-width: clamp(760px, 72vw, 1500px);
+    min-height: 265px;
+    max-height: 600px;
   }
 
   .seat-ring--dense .seat-ring__table {
-    height: clamp(270px, 34vh, 300px);
+    min-height: 270px;
+    max-height: 600px;
   }
 
   .seat-ring__felt {
