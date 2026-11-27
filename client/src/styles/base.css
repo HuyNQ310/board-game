@@ -1,0 +1,121 @@
+/* ==========================================================================
+   Base Stylesheet: Global Reset, Palette Tokens, Typography
+   ========================================================================== */
+
+/* 1. Base Palette and Semantic Design Tokens */
+:root {
+  /* Raw Brand Colors (rules.md & card.md) */
+  --color-cream: #F6EFE2;
+  --color-ink: #2B2326;
+  --color-navy: #2E3A4B;
+
+  /* Semantic Tokens (Light mode default) */
+  --color-bg: var(--color-cream);
+  --color-surface: #FFFFFF;
+  --color-surface-subtle: #EDE4D4;
+  --color-text: var(--color-ink);
+  --color-text-muted: #6B6265;
+  --color-border: #D8CEBE;
+  --color-primary: var(--color-navy);
+  --color-primary-text: #FFFFFF;
+  --color-primary-hover: #1E2733;
+  --color-secondary-bg: #EDE4D4;
+  --color-secondary-text: var(--color-ink);
+  --color-secondary-hover: #D8CEBE;
+  --color-focus: var(--color-navy);
+
+  /* Typography */
+  --font-family-base: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+  --font-size-base: 16px;
+  --line-height-base: 1.5;
+
+  /* Touch Target Minimum (rules.md section 8.1) */
+  --touch-target-min: 44px;
+}
+
+/* 2. Dark Mode Semantic Tokens (Raw brand colors remain untouched) */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-bg: #1B181A;
+    --color-surface: #272225;
+    --color-surface-subtle: #352E32;
+    --color-text: #F6EFE2;
+    --color-text-muted: #BDB4AE;
+    --color-border: #453D42;
+    --color-primary: #3D4D63;
+    --color-primary-text: #F6EFE2;
+    --color-primary-hover: #4D607B;
+    --color-secondary-bg: #352E32;
+    --color-secondary-text: #F6EFE2;
+    --color-secondary-hover: #453D42;
+    --color-focus: #8FA6C8;
+  }
+}
+
+/* 3. Minimal CSS Reset */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: var(--font-size-base);
+  -webkit-text-size-adjust: 100%;
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-base);
+  color: var(--color-text);
+  background-color: var(--color-bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin: 0;
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+p {
+  margin: 0;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+/* 4. Reduced Motion Safety Net */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
