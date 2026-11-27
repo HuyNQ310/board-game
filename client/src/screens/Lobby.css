@@ -10,8 +10,8 @@
   flex-direction: column;
   min-height: 100vh;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-  color: #2b2326;
-  background-color: #f6efe2;
+  color: #4A3A42;
+  background-color: #FFF6E0;
 }
 
 .lobby-header {
@@ -23,7 +23,7 @@
   font-size: 1.75rem;
   font-weight: 800;
   margin: 0;
-  color: #2b2326;
+  color: #4A3A42;
   letter-spacing: -0.01em;
 }
 
@@ -50,7 +50,7 @@
   font-size: 0.85rem;
   font-weight: 600;
   text-transform: uppercase;
-  color: #635356;
+  color: #8A6B78;
   letter-spacing: 0.05em;
   margin-bottom: 0.25rem;
 }
@@ -59,7 +59,7 @@
   font-size: 2.25rem;
   font-weight: 800;
   letter-spacing: 0.25rem;
-  color: #c92a2a;
+  color: #FF6F91;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   margin: 0.25rem 0 0.875rem 0;
   user-select: all;
@@ -104,33 +104,33 @@
 .btn-action {
   flex: 1;
   background-color: #faf7f2;
-  color: #2b2326;
-  border: 1.5px solid #d4c8b5;
+  color: #4A3A42;
+  border: 1.5px solid #FFD9E3;
 }
 
 .btn-action:hover:not(:disabled) {
-  background-color: #f0e8dc;
-  border-color: #b5a48d;
+  background-color: #FFF1C8;
+  border-color: #FFD166;
 }
 
 .btn-primary {
-  background-color: #c92a2a;
+  background-color: #FF6F91;
   color: #ffffff;
 }
 
 .btn-primary:hover:not(:disabled) {
-  background-color: #a61e1e;
+  background-color: #FF4F7B;
 }
 
 .btn-outline {
   background-color: transparent;
-  color: #635356;
-  border: 1.5px solid #d4c8b5;
+  color: #8A6B78;
+  border: 1.5px solid #FFD9E3;
 }
 
 .btn-outline:hover:not(:disabled) {
-  background-color: #f0e8dc;
-  color: #2b2326;
+  background-color: #FFF1C8;
+  color: #4A3A42;
 }
 
 /* Players Section */
@@ -144,20 +144,20 @@
   align-items: center;
   margin-bottom: 0.75rem;
   padding-bottom: 0.5rem;
-  border-bottom: 1px solid #f0e8dc;
+  border-bottom: 1px solid #FFF1C8;
 }
 
 .lobby-players-title {
   font-size: 1.05rem;
   font-weight: 700;
   margin: 0;
-  color: #2b2326;
+  color: #4A3A42;
 }
 
 .lobby-player-count {
   font-size: 0.85rem;
   font-weight: 600;
-  color: #635356;
+  color: #8A6B78;
   background: #faf7f2;
   padding: 0.25rem 0.5rem;
   border-radius: 9999px;
@@ -209,7 +209,7 @@
 .player-name {
   font-size: 0.95rem;
   font-weight: 600;
-  color: #2b2326;
+  color: #4A3A42;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -276,7 +276,7 @@
 .lobby-disabled-reason {
   margin: 0.5rem 0 0 0;
   font-size: 0.85rem;
-  color: #c92a2a;
+  color: #FF6F91;
   text-align: center;
   display: flex;
   align-items: center;
@@ -304,7 +304,7 @@
   margin: 0;
   font-size: 0.95rem;
   font-weight: 600;
-  color: #635356;
+  color: #8A6B78;
 }
 
 .lobby-btn-leave {

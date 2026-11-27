@@ -3,8 +3,8 @@
 .peek-panel {
   display: flex;
   flex-direction: column;
-  background-color: #2e3a4b;
-  color: #f6efe2;
+  background-color: #6B3F5C;
+  color: #FFF6E0;
   border: 2px solid #3498db;
   border-radius: 12px;
   padding: 14px 16px;
@@ -107,8 +107,8 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  background-color: #f6efe2;
-  color: #2b2326;
+  background-color: #FFF6E0;
+  color: #4A3A42;
   border: 1px solid #d1c5b8;
   border-left-width: 6px;
   border-radius: 6px;

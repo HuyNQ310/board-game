@@ -26,8 +26,8 @@
 }
 
 .defuse-dialog {
-  background-color: #2b2326;
-  color: #f6efe2;
+  background-color: #4A3A42;
+  color: #FFF6E0;
   border: 2px solid #e74c3c;
   border-radius: 14px;
   width: 100%;
@@ -154,7 +154,7 @@
 }
 
 .defuse-dialog__slider-label--top {
-  color: #f39c12;
+  color: #FFD166;
 }
 
 .defuse-dialog__slider-label--bottom {

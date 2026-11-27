@@ -2,30 +2,41 @@
    Base Stylesheet: Global Reset, Palette Tokens, Typography
    ========================================================================== */
 
-/* 1. Base Palette and Semantic Design Tokens */
+/* 1. Base Palette and Semantic Design Tokens
+ * Moe/kawaii theme (owner request): pink + yellow + green as the main
+ * colors, rounded "cute" fonts, instead of the earlier cream/navy look. */
 :root {
-  /* Raw Brand Colors (rules.md & card.md) */
-  --color-cream: #F6EFE2;
-  --color-ink: #2B2326;
-  --color-navy: #2E3A4B;
+  /* Raw Brand Colors */
+  --color-cream: #FFF6E0;
+  --color-ink: #4A3A42;
+  --color-navy: #6B3F5C; /* Deep plum -- the old "navy" accent's cute replacement */
+  --color-pink: #FF6F91;
+  --color-pink-strong: #FF4F7B;
+  --color-pink-soft: #FFE1EB;
+  --color-yellow: #FFD166;
+  --color-yellow-soft: #FFF1C8;
+  --color-green: #4CAF6D;
+  --color-green-soft: #E8FBEE;
 
   /* Semantic Tokens (Light mode default) */
   --color-bg: var(--color-cream);
   --color-surface: #FFFFFF;
-  --color-surface-subtle: #EDE4D4;
+  --color-surface-subtle: var(--color-yellow-soft);
   --color-text: var(--color-ink);
-  --color-text-muted: #6B6265;
-  --color-border: #D8CEBE;
-  --color-primary: var(--color-navy);
+  --color-text-muted: #937E89;
+  --color-border: #FFD9E3;
+  --color-primary: var(--color-pink);
   --color-primary-text: #FFFFFF;
-  --color-primary-hover: #1E2733;
-  --color-secondary-bg: #EDE4D4;
+  --color-primary-hover: var(--color-pink-strong);
+  --color-secondary-bg: var(--color-yellow-soft);
   --color-secondary-text: var(--color-ink);
-  --color-secondary-hover: #D8CEBE;
-  --color-focus: var(--color-navy);
+  --color-secondary-hover: var(--color-yellow);
+  --color-focus: var(--color-green);
 
-  /* Typography */
-  --font-family-base: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+  /* Typography -- Baloo 2 for a bubbly/moe display feel, Nunito (rounded,
+   * full Vietnamese diacritic support) for everyday readable body text */
+  --font-family-display: 'Baloo 2', 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-family-base: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
   --font-size-base: 16px;
   --line-height-base: 1.5;
 
@@ -36,19 +47,19 @@
 /* 2. Dark Mode Semantic Tokens (Raw brand colors remain untouched) */
 @media (prefers-color-scheme: dark) {
   :root {
-    --color-bg: #1B181A;
-    --color-surface: #272225;
-    --color-surface-subtle: #352E32;
-    --color-text: #F6EFE2;
-    --color-text-muted: #BDB4AE;
-    --color-border: #453D42;
-    --color-primary: #3D4D63;
-    --color-primary-text: #F6EFE2;
-    --color-primary-hover: #4D607B;
-    --color-secondary-bg: #352E32;
-    --color-secondary-text: #F6EFE2;
-    --color-secondary-hover: #453D42;
-    --color-focus: #8FA6C8;
+    --color-bg: #241A20;
+    --color-surface: #2F2128;
+    --color-surface-subtle: #3B2A32;
+    --color-text: #FFF1C8;
+    --color-text-muted: #C9A8B8;
+    --color-border: #4A3340;
+    --color-primary: #FF8FA8;
+    --color-primary-text: #2F2128;
+    --color-primary-hover: #FFA7BC;
+    --color-secondary-bg: #3B2A32;
+    --color-secondary-text: #FFF1C8;
+    --color-secondary-hover: #4A3340;
+    --color-focus: #7ED994;
   }
 }
 
@@ -92,6 +103,7 @@ h6 {
   margin: 0;
   font-size: inherit;
   font-weight: inherit;
+  font-family: var(--font-family-display);
 }
 
 p {
@@ -100,6 +112,7 @@ p {
 
 button {
   font: inherit;
+  font-family: var(--font-family-display);
   color: inherit;
   background: none;
   border: none;

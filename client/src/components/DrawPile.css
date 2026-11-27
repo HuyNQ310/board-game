@@ -10,7 +10,7 @@
   width: 50px;
   height: 68px;
   border-radius: 6px;
-  background-color: #2e3a4b;
+  background-color: #6B3F5C;
   border: 1.5px solid #1f2733;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3), 1px 1px 0 #1b222d, 2px 2px 0 #121820;
   display: flex;
@@ -42,7 +42,7 @@
 
 .draw-pile__badge {
   background-color: rgba(255, 255, 255, 0.92);
-  color: #2e3a4b;
+  color: #6B3F5C;
   font-weight: bold;
   font-size: 11px;
   padding: 1px 5px;
@@ -62,7 +62,7 @@
 .draw-pile__label {
   font-size: 10.5px;
   font-weight: 600;
-  color: #f6efe2;
+  color: #FFF6E0;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
   white-space: nowrap;
 }

@@ -26,8 +26,8 @@
 }
 
 .help-modal-dialog {
-  background-color: #2e3a4b;
-  color: #f6efe2;
+  background-color: #6B3F5C;
+  color: #FFF6E0;
   border: 2px solid #3c4b5e;
   border-radius: 12px;
   width: 100%;
@@ -196,7 +196,7 @@
 }
 
 .help-modal-card-row--attack {
-  border-left-color: #e67e22;
+  border-left-color: #FF6F91;
 }
 
 .help-modal-card-row--skip {

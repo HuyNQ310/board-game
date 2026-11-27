@@ -26,8 +26,8 @@
 }
 
 .target-picker-dialog {
-  background-color: #2e3a4b;
-  color: #f6efe2;
+  background-color: #6B3F5C;
+  color: #FFF6E0;
   border: 2px solid #3c4b5e;
   border-radius: 12px;
   width: 100%;
@@ -117,7 +117,7 @@
 
 .target-picker-item__btn:hover {
   background-color: #4a5d77;
-  border-color: #f39c12;
+  border-color: #FFD166;
   transform: translateX(2px);
 }
 

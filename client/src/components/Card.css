@@ -4,59 +4,59 @@
  */
 
 :root {
-  --card-bg: #F6EFE2;
-  --card-ink: #2B2326;
-  --card-border: #D8CEBE;
-  --card-shadow: rgba(0, 0, 0, 0.12);
+  --card-bg: #FFF6E0;
+  --card-ink: #4A3A42;
+  --card-border: #FFD9E3;
+  --card-shadow: rgba(107, 63, 92, 0.16);
   --card-inner-frame-bg: #FFFFFF;
-  --card-inner-frame-border: #E5DAC9;
-  --card-rule-bg: #EDE4D3;
-  --card-rule-border: #D8CEBE;
-  --card-rule-text: #2B2326;
-  --card-back-bg: #2E3A4B;
-  --card-back-border: #4A5D77;
-  --card-select-ring: #2B2326;
-  --card-select-badge-bg: #2B2326;
+  --card-inner-frame-border: #FFE1EB;
+  --card-rule-bg: #FFF1C8;
+  --card-rule-border: #FFD9E3;
+  --card-rule-text: #4A3A42;
+  --card-back-bg: #6B3F5C;
+  --card-back-border: #FF8FA8;
+  --card-select-ring: #FF6F91;
+  --card-select-badge-bg: #FF6F91;
   --card-select-badge-fg: #FFFFFF;
 }
 
 /* Dark mode support per rules.md & acceptance criteria */
 @media (prefers-color-scheme: dark) {
   :root {
-    --card-bg: #252022;
-    --card-ink: #F6EFE2;
-    --card-border: #443B3E;
+    --card-bg: #2F2128;
+    --card-ink: #FFF1C8;
+    --card-border: #4A3340;
     --card-shadow: rgba(0, 0, 0, 0.45);
-    --card-inner-frame-bg: #1B1819;
-    --card-inner-frame-border: #3D3538;
-    --card-rule-bg: #2E272A;
-    --card-rule-border: #443B3E;
-    --card-rule-text: #F6EFE2;
-    --card-back-bg: #1B232E;
-    --card-back-border: #38465A;
-    --card-select-ring: #F6EFE2;
-    --card-select-badge-bg: #F6EFE2;
-    --card-select-badge-fg: #252022;
+    --card-inner-frame-bg: #241A20;
+    --card-inner-frame-border: #4A3340;
+    --card-rule-bg: #3B2A32;
+    --card-rule-border: #4A3340;
+    --card-rule-text: #FFF1C8;
+    --card-back-bg: #6B3F5C;
+    --card-back-border: #FF8FA8;
+    --card-select-ring: #FF8FA8;
+    --card-select-badge-bg: #FF8FA8;
+    --card-select-badge-fg: #2F2128;
   }
 }
 
 /* Class-based dark mode override if app sets data-theme="dark" or .dark */
 [data-theme='dark'] .card,
 .dark .card {
-  --card-bg: #252022;
-  --card-ink: #F6EFE2;
-  --card-border: #443B3E;
+  --card-bg: #2F2128;
+  --card-ink: #FFF1C8;
+  --card-border: #4A3340;
   --card-shadow: rgba(0, 0, 0, 0.45);
-  --card-inner-frame-bg: #1B1819;
-  --card-inner-frame-border: #3D3538;
-  --card-rule-bg: #2E272A;
-  --card-rule-border: #443B3E;
-  --card-rule-text: #F6EFE2;
-  --card-back-bg: #1B232E;
-  --card-back-border: #38465A;
-  --card-select-ring: #F6EFE2;
-  --card-select-badge-bg: #F6EFE2;
-  --card-select-badge-fg: #252022;
+  --card-inner-frame-bg: #241A20;
+  --card-inner-frame-border: #4A3340;
+  --card-rule-bg: #3B2A32;
+  --card-rule-border: #4A3340;
+  --card-rule-text: #FFF1C8;
+  --card-back-bg: #6B3F5C;
+  --card-back-border: #FF8FA8;
+  --card-select-ring: #FF8FA8;
+  --card-select-badge-bg: #FF8FA8;
+  --card-select-badge-fg: #2F2128;
 }
 
 /* -------------------------------------------------------------
