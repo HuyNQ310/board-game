@@ -30,6 +30,7 @@ import TargetPicker from './components/TargetPicker.jsx';
 import DefuseDialog from './components/DefuseDialog.jsx';
 import PeekPanel from './components/PeekPanel.jsx';
 import Toast from './components/Toast.jsx';
+import Chat from './components/Chat.jsx';
 
 // Rule descriptions for cards (rules.md section 4.1 & card.md)
 const CARD_RULES_VI = {
@@ -79,6 +80,7 @@ function AppContent() {
     }
   });
   const [isReconnecting, setIsReconnecting] = useState(false);
+  const [chatMessages, setChatMessages] = useState([]);
 
   // Local UI-only interaction state
   const [selectedCardIds, setSelectedCardIds] = useState(() => new Set());
@@ -208,12 +210,17 @@ function AppContent() {
       setIsReconnecting(true);
     };
 
+    const handleChatMessage = (msg) => {
+      setChatMessages((prev) => [...prev, msg]);
+    };
+
     socket.on('room:state', handleRoomState);
     socket.on('game:state', handleGameState);
     socket.on('game:error', handleGameError);
     socket.on('session:replaced', handleSessionReplaced);
     socket.on('connect', handleConnect);
     socket.on('disconnect', handleDisconnect);
+    socket.on('chat:message', handleChatMessage);
 
     if (socket.connected) {
       setSocketConnected(true);
@@ -227,8 +234,13 @@ function AppContent() {
       socket.off('session:replaced', handleSessionReplaced);
       socket.off('connect', handleConnect);
       socket.off('disconnect', handleDisconnect);
+      socket.off('chat:message', handleChatMessage);
     };
   }, [dispatch, strings]);
+
+  const handleSendChat = useCallback((text) => {
+    emitWithAck('chat:message', { text }).catch(() => {});
+  }, []);
 
   // Derived toast message & dismiss callback
   const toastText = useMemo(() => {
@@ -363,6 +375,7 @@ function AppContent() {
       await emitWithAck('room:leave', {});
     } catch {}
     clearStoredRoomCode();
+    setChatMessages([]);
     dispatch({ type: ACTION_TYPES.ROOM_STATE_RECEIVED, payload: null });
   }, [dispatch]);
 
@@ -896,6 +909,20 @@ function AppContent() {
     [strings]
   );
 
+  const chatT = useMemo(
+    () => ({
+      chatTitle: 'Trò chuyện',
+      chatPlaceholder: 'Nhập tin nhắn...',
+      chatSendButton: 'Gửi',
+      chatEmpty: 'Chưa có tin nhắn nào',
+      chatYou: 'Bạn',
+      chatInputAriaLabel: 'Nội dung tin nhắn',
+      chatRegionAriaLabel: 'Hộp trò chuyện',
+      chatListAriaLabel: 'Danh sách tin nhắn',
+    }),
+    []
+  );
+
   // ==========================================================================
   // RENDER CURRENT SCREEN
   // ==========================================================================
@@ -1052,6 +1079,14 @@ function AppContent() {
               onInsertAtChange={setInsertAt}
               onConfirm={handleConfirmDefuse}
               t={defuseT}
+            />
+
+            {/* Real-time chat */}
+            <Chat
+              messages={chatMessages}
+              myPlayerId={myPlayerId}
+              onSend={handleSendChat}
+              t={chatT}
             />
           </Game>
         );
