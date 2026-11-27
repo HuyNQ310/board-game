@@ -505,11 +505,28 @@ export function createHandlers(arg1 = {}, arg2 = {}) {
         const code = rawCode.trim().toUpperCase();
 
         await roomQueue.run(code, async () => {
-          const room = await invokeRoomStore(
-            roomStore.leaveRoom.bind(roomStore),
-            [code, playerId],
-            { code, playerId }
-          );
+          const existing = typeof roomStore.getRoom === 'function' ? await roomStore.getRoom(code) : null;
+          const isMidGame = existing?.status === 'playing' && existing.game && typeof engine?.eliminatePlayer === 'function';
+
+          let room;
+          if (isMidGame) {
+            // Leaving mid-game must eliminate the player in the engine too --
+            // simply splicing them out of room.players (what roomStore.leaveRoom
+            // does) would leave the engine's turn order/hand referencing a
+            // playerId no one can act for, stalling the game for everyone else.
+            // Mirrors the disconnect-grace-period elimination path in index.mjs.
+            existing.game = engine.eliminatePlayer(existing.game, playerId, 'left', rng);
+            if (existing.game.winnerId !== undefined && existing.game.winnerId !== null) {
+              existing.status = 'finished';
+            }
+            room = existing;
+          } else {
+            room = await invokeRoomStore(
+              roomStore.leaveRoom.bind(roomStore),
+              [code, playerId],
+              { code, playerId }
+            );
+          }
 
           if (socket) {
             if (typeof socket.leave === 'function') {

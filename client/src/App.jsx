@@ -1060,6 +1060,37 @@ function AppContent() {
               ) : null
             }
           >
+            {/* Leave room trigger (mid-game) -- there was previously no way to
+                leave once a match started; leaving here eliminates the player
+                in the engine (see server room:leave handler) so the match
+                stays consistent for everyone else. */}
+            <button
+              type="button"
+              onClick={() => {
+                if (window.confirm('Rời trận đấu? Bạn sẽ bị loại khỏi ván này.')) {
+                  handleLeaveRoom();
+                }
+              }}
+              aria-label="Rời trận đấu"
+              title="Rời trận đấu"
+              style={{
+                position: 'fixed',
+                top: '12px',
+                right: '64px',
+                zIndex: 40,
+                width: '44px',
+                height: '44px',
+                borderRadius: '50%',
+                border: '2px solid #2B2326',
+                backgroundColor: '#F6EFE2',
+                color: '#2B2326',
+                fontSize: '1.2rem',
+                cursor: 'pointer',
+              }}
+            >
+              🚪
+            </button>
+
             {/* Help / how-to-play trigger */}
             <button
               type="button"

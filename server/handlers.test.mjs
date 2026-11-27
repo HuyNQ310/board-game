@@ -624,6 +624,88 @@ describe('Handler: room:leave', () => {
     });
     assert.equal(broadcastCalled, false);
   });
+
+  it('eliminates the player in the engine (not roomStore.leaveRoom) when leaving mid-game, so the engine turn order stays consistent for everyone else', async () => {
+    const fakeGame = { phase: 'play', currentPlayerId: 'p1', winnerId: null };
+    const fakeRoom = {
+      code: 'LEAVE2',
+      hostId: 'p1',
+      status: 'playing',
+      game: fakeGame,
+      players: [
+        { id: 'p1', name: 'Alice', connected: true },
+        { id: 'p2', name: 'Bob', connected: true },
+      ],
+    };
+
+    let broadcastedRoom = null;
+    let leaveRoomCalled = false;
+    let eliminateArgs = null;
+    const eliminatedGame = { phase: 'play', currentPlayerId: 'p2', winnerId: null };
+
+    const fakeRoomStore = {
+      getRoom: (code) => (code === 'LEAVE2' ? fakeRoom : null),
+      leaveRoom: async () => { leaveRoomCalled = true; },
+    };
+
+    const fakeEngine = {
+      eliminatePlayer: (game, playerId, reason, rngFn) => {
+        eliminateArgs = { game, playerId, reason, hasRng: typeof rngFn === 'function' };
+        return eliminatedGame;
+      },
+    };
+
+    const handlers = createHandlers({
+      roomStore: fakeRoomStore,
+      engine: fakeEngine,
+      broadcastState: (r) => { broadcastedRoom = r; },
+    });
+
+    const socket = {
+      id: 's1',
+      data: { playerId: 'p1', roomCode: 'LEAVE2' },
+      leave: () => {},
+    };
+
+    const { ack, getResponse } = createTestAck();
+    await handlers['room:leave'](socket, {}, ack);
+
+    assert.deepEqual(getResponse(), { ok: true });
+    assert.equal(leaveRoomCalled, false);
+    assert.deepEqual(eliminateArgs?.game, fakeGame);
+    assert.equal(eliminateArgs?.playerId, 'p1');
+    assert.equal(eliminateArgs?.hasRng, true);
+    assert.equal(fakeRoom.game, eliminatedGame);
+    assert.equal(broadcastedRoom, fakeRoom);
+  });
+
+  it('marks the room finished when eliminating the leaving player ends the game', async () => {
+    const fakeRoom = {
+      code: 'LEAVE3',
+      status: 'playing',
+      game: { phase: 'play', currentPlayerId: 'p1', winnerId: null },
+      players: [{ id: 'p1' }, { id: 'p2' }],
+    };
+
+    const fakeEngine = {
+      eliminatePlayer: () => ({ phase: 'over', currentPlayerId: null, winnerId: 'p2' }),
+    };
+
+    let broadcastedRoom = null;
+    const handlers = createHandlers({
+      roomStore: { getRoom: () => fakeRoom, leaveRoom: async () => {} },
+      engine: fakeEngine,
+      broadcastState: (r) => { broadcastedRoom = r; },
+    });
+
+    const socket = { id: 's1', data: { playerId: 'p1', roomCode: 'LEAVE3' }, leave: () => {} };
+    const { ack, getResponse } = createTestAck();
+    await handlers['room:leave'](socket, {}, ack);
+
+    assert.deepEqual(getResponse(), { ok: true });
+    assert.equal(fakeRoom.status, 'finished');
+    assert.equal(broadcastedRoom.game.winnerId, 'p2');
+  });
 });
 
 describe('Handler: game:start', () => {
