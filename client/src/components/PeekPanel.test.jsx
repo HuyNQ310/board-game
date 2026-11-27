@@ -20,19 +20,19 @@ describe('PeekPanel', () => {
     it('renders nothing when peek is null', () => {
       const { container } = render(<PeekPanel peek={null} />);
       expect(container.firstChild).toBeNull();
-      expect(screen.queryByRole('region')).toBeNull();
+      expect(screen.queryByRole('dialog')).toBeNull();
     });
 
     it('renders nothing when peek is undefined (default prop)', () => {
       const { container } = render(<PeekPanel />);
       expect(container.firstChild).toBeNull();
-      expect(screen.queryByRole('region')).toBeNull();
+      expect(screen.queryByRole('dialog')).toBeNull();
     });
 
     it('renders nothing when peek is an empty array', () => {
       const { container } = render(<PeekPanel peek={[]} />);
       expect(container.firstChild).toBeNull();
-      expect(screen.queryByRole('region')).toBeNull();
+      expect(screen.queryByRole('dialog')).toBeNull();
     });
   });
 
@@ -43,7 +43,7 @@ describe('PeekPanel', () => {
       render(<PeekPanel peek={peekCards} />);
 
       // Region and heading should exist
-      const region = screen.getByRole('region');
+      const region = screen.getByRole('dialog');
       expect(region).toBeDefined();
       expect(screen.getByText('Nhìn trước 3 lá bài')).toBeDefined();
 

@@ -470,6 +470,29 @@ function AppContent() {
     }
   }, [gameState?.log, myPlayerId, mergedGamePlayers, dispatch]);
 
+  // PeekPanel is now a closable modal (previously an inline panel with no
+  // close action). `gameState.peek` is a NEW object/array reference on every
+  // broadcastState call (viewFor spreads it fresh each time) even when this
+  // player hasn't peeked again, so re-opening on "peek truthy" directly would
+  // pop the dialog back open after the player closed it, on literally any
+  // other player's next action. Instead, track dismissal and only reset it
+  // when a genuinely new 'peek' log entry for this player appears.
+  const [peekDismissed, setPeekDismissed] = useState(false);
+  const lastSeenPeekLogLengthRef = useRef(0);
+  useEffect(() => {
+    const log = gameState?.log;
+    if (!Array.isArray(log)) return;
+    if (log.length < lastSeenPeekLogLengthRef.current) {
+      lastSeenPeekLogLengthRef.current = log.length;
+      return;
+    }
+    const newEntries = log.slice(lastSeenPeekLogLengthRef.current);
+    lastSeenPeekLogLengthRef.current = log.length;
+    if (newEntries.some((entry) => entry?.type === 'peek' && entry.actor === myPlayerId)) {
+      setPeekDismissed(false);
+    }
+  }, [gameState?.log, myPlayerId]);
+
   const isMyTurn =
     gameState?.phase === 'play' &&
     gameState?.currentPlayerId === myPlayerId &&
@@ -987,6 +1010,7 @@ function AppContent() {
       peekTitle: strings.peekPanel?.title || 'Nhìn trước (3 lá trên cùng)',
       peekSubtitle: 'Thứ tự từ trên xuống dưới của bộ rút:',
       peekAriaLabel: strings.peekPanel?.title || 'Nhìn trước (3 lá trên cùng)',
+      close: 'Đóng',
     }),
     [strings]
   );
@@ -1193,10 +1217,13 @@ function AppContent() {
               </div>
             )}
 
-            {/* PeekPanel preview modal */}
-            {gameState?.peek && Array.isArray(gameState.peek) && (
+            {/* PeekPanel preview modal -- shares the same turn clock, does
+                not grant extra time; dismissible without ending the turn */}
+            {gameState?.peek && Array.isArray(gameState.peek) && !peekDismissed && (
               <PeekPanel
                 peek={gameState.peek}
+                turnDeadline={isMyTurn ? gameState?.turnDeadline : null}
+                onClose={() => setPeekDismissed(true)}
                 t={peekPanelT}
                 renderCard={renderCard}
               />
