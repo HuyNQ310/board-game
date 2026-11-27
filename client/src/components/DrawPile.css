@@ -1,0 +1,70 @@
+.draw-pile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  user-select: none;
+}
+
+.draw-pile__card {
+  width: 75px;
+  height: 105px;
+  border-radius: 8px;
+  background-color: #2e3a4b;
+  border: 2px solid #1f2733;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.25), 2px 2px 0 #1b222d, 4px 4px 0 #121820;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.draw-pile__pattern {
+  position: absolute;
+  inset: 4px;
+  border: 1px dashed rgba(255, 255, 255, 0.25);
+  border-radius: 5px;
+  pointer-events: none;
+}
+
+.draw-pile__card-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  z-index: 1;
+}
+
+.draw-pile__icon {
+  font-size: 20px;
+}
+
+.draw-pile__badge {
+  background-color: rgba(255, 255, 255, 0.9);
+  color: #2e3a4b;
+  font-weight: bold;
+  font-size: 14px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  min-width: 20px;
+  text-align: center;
+}
+
+.draw-pile__info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.2;
+}
+
+.draw-pile__label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #2b2326;
+}
+
+.draw-pile__count {
+  font-size: 11px;
+  color: #666666;
+}

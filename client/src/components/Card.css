@@ -1,0 +1,327 @@
+/**
+ * Card Component Styles
+ * Conforms strictly to card.md ("Quy cách chung" and per-card table) & rules.md (8.1, 8.2).
+ */
+
+:root {
+  --card-bg: #F6EFE2;
+  --card-ink: #2B2326;
+  --card-border: #D8CEBE;
+  --card-shadow: rgba(0, 0, 0, 0.12);
+  --card-inner-frame-bg: #FFFFFF;
+  --card-inner-frame-border: #E5DAC9;
+  --card-rule-bg: #EDE4D3;
+  --card-rule-border: #D8CEBE;
+  --card-rule-text: #2B2326;
+  --card-back-bg: #2E3A4B;
+  --card-back-border: #4A5D77;
+  --card-select-ring: #2B2326;
+  --card-select-badge-bg: #2B2326;
+  --card-select-badge-fg: #FFFFFF;
+}
+
+/* Dark mode support per rules.md & acceptance criteria */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --card-bg: #252022;
+    --card-ink: #F6EFE2;
+    --card-border: #443B3E;
+    --card-shadow: rgba(0, 0, 0, 0.45);
+    --card-inner-frame-bg: #1B1819;
+    --card-inner-frame-border: #3D3538;
+    --card-rule-bg: #2E272A;
+    --card-rule-border: #443B3E;
+    --card-rule-text: #F6EFE2;
+    --card-back-bg: #1B232E;
+    --card-back-border: #38465A;
+    --card-select-ring: #F6EFE2;
+    --card-select-badge-bg: #F6EFE2;
+    --card-select-badge-fg: #252022;
+  }
+}
+
+/* Class-based dark mode override if app sets data-theme="dark" or .dark */
+[data-theme='dark'] .card,
+.dark .card {
+  --card-bg: #252022;
+  --card-ink: #F6EFE2;
+  --card-border: #443B3E;
+  --card-shadow: rgba(0, 0, 0, 0.45);
+  --card-inner-frame-bg: #1B1819;
+  --card-inner-frame-border: #3D3538;
+  --card-rule-bg: #2E272A;
+  --card-rule-border: #443B3E;
+  --card-rule-text: #F6EFE2;
+  --card-back-bg: #1B232E;
+  --card-back-border: #38465A;
+  --card-select-ring: #F6EFE2;
+  --card-select-badge-bg: #F6EFE2;
+  --card-select-badge-fg: #252022;
+}
+
+/* -------------------------------------------------------------
+ * Card Container (Poker aspect ratio 2.5 : 3.5 = 5 : 7)
+ * ------------------------------------------------------------- */
+.card {
+  position: relative;
+  box-sizing: border-box;
+  width: 100%;
+  aspect-ratio: 2.5 / 3.5;
+  background-color: var(--card-bg);
+  color: var(--card-ink);
+  border: 1.5px solid var(--card-border);
+  border-radius: 10px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: 0 4px 10px var(--card-shadow);
+  user-select: none;
+  -webkit-user-select: none;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  transition: transform 0.2s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.2s cubic-bezier(0.2, 0, 0, 1), opacity 0.2s ease;
+  container-type: inline-size;
+}
+
+/* -------------------------------------------------------------
+ * Face-down Card Back
+ * Navy #2E3A4B background, tile pattern, NO text, NO group color/icon
+ * ------------------------------------------------------------- */
+.card--face-down {
+  background-color: var(--card-back-bg);
+  border-color: var(--card-back-border);
+  padding: 0;
+}
+
+.card__back {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* -------------------------------------------------------------
+ * 1. Name Strip (~12-14% of card height)
+ * Background = card's group color, bold white text
+ * ------------------------------------------------------------- */
+.card__name-strip {
+  height: 13%;
+  min-height: 24px;
+  background-color: var(--card-strip-color, #2B2326);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 28px 0 34px; /* Room on left for overlapping group icon */
+  box-sizing: border-box;
+  position: relative;
+  z-index: 1;
+}
+
+.card__label {
+  color: #FFFFFF;
+  font-weight: 700;
+  font-size: clamp(0.7rem, 9cqi, 0.95rem);
+  letter-spacing: 0.02em;
+  text-transform: capitalize;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+  line-height: 1.1;
+}
+
+/* -------------------------------------------------------------
+ * 3. Group Icon Shape (Top-left corner, overlapping the name strip)
+ * Distinct shape per group, white framed badge
+ * ------------------------------------------------------------- */
+.card__group-icon {
+  position: absolute;
+  top: 4px;
+  left: 5px;
+  width: clamp(20px, 18cqi, 26px);
+  height: clamp(20px, 18cqi, 26px);
+  border-radius: 50%;
+  background-color: #FFFFFF;
+  color: var(--card-strip-color, #2B2326);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  border: 1.5px solid var(--card-strip-color, #2B2326);
+  z-index: 3;
+  pointer-events: none;
+}
+
+.card__group-icon svg {
+  width: 65%;
+  height: 65%;
+  display: block;
+}
+
+/* -------------------------------------------------------------
+ * 2. Illustration Area (~55% of card height)
+ * Rounded-corner inner frame, containing hand-drawn illustration
+ * ------------------------------------------------------------- */
+.card__illustration-area {
+  height: 57%;
+  padding: 4px 6px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.card__illustration-frame {
+  width: 100%;
+  height: 100%;
+  border-radius: 8px;
+  border: 1.2px solid var(--card-inner-frame-border);
+  background-color: var(--card-inner-frame-bg);
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 4px;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.card__illustration-svg {
+  width: 100%;
+  height: 100%;
+  max-height: 100%;
+  display: block;
+  object-fit: contain;
+}
+
+/* -------------------------------------------------------------
+ * 4. Rule Box (At bottom, cream background, black text, max 2 lines)
+ * ------------------------------------------------------------- */
+.card__rule-box {
+  min-height: 25%;
+  background-color: var(--card-rule-bg);
+  border-top: 1px solid var(--card-rule-border);
+  padding: 4px 6px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.card__rule-text {
+  margin: 0;
+  color: var(--card-rule-text);
+  font-size: clamp(0.6rem, 7.5cqi, 0.78rem);
+  line-height: 1.22;
+  font-weight: 500;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: break-word;
+}
+
+/* -------------------------------------------------------------
+ * Interactive & Focus States
+ * ------------------------------------------------------------- */
+.card--interactive {
+  cursor: pointer;
+}
+
+.card--interactive:hover {
+  box-shadow: 0 6px 14px var(--card-shadow);
+}
+
+.card:focus-visible {
+  outline: 3px solid var(--card-select-ring);
+  outline-offset: 3px;
+}
+
+/* -------------------------------------------------------------
+ * Selected State (Multi-modal accessibility: lift + outline ring + badge)
+ * ------------------------------------------------------------- */
+.card--selected {
+  transform: translateY(-8px);
+  box-shadow: 0 12px 24px var(--card-shadow), 0 0 0 3px var(--card-select-ring);
+  border-color: var(--card-select-ring);
+}
+
+.card__selected-badge {
+  position: absolute;
+  top: 4px;
+  right: 5px;
+  width: clamp(18px, 16cqi, 22px);
+  height: clamp(18px, 16cqi, 22px);
+  border-radius: 50%;
+  background-color: var(--card-select-badge-bg);
+  color: var(--card-select-badge-fg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.35);
+  border: 1.5px solid #FFFFFF;
+  z-index: 3;
+  pointer-events: none;
+}
+
+.card__selected-badge svg {
+  width: 60%;
+  height: 60%;
+  display: block;
+}
+
+/* -------------------------------------------------------------
+ * Disabled State (Dims card per rules.md 8.2 "Lá không đánh được thì mờ")
+ * Multi-modal accessibility: opacity + grayscale + dashed border + indicator
+ * ------------------------------------------------------------- */
+.card--disabled {
+  opacity: 0.52;
+  filter: grayscale(0.55);
+  cursor: not-allowed;
+  border-style: dashed;
+  box-shadow: none;
+  pointer-events: none;
+}
+
+.card__disabled-badge {
+  position: absolute;
+  top: 4px;
+  right: 5px;
+  width: clamp(16px, 14cqi, 20px);
+  height: clamp(16px, 14cqi, 20px);
+  border-radius: 50%;
+  background-color: rgba(60, 60, 60, 0.7);
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3;
+  pointer-events: none;
+}
+
+.card__disabled-badge svg {
+  width: 60%;
+  height: 60%;
+  display: block;
+}
+
+/* -------------------------------------------------------------
+ * Prefers-Reduced-Motion (rules.md 8.1 & acceptance criteria)
+ * ------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .card,
+  .card--selected,
+  .card:hover {
+    transition: none;
+    transform: none;
+  }
+
+  .card--selected {
+    box-shadow: 0 0 0 3px var(--card-select-ring), 0 4px 10px var(--card-shadow);
+  }
+}

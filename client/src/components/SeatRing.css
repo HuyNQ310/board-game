@@ -1,0 +1,153 @@
+.seat-ring {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 12px;
+  box-sizing: border-box;
+}
+
+.seat-ring__opponents {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 8px;
+  width: 100%;
+}
+
+.seat-ring__self-area {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  margin-top: 4px;
+}
+
+.seat-ring__seat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: #f6efe2;
+  color: #2b2326;
+  border: 2px solid #d5cbbe;
+  border-radius: 8px;
+  padding: 8px 10px;
+  min-width: 72px;
+  max-width: 120px;
+  box-sizing: border-box;
+  text-align: center;
+  position: relative;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.seat-ring__seat--self {
+  border-color: #2e3a4b;
+  border-width: 2px;
+  background-color: #ffffff;
+  min-width: 90px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.seat-ring__seat--current {
+  border-color: #e67e22;
+  box-shadow: 0 0 10px rgba(230, 126, 34, 0.45);
+}
+
+.seat-ring__seat--eliminated {
+  opacity: 0.55;
+  filter: grayscale(0.9);
+  background-color: #e2ded8;
+  border-color: #b5ada3;
+}
+
+.seat-ring__seat--offline {
+  border-style: dashed;
+  opacity: 0.7;
+}
+
+.seat-ring__avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: #2e3a4b;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+.seat-ring__seat--self .seat-ring__avatar {
+  background-color: #1a5276;
+}
+
+.seat-ring__details {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  width: 100%;
+}
+
+.seat-ring__name {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+.seat-ring__self-tag {
+  font-size: 11px;
+  color: #555555;
+  font-weight: normal;
+}
+
+.seat-ring__hand-count {
+  font-size: 12px;
+  color: #594f4f;
+}
+
+.seat-ring__badges {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 4px;
+  width: 100%;
+  align-items: center;
+}
+
+.seat-ring__badge {
+  font-size: 10px;
+  font-weight: bold;
+  padding: 2px 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+  line-height: 1.2;
+}
+
+.seat-ring__badge--current {
+  background-color: #e67e22;
+  color: #ffffff;
+}
+
+.seat-ring__badge--eliminated {
+  background-color: #7f8c8d;
+  color: #ffffff;
+}
+
+.seat-ring__badge--offline {
+  background-color: #c0392b;
+  color: #ffffff;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .seat-ring__seat {
+    transition: none;
+  }
+}
