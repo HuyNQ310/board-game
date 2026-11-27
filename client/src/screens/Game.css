@@ -1,7 +1,7 @@
 .game-screen {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: flex-start;
   min-height: 100vh;
   min-height: 100dvh;
   width: 100%;
@@ -20,6 +20,16 @@
   width: 100%;
   display: flex;
   justify-content: center;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.game-screen__action-hand-placeholder {
+  flex: 0 0 auto;
+}
+
+.game-screen__footer {
+  flex: 0 0 auto;
 }
 
 .game-screen__center {
