@@ -129,14 +129,17 @@ async function broadcastState(room) {
   io.to(room.code).emit('room:state', buildRoomStatePayload(room));
 
   if (room.game && typeof engine.viewFor === 'function') {
+    const turnDeadline = scheduleTurnTimer(room);
     for (const player of room.players || []) {
       try {
         const view = engine.viewFor(room.game, player.id);
-        io.to(player.id).emit('game:state', { ...view, version: room.game.version });
+        io.to(player.id).emit('game:state', { ...view, version: room.game.version, turnDeadline });
       } catch (err) {
         console.error('broadcastState: viewFor failed for player', player.id, err);
       }
     }
+  } else {
+    turnTimers.cancel(room.code);
   }
 }
 
@@ -207,6 +210,67 @@ async function handlePlayerDisconnect(code, playerId) {
     },
     DISCONNECT_GRACE_MS
   );
+}
+
+// ============================================================================
+// Turn timer (rules.md D3, changed from the original v1 "no timer" decision
+// per explicit owner request): each turn gets 30 seconds. If the current
+// player hasn't acted by then, the server acts on their behalf -- `defuse`
+// (inserted at the middle of the draw pile) if they're stuck in the defuse
+// phase, otherwise a plain `draw`. The timer is rescheduled every time
+// broadcastState() runs with an active game, which happens after every
+// successful action AND after disconnect-driven eliminations, so it always
+// tracks whoever is actually current. One timer per room (keyed by room
+// code); `game:state.turnDeadline` (epoch ms) lets each client render its
+// own countdown without depending on network latency.
+// ============================================================================
+const TURN_TIMEOUT_MS = Number(process.env.TURN_TIMEOUT_MS) || 30000;
+const turnTimers = new DisconnectTimers();
+
+function scheduleTurnTimer(room) {
+  if (!room?.game || room.game.phase === 'over' || !room.game.currentPlayerId) {
+    turnTimers.cancel(room.code);
+    return null;
+  }
+
+  const deadline = Date.now() + TURN_TIMEOUT_MS;
+  const expectedPlayerId = room.game.currentPlayerId;
+  const expectedPendingDefuseId = room.game.pendingDefuseId;
+
+  turnTimers.start(
+    room.code,
+    async () => {
+      const current = roomStore.getRoom?.(room.code);
+      if (!current?.game || current.game.phase === 'over') return;
+      // Only act if nothing has changed since we scheduled this timer --
+      // a real action or a disconnect-elimination already rescheduled a
+      // fresh timer for whatever is current now, so this one is stale.
+      if (
+        current.game.currentPlayerId !== expectedPlayerId ||
+        current.game.pendingDefuseId !== expectedPendingDefuseId
+      ) {
+        return;
+      }
+
+      try {
+        if (current.game.phase === 'defuse' && current.game.pendingDefuseId === expectedPlayerId) {
+          const insertAt = Math.floor((current.game.deckCount ?? current.game.deck?.length ?? 0) / 2);
+          current.game = engine.applyAction(current.game, expectedPlayerId, { type: 'defuse', insertAt }, Math.random);
+        } else {
+          current.game = engine.applyAction(current.game, expectedPlayerId, { type: 'draw' }, Math.random);
+        }
+        if (current.game.winnerId !== undefined && current.game.winnerId !== null) {
+          current.status = 'finished';
+        }
+      } catch (err) {
+        console.error('turn timer auto-action error:', err);
+      }
+      await broadcastState(current);
+    },
+    TURN_TIMEOUT_MS
+  );
+
+  return deadline;
 }
 
 // Wire Socket.IO event handlers on connection
