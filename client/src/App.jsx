@@ -31,6 +31,7 @@ import DefuseDialog from './components/DefuseDialog.jsx';
 import PeekPanel from './components/PeekPanel.jsx';
 import Toast from './components/Toast.jsx';
 import Chat from './components/Chat.jsx';
+import HelpModal from './components/HelpModal.jsx';
 
 // Rule descriptions for cards (rules.md section 4.1 & card.md)
 const CARD_RULES_VI = {
@@ -81,6 +82,7 @@ function AppContent() {
   });
   const [isReconnecting, setIsReconnecting] = useState(false);
   const [chatMessages, setChatMessages] = useState([]);
+  const [helpOpen, setHelpOpen] = useState(false);
 
   // Local UI-only interaction state
   const [selectedCardIds, setSelectedCardIds] = useState(() => new Set());
@@ -539,6 +541,25 @@ function AppContent() {
         .map((c) => c.id)
     );
   }, [isMyTurn, socketConnected, candidates.length, hasCatPair, myHandCards]);
+
+  // Explains WHY a specific disabled card can't be played, mirroring the
+  // exact logic playableCardIds uses above -- passed to Hand's optional
+  // getDisabledReason prop so a tap on a dimmed card shows a real reason
+  // instead of just doing nothing.
+  const getDisabledReason = useCallback(
+    (card) => {
+      if (!socketConnected) return 'Đang mất kết nối, vui lòng chờ';
+      if (!isMyTurn) return 'Chưa đến lượt bạn';
+      if (card?.type === 'defuse') return 'Không thể đánh lá Gỡ Bom riêng — chỉ dùng khi rút phải Mèo Bùm';
+      if (card?.type === 'boom') return 'Không thể đánh lá Mèo Bùm riêng';
+      if (card?.type === 'cat' && !hasCatPair) return 'Cần có ít nhất 2 lá Mèo Vằn để chơi cặp';
+      if ((card?.type === 'cat' || card?.type === 'favor') && candidates.length === 0) {
+        return 'Không còn người chơi nào để nhắm mục tiêu';
+      }
+      return 'Lá này không thể đánh lúc này';
+    },
+    [socketConnected, isMyTurn, hasCatPair, candidates.length]
+  );
 
   const handleToggleSelectCard = useCallback(
     (cardId) => {
@@ -1032,12 +1053,38 @@ function AppContent() {
                   selectedIds={selectedCardIds}
                   onToggleSelect={handleToggleSelectCard}
                   playableIds={playableCardIds}
+                  getDisabledReason={getDisabledReason}
                   renderCard={renderCard}
                   t={handT}
                 />
               ) : null
             }
           >
+            {/* Help / how-to-play trigger */}
+            <button
+              type="button"
+              onClick={() => setHelpOpen(true)}
+              aria-label="Xem hướng dẫn chơi"
+              style={{
+                position: 'fixed',
+                top: '12px',
+                right: '12px',
+                zIndex: 40,
+                width: '44px',
+                height: '44px',
+                borderRadius: '50%',
+                border: '2px solid #2B2326',
+                backgroundColor: '#F6EFE2',
+                color: '#2B2326',
+                fontSize: '1.1rem',
+                fontWeight: 'bold',
+                cursor: 'pointer',
+              }}
+            >
+              ?
+            </button>
+            <HelpModal open={helpOpen} onClose={() => setHelpOpen(false)} />
+
             {/* Status banners */}
             {isReconnecting && (
               <div

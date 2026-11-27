@@ -14,6 +14,12 @@
  *   t.skip: "Ngủ Trưa", t.shuffle: "Xáo Trộn", t.favor: "Nài Nỉ",
  *   t.peek: "Mắt Thần", t.cat: "Mèo Vằn"
  *
+ * Optional Props:
+ * - getDisabledReason: Function `(card) => string | null`. Optional callback to explain
+ *   why a specific card is disabled / cannot be played. When provided and a user
+ *   clicks or taps an unplayable card, displays a transient, accessible tooltip
+ *   with the reason. If omitted, behavior is 100% backward compatible (clicks do nothing).
+ *
  * Caller Contract for `onToggleSelect(id)`:
  * - Used for toggling card selection (specifically for building a cat pair play, which requires exactly 2 cards).
  * - This component simply delegates clicks to `onToggleSelect(card.id)` when the card is playable.
@@ -84,11 +90,15 @@ export default function Hand({
   onToggleSelect,
   playableIds,
   renderCard,
+  getDisabledReason,
   t = {},
 }) {
   const cardsList = Array.isArray(cards) ? cards : [];
   const cardsCount = cardsList.length;
   const prefersReducedMotion = usePrefersReducedMotion();
+
+  // Active disabled reason feedback: { cardKey, reason } | null
+  const [disabledFeedback, setDisabledFeedback] = useState(null);
 
   // Track initial deal transition from empty/undefined to populated
   const hasDealtRef = useRef(cardsCount > 0);
@@ -131,6 +141,27 @@ export default function Hand({
     }
   }, [prefersReducedMotion, isDealing]);
 
+  // Auto-dismiss disabled reason popup after 2.5 seconds
+  useEffect(() => {
+    if (!disabledFeedback) return;
+    const timer = setTimeout(() => {
+      setDisabledFeedback(null);
+    }, 2500);
+    return () => clearTimeout(timer);
+  }, [disabledFeedback]);
+
+  // Dismiss disabled reason on Escape key press
+  useEffect(() => {
+    if (!disabledFeedback) return;
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        setDisabledFeedback(null);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [disabledFeedback]);
+
   const isSelected = (id) => {
     if (!selectedIds) return false;
     if (selectedIds instanceof Set) return selectedIds.has(id);
@@ -143,6 +174,21 @@ export default function Hand({
     if (playableIds instanceof Set) return playableIds.has(id);
     if (Array.isArray(playableIds)) return playableIds.includes(id);
     return Boolean(playableIds[id]);
+  };
+
+  const handleDisabledCardClick = (card, cardKey, e) => {
+    if (e && typeof e.stopPropagation === 'function') {
+      e.stopPropagation();
+    }
+    if (typeof getDisabledReason === 'function') {
+      const reason = getDisabledReason(card);
+      if (reason && typeof reason === 'string' && reason.trim()) {
+        setDisabledFeedback({
+          cardKey,
+          reason: reason.trim(),
+        });
+      }
+    }
   };
 
   const handLabel = t.handAriaLabel || t.hand || 'Bài trên tay';
@@ -169,7 +215,13 @@ export default function Hand({
           const cardLabel = t[card.type] || DEFAULT_CARD_LABELS[card.type] || card.type;
           const cardIcon = DEFAULT_CARD_ICONS[card.type] || '🎴';
 
+          const isFeedbackActive = Boolean(
+            disabledFeedback && disabledFeedback.cardKey === cardKey
+          );
+          const hasDisabledHandler = !playable && typeof getDisabledReason === 'function';
+
           const handleClick = () => {
+            setDisabledFeedback(null);
             if (playable && typeof onToggleSelect === 'function') {
               onToggleSelect(card.id);
             }
@@ -179,6 +231,8 @@ export default function Hand({
             'hand-card-slot',
             selected ? 'hand-card-slot--selected' : '',
             !playable ? 'hand-card-slot--disabled' : '',
+            hasDisabledHandler ? 'hand-card-slot--can-explain' : '',
+            isFeedbackActive ? 'hand-card-slot--has-tooltip' : '',
             isCardDealing ? 'hand-card-slot--dealing' : '',
           ]
             .filter(Boolean)
@@ -190,10 +244,23 @@ export default function Hand({
 
           return (
             <div
-              key={card.id || `card-${index}`}
+              key={cardKey}
               className={slotClasses}
               style={slotStyle}
               role="listitem"
+              onClick={hasDisabledHandler ? (e) => handleDisabledCardClick(card, cardKey, e) : undefined}
+              onKeyDown={
+                hasDisabledHandler
+                  ? (e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        handleDisabledCardClick(card, cardKey, e);
+                      }
+                    }
+                  : undefined
+              }
+              tabIndex={hasDisabledHandler ? 0 : undefined}
+              aria-describedby={isFeedbackActive ? `hand-disabled-tooltip-${cardKey}` : undefined}
             >
               {typeof renderCard === 'function' ? (
                 renderCard({
@@ -203,14 +270,17 @@ export default function Hand({
                   label: cardLabel,
                   selected,
                   disabled: !playable,
-                  onClick: playable ? handleClick : undefined,
+                  onClick: playable
+                    ? handleClick
+                    : (hasDisabledHandler ? (e) => handleDisabledCardClick(card, cardKey, e) : undefined),
                 })
               ) : (
                 <button
                   type="button"
                   className={`hand-card-fallback ${selected ? 'hand-card-fallback--selected' : ''} ${!playable ? 'hand-card-fallback--disabled' : ''}`}
-                  onClick={handleClick}
-                  disabled={!playable}
+                  onClick={playable ? handleClick : (hasDisabledHandler ? (e) => handleDisabledCardClick(card, cardKey, e) : handleClick)}
+                  disabled={!playable && !getDisabledReason}
+                  aria-disabled={!playable ? 'true' : undefined}
                   aria-pressed={selected}
                   aria-label={`${cardLabel}${selected ? ` (${t.selected || 'Đã chọn'})` : ''}${!playable ? ` (${t.cardDisabled || 'Không thể đánh'})` : ''}`}
                 >
@@ -222,6 +292,22 @@ export default function Hand({
                     </span>
                   )}
                 </button>
+              )}
+
+              {isFeedbackActive && (
+                <div
+                  id={`hand-disabled-tooltip-${cardKey}`}
+                  className="hand-disabled-tooltip"
+                  role="status"
+                  aria-live="polite"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setDisabledFeedback(null);
+                  }}
+                >
+                  <span className="hand-disabled-tooltip__icon" aria-hidden="true">⚠️</span>
+                  <span className="hand-disabled-tooltip__text">{disabledFeedback.reason}</span>
+                </div>
               )}
             </div>
           );

@@ -15,6 +15,10 @@
  * - t.chatInputAriaLabel: "Nội dung tin nhắn" (Accessibility label for the text input)
  * - t.chatRegionAriaLabel: "Hộp trò chuyện" (Accessibility label for the chat region / panel)
  * - t.chatListAriaLabel: "Danh sách tin nhắn" (Accessibility label for the message list log)
+ * Optional `t` keys:
+ * - t.chatOpenButtonAriaLabel: "Mở hộp trò chuyện" (Accessibility label for toggle button when collapsed with 0 unread)
+ * - t.chatCloseButton: "Đóng trò chuyện" (Accessibility label & title for the close/collapse button)
+ * - t.chatUnreadButtonAriaLabel: "Trò chuyện ({n} tin nhắn mới)" (Accessibility label template or function for toggle button with unread count)
  */
 
 import { useState, useRef, useEffect } from 'react';
@@ -38,14 +42,58 @@ function formatTime(epochMs) {
 }
 
 export function Chat({ messages = [], myPlayerId, onSend, t = {} }) {
+  const [isOpen, setIsOpen] = useState(false);
   const [inputText, setInputText] = useState('');
-  const messagesContainerRef = useRef(null);
-
   const safeMessages = Array.isArray(messages) ? messages : [];
+  const [lastSeenCount, setLastSeenCount] = useState(0);
+
+  const messagesContainerRef = useRef(null);
+  const inputRef = useRef(null);
+  const toggleBtnRef = useRef(null);
+  const wasOpenRef = useRef(false);
+
+  // Sync lastSeenCount when open or when message list shrinks
+  useEffect(() => {
+    if (isOpen) {
+      setLastSeenCount(safeMessages.length);
+    } else if (lastSeenCount > safeMessages.length) {
+      setLastSeenCount(safeMessages.length);
+    }
+  }, [isOpen, safeMessages.length, lastSeenCount]);
+
+  // Focus management: focus input when opening, return focus to toggle button when closing
+  useEffect(() => {
+    if (isOpen) {
+      wasOpenRef.current = true;
+      if (inputRef.current) {
+        inputRef.current.focus();
+      }
+    } else if (wasOpenRef.current) {
+      if (toggleBtnRef.current) {
+        toggleBtnRef.current.focus();
+      }
+    }
+  }, [isOpen]);
+
+  // Listen for Escape key to close the chat panel
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        e.stopPropagation();
+        setIsOpen(false);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen]);
 
   // Auto-scroll directly inside this component's own scroll container.
   // NEVER use scrollIntoView() which scrolls the ancestor document/page.
   useEffect(() => {
+    if (!isOpen) return;
     const container = messagesContainerRef.current;
     if (!container) return;
 
@@ -62,7 +110,7 @@ export function Chat({ messages = [], myPlayerId, onSend, t = {} }) {
     } else {
       container.scrollTop = container.scrollHeight;
     }
-  }, [safeMessages]);
+  }, [safeMessages, isOpen]);
 
   const handleSubmit = (e) => {
     if (e && typeof e.preventDefault === 'function') {
@@ -92,6 +140,52 @@ export function Chat({ messages = [], myPlayerId, onSend, t = {} }) {
   const inputAriaLabel = t.chatInputAriaLabel || placeholder;
   const regionAriaLabel = t.chatRegionAriaLabel || title;
   const listAriaLabel = t.chatListAriaLabel || 'Danh sách tin nhắn';
+  const closeButtonAriaLabel = t.chatCloseButton || t.chatCloseAriaLabel || 'Đóng trò chuyện';
+
+  const unreadCount = isOpen ? 0 : Math.max(0, safeMessages.length - lastSeenCount);
+
+  const getToggleAriaLabel = () => {
+    if (unreadCount > 0) {
+      if (typeof t.chatUnreadButtonAriaLabel === 'function') {
+        return t.chatUnreadButtonAriaLabel(unreadCount);
+      }
+      if (typeof t.chatUnreadButtonAriaLabel === 'string') {
+        return t.chatUnreadButtonAriaLabel.replace('{n}', unreadCount);
+      }
+      if (typeof t.chatUnreadAriaLabel === 'function') {
+        return t.chatUnreadAriaLabel(unreadCount);
+      }
+      if (typeof t.chatUnreadAriaLabel === 'string') {
+        return t.chatUnreadAriaLabel.replace('{n}', unreadCount);
+      }
+      return `${title} (${unreadCount} tin nhắn mới)`;
+    }
+    return t.chatOpenButtonAriaLabel || t.chatOpenAriaLabel || 'Mở hộp trò chuyện';
+  };
+
+  if (!isOpen) {
+    return (
+      <button
+        ref={toggleBtnRef}
+        type="button"
+        className="chat-toggle-btn"
+        data-testid="chat-toggle-btn"
+        onClick={() => {
+          setLastSeenCount(safeMessages.length);
+          setIsOpen(true);
+        }}
+        aria-label={getToggleAriaLabel()}
+        aria-expanded={false}
+      >
+        <span className="chat-toggle-icon" aria-hidden="true">💬</span>
+        {unreadCount > 0 && (
+          <span className="chat-unread-badge" data-testid="chat-unread-badge" aria-hidden="true">
+            {unreadCount > 99 ? '99+' : unreadCount}
+          </span>
+        )}
+      </button>
+    );
+  }
 
   return (
     <div
@@ -101,8 +195,20 @@ export function Chat({ messages = [], myPlayerId, onSend, t = {} }) {
       aria-label={regionAriaLabel}
     >
       <div className="chat-panel__header">
-        <span className="chat-panel__header-icon" aria-hidden="true">💬</span>
-        <h3 className="chat-panel__title" data-testid="chat-title">{title}</h3>
+        <div className="chat-panel__header-title-group">
+          <span className="chat-panel__header-icon" aria-hidden="true">💬</span>
+          <h3 className="chat-panel__title" data-testid="chat-title">{title}</h3>
+        </div>
+        <button
+          type="button"
+          className="chat-panel__close-btn"
+          data-testid="chat-close-btn"
+          onClick={() => setIsOpen(false)}
+          aria-label={closeButtonAriaLabel}
+          title={closeButtonAriaLabel}
+        >
+          <span aria-hidden="true">✕</span>
+        </button>
       </div>
 
       <div
@@ -160,6 +266,7 @@ export function Chat({ messages = [], myPlayerId, onSend, t = {} }) {
 
       <form className="chat-panel__form" onSubmit={handleSubmit} data-testid="chat-form">
         <input
+          ref={inputRef}
           type="text"
           className="chat-panel__input"
           data-testid="chat-input"

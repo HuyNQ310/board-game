@@ -298,3 +298,98 @@
   }
 }
 
+/* -------------------------------------------------------------
+ * Disabled Card Explanation Tooltip / Popup
+ * ------------------------------------------------------------- */
+.hand-card-slot--can-explain {
+  cursor: pointer;
+}
+
+.hand-card-slot--has-tooltip {
+  opacity: 1 !important;
+  filter: none !important;
+  z-index: 25;
+}
+
+.hand-card-slot:focus-visible {
+  outline: 3px solid #ffcc00;
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+.hand-disabled-tooltip {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 30;
+  background-color: #1b232e;
+  color: #f6efe2;
+  border: 1.5px solid #f39c12;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 0.78rem;
+  line-height: 1.35;
+  text-align: center;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.6);
+  pointer-events: auto;
+  cursor: pointer;
+  max-width: 150px;
+  min-width: 100px;
+  width: max-content;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  animation: hand-tooltip-pop-in 0.15s ease-out;
+  word-break: break-word;
+  user-select: none;
+  box-sizing: border-box;
+}
+
+@keyframes hand-tooltip-pop-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -45%) scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+.hand-disabled-tooltip__icon {
+  font-size: 1rem;
+}
+
+.hand-disabled-tooltip__text {
+  font-weight: 600;
+  color: #ffffff;
+}
+
+@media (min-width: 768px) {
+  .hand-disabled-tooltip {
+    font-size: 0.84rem;
+    max-width: 180px;
+    padding: 10px 14px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .hand-disabled-tooltip {
+    font-size: 0.9rem;
+    max-width: 210px;
+    padding: 12px 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hand-disabled-tooltip {
+    animation: none !important;
+    transition: none !important;
+    transform: translate(-50%, -50%) !important;
+  }
+}
+
+
