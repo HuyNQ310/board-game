@@ -22,7 +22,6 @@
  *   4. Fallback string: `"Còn " + turnsLeft + " lượt"`.
  */
 
-import React from 'react';
 import './ActionBar.css';
 
 export default function ActionBar({

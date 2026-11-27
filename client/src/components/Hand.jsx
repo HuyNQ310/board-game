@@ -20,7 +20,6 @@
  * - The caller is responsible for capping the selection count (e.g. at 2 cards) and validating pair legality.
  */
 
-import React from 'react';
 import './Hand.css';
 
 const DEFAULT_CARD_LABELS = {

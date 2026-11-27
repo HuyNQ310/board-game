@@ -1,3 +1,5 @@
+import react from "eslint-plugin-react";
+
 export default [
   {
     ignores: ["**/node_modules/**", "**/dist/**", "**/.git/**"]
@@ -16,6 +18,18 @@ export default [
     rules: {
       "no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }],
       "no-undef": "error"
+    }
+  },
+  {
+    // JSX files: register eslint-plugin-react's jsx-uses-vars rule so
+    // imports/variables referenced only as <Component /> in JSX are
+    // correctly recognized as used (the base no-unused-vars rule's plain
+    // AST scan doesn't see JSX element names as identifier references).
+    files: ["client/**/*.jsx"],
+    plugins: { react },
+    rules: {
+      "react/jsx-uses-vars": "error",
+      "react/jsx-uses-react": "off"
     }
   },
   {

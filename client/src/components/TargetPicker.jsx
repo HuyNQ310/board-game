@@ -15,7 +15,7 @@
  * - This dialog is modal and closable via Escape key or clicking the backdrop / cancel button.
  */
 
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import './TargetPicker.css';
 
 export default function TargetPicker({

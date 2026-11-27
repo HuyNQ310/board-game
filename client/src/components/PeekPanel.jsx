@@ -19,7 +19,6 @@
  * - Only ever shown to the player who peeked.
  */
 
-import React from 'react';
 import './PeekPanel.css';
 
 const DEFAULT_CARD_META = {

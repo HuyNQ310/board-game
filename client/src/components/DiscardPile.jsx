@@ -1,4 +1,3 @@
-import React from 'react';
 import './DiscardPile.css';
 
 export function DiscardPile({ discardCount = 0, discardTop = null, renderCard, t }) {

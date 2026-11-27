@@ -22,7 +22,7 @@
  * - The ONLY way to proceed is by clicking the "Đặt bom" (onConfirm) button.
  */
 
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import './DefuseDialog.css';
 
 export default function DefuseDialog({

@@ -1,4 +1,3 @@
-import React from 'react';
 import './DrawPile.css';
 
 export function DrawPile({ deckCount = 0, t }) {

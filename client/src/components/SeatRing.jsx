@@ -1,4 +1,3 @@
-import React from 'react';
 import './SeatRing.css';
 
 export function SeatRing({ players = [], myPlayerId, currentPlayerId }) {
