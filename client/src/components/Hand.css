@@ -225,18 +225,18 @@
 /* Responsive adjustments for desktop (1024px+) */
 @media (min-width: 1024px) {
   .hand-container {
-    padding: 12px 0;
+    padding: 6px 0;
   }
 
   .hand-scroll-strip {
     gap: 16px;
-    padding: 28px 24px 20px 24px;
+    padding: 20px 24px 12px 24px;
     justify-content: center;
   }
 
   .hand-card-slot {
-    width: 130px;
-    height: 182px;
+    width: clamp(130px, 9vw, 164px);
+    height: clamp(182px, 12.6vw, 230px);
     min-width: 130px;
     min-height: 182px;
   }

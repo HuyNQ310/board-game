@@ -234,8 +234,8 @@
 /* Desktop screen layout (1024px+) */
 @media (min-width: 1024px) {
   .action-bar {
-    padding: 16px 24px;
-    gap: 14px;
+    padding: 10px 24px;
+    gap: 10px;
   }
 
   .action-bar__status-row {
@@ -267,27 +267,27 @@
   }
 
   .action-bar__btn {
-    min-width: 110px;
+    min-width: 120px;
     min-height: 50px;
     padding: 12px 20px;
-    font-size: 1rem;
+    font-size: 1.05rem;
     gap: 8px;
     border-radius: 10px;
   }
 
   .action-bar__btn-icon {
-    font-size: 1.3rem;
+    font-size: 1.35rem;
   }
 
   .action-bar__btn-label {
-    font-size: 1rem;
+    font-size: 1.05rem;
   }
 
   .action-bar__btn--draw {
-    min-width: 160px;
+    min-width: 165px;
     min-height: 54px;
     padding: 12px 24px;
-    font-size: 1.15rem;
+    font-size: 1.18rem;
     border-radius: 12px;
   }
 }

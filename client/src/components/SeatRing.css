@@ -433,8 +433,8 @@
  * ------------------------------------------------------------- */
 @media (min-width: 1024px) {
   .seat-ring__table {
-    max-width: 760px;
-    height: clamp(255px, 32vh, 285px);
+    max-width: clamp(760px, 68vw, 1300px);
+    height: clamp(265px, 34vh, 320px);
   }
 
   .seat-ring--dense .seat-ring__table {
@@ -451,9 +451,9 @@
   }
 
   .seat-ring__seat {
-    min-width: 80px;
-    max-width: 115px;
-    padding: 6px 10px;
+    min-width: 88px;
+    max-width: 130px;
+    padding: 7px 11px;
     border-radius: 8px;
   }
 
@@ -464,9 +464,9 @@
   }
 
   .seat-ring__seat--self {
-    min-width: 98px;
-    max-width: 130px;
-    padding: 6px 12px;
+    min-width: 108px;
+    max-width: 145px;
+    padding: 7px 13px;
   }
 
   .seat-ring__avatar-wrap {
@@ -474,9 +474,9 @@
   }
 
   .seat-ring__avatar {
-    width: 32px;
-    height: 32px;
-    font-size: 14px;
+    width: 36px;
+    height: 36px;
+    font-size: 15px;
     margin-bottom: 0;
   }
 

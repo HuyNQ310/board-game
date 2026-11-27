@@ -95,8 +95,8 @@
 @media (min-width: 1024px) {
   .game-screen {
     max-width: min(95vw, 1600px);
-    padding: 12px 24px;
-    gap: 10px;
+    padding: 8px 24px;
+    gap: 6px;
   }
 
   .game-screen__center {
@@ -110,9 +110,9 @@
   }
 
   .game-screen__action-hand-placeholder {
-    padding: 8px 12px;
+    padding: 4px 12px;
     border-radius: 12px;
-    gap: 8px;
+    gap: 4px;
   }
 
   .game-screen__footer {
