@@ -147,7 +147,7 @@
   }
 }
 
-/* Responsive adjustments for tablet / desktop */
+/* Responsive adjustments for tablet */
 @media (min-width: 768px) {
   .hand-scroll-strip {
     justify-content: center;
@@ -165,3 +165,69 @@
     font-size: 1.7rem;
   }
 }
+
+/* Responsive adjustments for desktop (1024px+) */
+@media (min-width: 1024px) {
+  .hand-container {
+    padding: 12px 0;
+  }
+
+  .hand-scroll-strip {
+    gap: 16px;
+    padding: 28px 24px 20px 24px;
+    justify-content: center;
+  }
+
+  .hand-card-slot {
+    width: 130px;
+    height: 182px;
+    min-width: 130px;
+    min-height: 182px;
+  }
+
+  .hand-card-slot--selected {
+    transform: translateY(-16px);
+  }
+
+  .hand-card-fallback {
+    min-width: 130px;
+    min-height: 182px;
+    padding: 12px 8px;
+    font-size: 0.95rem;
+    border-radius: 12px;
+    border-width: 2.5px;
+  }
+
+  .hand-card-fallback__icon {
+    font-size: 2.4rem;
+    margin-bottom: 6px;
+  }
+
+  .hand-card-fallback__name {
+    font-size: 0.9rem;
+    line-height: 1.25;
+  }
+
+  .hand-card-fallback__badge {
+    font-size: 0.75rem;
+    padding: 2px 6px;
+    border-radius: 6px;
+  }
+
+  .hand-empty {
+    min-height: 80px;
+    padding: 20px;
+    font-size: 1.05rem;
+  }
+
+  .hand-empty__icon {
+    font-size: 1.8rem;
+  }
+}
+
+@media (min-width: 1024px) and (prefers-reduced-motion: reduce) {
+  .hand-card-slot--selected {
+    transform: none !important;
+  }
+}
+

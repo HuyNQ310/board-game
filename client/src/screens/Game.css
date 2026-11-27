@@ -91,6 +91,41 @@
   }
 }
 
+/* Desktop screen layout (1024px+) */
+@media (min-width: 1024px) {
+  .game-screen {
+    max-width: 1140px;
+    padding: 24px 32px;
+    gap: 20px;
+  }
+
+  .game-screen__center {
+    gap: 48px;
+    padding: 16px 0;
+  }
+
+  .game-screen__center-info {
+    min-width: 90px;
+  }
+
+  .game-screen__turns-left {
+    font-size: 14px;
+    padding: 6px 14px;
+    border-radius: 16px;
+  }
+
+  .game-screen__action-hand-placeholder {
+    padding: 16px;
+    border-radius: 14px;
+    gap: 12px;
+  }
+
+  .game-screen__footer {
+    max-width: 960px;
+    margin: 0 auto;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .game-screen__turns-left {
     animation: none !important;

@@ -166,7 +166,7 @@
   }
 }
 
-/* Larger screens layout */
+/* Tablet screens layout */
 @media (min-width: 768px) {
   .action-bar {
     padding: 12px 24px;
@@ -181,5 +181,59 @@
   .action-bar__btn--draw {
     min-width: 140px;
     font-size: 1.05rem;
+  }
+}
+
+/* Desktop screen layout (1024px+) */
+@media (min-width: 1024px) {
+  .action-bar {
+    padding: 16px 24px;
+    gap: 14px;
+  }
+
+  .action-bar__turns-badge {
+    font-size: 1rem;
+    padding: 8px 18px;
+    border-radius: 24px;
+  }
+
+  .action-bar__turns-icon {
+    font-size: 1.25rem;
+  }
+
+  .action-bar__buttons {
+    gap: 12px;
+  }
+
+  .action-bar__btn {
+    min-width: 110px;
+    min-height: 50px;
+    padding: 12px 20px;
+    font-size: 1rem;
+    gap: 8px;
+    border-radius: 10px;
+  }
+
+  .action-bar__btn-icon {
+    font-size: 1.3rem;
+  }
+
+  .action-bar__btn-label {
+    font-size: 1rem;
+  }
+
+  .action-bar__btn--draw {
+    min-width: 160px;
+    min-height: 54px;
+    padding: 12px 24px;
+    font-size: 1.15rem;
+    border-radius: 12px;
+  }
+}
+
+@media (min-width: 1024px) and (prefers-reduced-motion: reduce) {
+  .action-bar__btn:hover:not(:disabled),
+  .action-bar__btn:active:not(:disabled) {
+    transform: none !important;
   }
 }

@@ -59,6 +59,42 @@
   overflow: hidden;
 }
 
+/* Desktop screen layout (1024px+) */
+@media (min-width: 1024px) {
+  .log-panel {
+    max-height: 220px;
+    border-radius: 12px;
+    border-width: 1.5px;
+  }
+
+  .log-panel__header {
+    padding: 8px 16px;
+  }
+
+  .log-panel__title {
+    font-size: 13px;
+    letter-spacing: 0.8px;
+  }
+
+  .log-panel__content {
+    padding: 10px 16px;
+    gap: 8px;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  .log-panel__entry {
+    padding: 6px 10px;
+    border-radius: 6px;
+    border-left-width: 4px;
+  }
+
+  .log-panel__empty {
+    font-size: 13px;
+    padding: 16px 0;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .log-panel__content {
     scroll-behavior: auto;

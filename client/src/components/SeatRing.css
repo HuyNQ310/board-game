@@ -146,6 +146,53 @@
   color: #ffffff;
 }
 
+/* Desktop screen layout (1024px+) */
+@media (min-width: 1024px) {
+  .seat-ring {
+    gap: 16px;
+  }
+
+  .seat-ring__opponents {
+    gap: 14px;
+  }
+
+  .seat-ring__seat {
+    min-width: 100px;
+    max-width: 150px;
+    padding: 10px 14px;
+    border-radius: 10px;
+  }
+
+  .seat-ring__seat--self {
+    min-width: 120px;
+  }
+
+  .seat-ring__avatar {
+    width: 40px;
+    height: 40px;
+    font-size: 16px;
+    margin-bottom: 6px;
+  }
+
+  .seat-ring__name {
+    font-size: 14px;
+  }
+
+  .seat-ring__self-tag {
+    font-size: 12px;
+  }
+
+  .seat-ring__hand-count {
+    font-size: 13px;
+  }
+
+  .seat-ring__badge {
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 6px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .seat-ring__seat {
     transition: none;

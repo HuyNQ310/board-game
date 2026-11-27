@@ -85,3 +85,48 @@
   font-size: 11px;
   color: #666666;
 }
+
+/* Desktop screen layout (1024px+) */
+@media (min-width: 1024px) {
+  .discard-pile {
+    gap: 10px;
+  }
+
+  .discard-pile__slot {
+    width: 130px;
+    height: 182px;
+    border-radius: 12px;
+  }
+
+  .discard-pile__empty {
+    border-radius: 12px;
+    border-width: 2.5px;
+  }
+
+  .discard-pile__empty-text {
+    font-size: 15px;
+  }
+
+  .discard-pile__card-fallback {
+    border-radius: 12px;
+    border-width: 2.5px;
+    padding: 10px;
+  }
+
+  .discard-pile__card-title {
+    font-size: 14px;
+  }
+
+  .discard-pile__card-rule {
+    font-size: 11px;
+    line-height: 1.25;
+  }
+
+  .discard-pile__label {
+    font-size: 15px;
+  }
+
+  .discard-pile__count {
+    font-size: 13px;
+  }
+}
