@@ -3,7 +3,7 @@ export default {
   errors: {
     NAME_INVALID: 'Name must be between 1 and 16 characters',
     ROOM_NOT_FOUND: 'Room not found',
-    ROOM_FULL: 'Room is full (max 6 players)',
+    ROOM_FULL: 'Room is full (max 10 players)',
     ROOM_PLAYING: 'Room is currently playing, cannot join right now',
     NOT_IN_ROOM: 'You are no longer in this room',
     NOT_HOST: 'Only the host can do this',

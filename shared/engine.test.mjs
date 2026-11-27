@@ -7,6 +7,7 @@ import {
   applyAction,
   eliminatePlayer,
   viewFor,
+  MAX_PLAYERS,
 } from './engine.mjs';
 
 /**
@@ -102,15 +103,34 @@ test('Section 4.2: Dealing gives 1 defuse + 4 ordinary cards to each player', ()
   assert.equal(deckBooms.length, 2); // n=3 -> 3 - 1 = 2
 });
 
-test('Section 4.2: Dealing rejects invalid player count (< 2 or > 6)', () => {
+test('Section 4.2: Dealing rejects invalid player count (< 2 or > MAX_PLAYERS)', () => {
   assert.throws(
     () => createGame(['p1']),
     err => err instanceof GameError && err.code === 'NEED_TWO_PLAYERS'
   );
   assert.throws(
-    () => createGame(['p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7']),
+    () => createGame(['p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'p8', 'p9', 'p10', 'p11']),
     err => err instanceof GameError && err.code === 'NEED_TWO_PLAYERS'
   );
+});
+
+test('Extended player count: createGame deals correctly for 7-10 players (scaled deck)', () => {
+  for (let n = 7; n <= MAX_PLAYERS; n++) {
+    const ids = Array.from({ length: n }, (_, i) => `p${i + 1}`);
+    const game = createGame(ids, () => 0.5);
+    assert.equal(game.players.length, n);
+    for (const p of game.players) {
+      assert.equal(p.hand.length, 5); // 1 defuse + 4 ordinary
+      assert.equal(p.hand.filter(c => c === CARD.defuse).length, 1);
+    }
+    const deckBooms = game.deck.filter(c => c === CARD.boom);
+    assert.equal(deckBooms.length, n - 1);
+    const deckDefuses = game.deck.filter(c => c === CARD.defuse);
+    assert.equal(deckDefuses.length, 2);
+    // Total defuse cards in play must equal 2 + n (section 4.1).
+    const handDefuses = game.players.reduce((sum, p) => sum + p.hand.filter(c => c === CARD.defuse).length, 0);
+    assert.equal(handDefuses + deckDefuses.length, 2 + n);
+  }
 });
 
 test('Section 4.2: Dealing rejects duplicate player IDs', () => {

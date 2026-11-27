@@ -39,22 +39,38 @@ function shuffle(array, rng) {
 }
 
 /**
- * Tạo 29 lá bài thường theo Mục 4.1:
- * - 4 attack
- * - 4 skip
- * - 4 shuffle
- * - 4 favor
- * - 5 peek
- * - 8 cat
+ * Số lượng gốc của mỗi loại lá thường, đúng Mục 4.1, tính cho 6 người
+ * (tổng 29 lá: 4 attack + 4 skip + 4 shuffle + 4 favor + 5 peek + 8 cat).
  */
-function buildOrdinaryDeck() {
+const BASE_PLAYER_COUNT = 6;
+const BASE_ORDINARY_COUNTS = Object.freeze({
+  [CARD.attack]: 4,
+  [CARD.skip]: 4,
+  [CARD.shuffle]: 4,
+  [CARD.favor]: 4,
+  [CARD.peek]: 5,
+  [CARD.cat]: 8,
+});
+
+/**
+ * Tạo bộ lá thường, tỉ lệ theo số người chơi `n`.
+ * Với n <= 6 (giá trị gốc của đặc tả), trả về đúng 29 lá như Mục 4.1 quy định
+ * (không đổi luật cho trường hợp đã có trong spec). Với n > 6 (mở rộng số
+ * người chơi tối đa), số lượng mỗi loại được nhân tỉ lệ theo n/6 (làm tròn
+ * lên) để vẫn đủ bài chia (1 defuse + 4 lá thường mỗi người) và còn dư cho
+ * bộ rút, đồng thời giữ nguyên tỉ lệ giữa các loại lá như thiết kế gốc.
+ * Riêng `cat` luôn làm tròn lên số chẵn vì được đánh theo cặp.
+ *
+ * @param {number} n - Số người chơi (2..MAX_PLAYERS)
+ */
+function buildOrdinaryDeck(n = BASE_PLAYER_COUNT) {
+  const scale = n > BASE_PLAYER_COUNT ? n / BASE_PLAYER_COUNT : 1;
   const deck = [];
-  for (let i = 0; i < 4; i++) deck.push(CARD.attack);
-  for (let i = 0; i < 4; i++) deck.push(CARD.skip);
-  for (let i = 0; i < 4; i++) deck.push(CARD.shuffle);
-  for (let i = 0; i < 4; i++) deck.push(CARD.favor);
-  for (let i = 0; i < 5; i++) deck.push(CARD.peek);
-  for (let i = 0; i < 8; i++) deck.push(CARD.cat);
+  for (const [type, base] of Object.entries(BASE_ORDINARY_COUNTS)) {
+    let count = Math.ceil(base * scale);
+    if (type === CARD.cat && count % 2 !== 0) count += 1;
+    for (let i = 0; i < count; i++) deck.push(type);
+  }
   return deck;
 }
 
@@ -62,9 +78,11 @@ function buildOrdinaryDeck() {
  * Chuẩn hóa và kiểm tra danh sách người chơi.
  * Chấp nhận mảng string ID hoặc mảng object { id, name }.
  */
+export const MAX_PLAYERS = 10;
+
 function normalizePlayers(playerIds) {
-  if (!Array.isArray(playerIds) || playerIds.length < 2 || playerIds.length > 6) {
-    throw new GameError('Số người chơi phải từ 2 đến 6', 'NEED_TWO_PLAYERS');
+  if (!Array.isArray(playerIds) || playerIds.length < 2 || playerIds.length > MAX_PLAYERS) {
+    throw new GameError(`Số người chơi phải từ 2 đến ${MAX_PLAYERS}`, 'NEED_TWO_PLAYERS');
   }
   const seen = new Set();
   const players = [];
@@ -134,8 +152,8 @@ export function createGame(playerIds, rng = Math.random) {
   const players = normalizePlayers(playerIds);
   const n = players.length;
 
-  // 1. Lấy phần bài thường (29 lá) và xáo kỹ
-  const ordinaryPool = shuffle(buildOrdinaryDeck(), rng);
+  // 1. Lấy phần bài thường (tỉ lệ theo số người chơi) và xáo kỹ
+  const ordinaryPool = shuffle(buildOrdinaryDeck(n), rng);
 
   // 2. Chia cho mỗi người 1 defuse + 4 lá thường
   for (const player of players) {

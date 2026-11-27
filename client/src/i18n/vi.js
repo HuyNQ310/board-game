@@ -3,7 +3,7 @@ export default {
   errors: {
     NAME_INVALID: 'Tên phải từ 1 đến 16 ký tự',
     ROOM_NOT_FOUND: 'Không tìm thấy phòng',
-    ROOM_FULL: 'Phòng đã đủ 6 người',
+    ROOM_FULL: 'Phòng đã đủ 10 người',
     ROOM_PLAYING: 'Phòng đang chơi, không thể vào lúc này',
     NOT_IN_ROOM: 'Bạn không còn trong phòng này',
     NOT_HOST: 'Chỉ chủ phòng mới làm được việc này',

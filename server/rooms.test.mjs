@@ -16,6 +16,7 @@ import {
   ROOM_CODE_ALPHABET,
 } from './rooms.mjs';
 import { DisconnectTimers } from './timers.mjs';
+import { MAX_PLAYERS } from '../shared/engine.mjs';
 
 /**
  * Creates a deterministic fake clock for testing timers without real time waits.
@@ -234,16 +235,16 @@ describe('RoomStore - joinRoom', () => {
     );
   });
 
-  it('rejects joining when room is full at 6 players with ROOM_FULL', () => {
+  it('rejects joining when room is full at MAX_PLAYERS players with ROOM_FULL', () => {
     const store = new RoomStore();
     const room = store.createRoom({ hostPlayerId: 'p1', hostName: 'P1' });
-    for (let i = 2; i <= 6; i++) {
+    for (let i = 2; i <= MAX_PLAYERS; i++) {
       store.joinRoom(room.code, { playerId: `p${i}`, name: `P${i}` });
     }
-    assert.equal(room.players.length, 6);
+    assert.equal(room.players.length, MAX_PLAYERS);
 
     assert.throws(
-      () => store.joinRoom(room.code, { playerId: 'p7', name: 'P7' }),
+      () => store.joinRoom(room.code, { playerId: `p${MAX_PLAYERS + 1}`, name: 'Pextra' }),
       (err) => err instanceof RoomError && err.code === 'ROOM_FULL'
     );
   });

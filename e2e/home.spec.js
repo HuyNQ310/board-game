@@ -68,9 +68,9 @@ test.describe('Home screen and Lobby E2E smoke tests', () => {
       await expect(guestPage.locator('.lobby-player-list')).toContainText('Alice');
       await expect(guestPage.locator('.lobby-player-list')).toContainText('Bob');
 
-      // Assert player count indicator shows 2/6
-      await expect(hostPage.locator('.lobby-player-count')).toHaveText('2/6');
-      await expect(guestPage.locator('.lobby-player-count')).toHaveText('2/6');
+      // Assert player count indicator shows 2/10
+      await expect(hostPage.locator('.lobby-player-count')).toHaveText('2/10');
+      await expect(guestPage.locator('.lobby-player-count')).toHaveText('2/10');
     } finally {
       await hostContext.close();
       await guestContext.close();

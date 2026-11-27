@@ -79,7 +79,7 @@ export function Lobby({
             {t?.playerListTitle || 'Người chơi'}
           </h2>
           <span className="lobby-player-count">
-            {sortedPlayers.length}/6
+            {sortedPlayers.length}/10
           </span>
         </div>
 

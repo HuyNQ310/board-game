@@ -57,7 +57,7 @@ export const ERROR_CODES = Object.freeze(RAW_ERROR_CODES);
 export const DEV_FALLBACK_MESSAGES = Object.freeze({
   [ERROR_CODES.NAME_INVALID]: 'Player name must be between 1 and 16 characters',
   [ERROR_CODES.ROOM_NOT_FOUND]: 'Room not found',
-  [ERROR_CODES.ROOM_FULL]: 'Room is full (maximum 6 players)',
+  [ERROR_CODES.ROOM_FULL]: 'Room is full (maximum 10 players)',
   [ERROR_CODES.ROOM_PLAYING]: 'Game already in progress in this room',
   [ERROR_CODES.NOT_IN_ROOM]: 'You are not in this room',
   [ERROR_CODES.NOT_HOST]: 'Only the host can perform this action',

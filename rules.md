@@ -133,7 +133,7 @@ Tổng gỡ bom = 1 mỗi người (trên tay) + 2 (trong bộ rút). Số bom t
 
 - Mỗi người: 1 `defuse` + 4 lá lấy từ phần bài thường (không tính bom và gỡ bom), lấy ngẫu nhiên.
 - Bộ rút = phần thường còn lại + (n − 1) `boom` + 2 `defuse`, xáo kỹ.
-- Chia cho n từ 2 đến 6. Phần bài thường đủ cho tối đa 6 người (24 lá trong 29).
+- Chia cho n từ 2 đến 10. Với n <= 6, dùng đúng 29 lá bài thường gốc. Với n > 6, số lượng mỗi loại lá thường (attack, skip, shuffle, favor, peek, cat) được nhân tỉ lệ theo n/6 (làm tròn lên; cat luôn làm tròn lên số chẵn) để đủ chia 4 lá thường/người và còn dư cho bộ rút.
 
 ### 4.3 Lượt chơi
 
@@ -168,7 +168,7 @@ Còn đúng 1 người sống: người đó thắng, `phase = 'over'`, ghi `gam
 
 - Mã phòng: 5 ký tự từ bảng `ABCDEFGHJKMNPQRSTUVWXYZ23456789` (bỏ 0, O, 1, I, L). Sinh ngẫu nhiên, kiểm tra trùng.
 - Thuộc tính: `code`, `hostId`, `status` (`lobby` | `playing` | `finished`), `players` (theo thứ tự vào phòng), `game` (state engine, `null` khi ở lobby), `createdAt`, `lastActiveAt`.
-- Tối đa 6 người. Người thứ 7 nhận `ROOM_FULL`.
+- Tối đa 10 người. Người thứ 11 nhận `ROOM_FULL`.
 
 ### 5.2 Người chơi
 
@@ -240,7 +240,7 @@ Mọi sự kiện client gửi đều nhận ack một lần với một trong h
 | ------------------ | ------------------------------------------- |
 | `NAME_INVALID`     | Tên phải từ 1 đến 16 ký tự                  |
 | `ROOM_NOT_FOUND`   | Không tìm thấy phòng                        |
-| `ROOM_FULL`        | Phòng đã đủ 6 người                         |
+| `ROOM_FULL`        | Phòng đã đủ 10 người                        |
 | `ROOM_PLAYING`     | Phòng đang chơi, không thể vào lúc này      |
 | `NOT_IN_ROOM`      | Bạn không còn trong phòng này               |
 | `NOT_HOST`         | Chỉ chủ phòng mới làm được việc này         |

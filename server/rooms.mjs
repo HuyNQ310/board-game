@@ -4,6 +4,8 @@
  * Implements specifications from rules.md (Decisions D5-D13, Section 5, Section 6.2).
  */
 
+import { MAX_PLAYERS } from '../shared/engine.mjs';
+
 /**
  * 5-character alphabet excluding 0, O, 1, I, L to avoid visual ambiguity (rules.md section 5.1).
  */
@@ -257,7 +259,7 @@ export class RoomStore {
    * - Trimmed name length 1-16 -> NAME_INVALID
    * - Room not found -> ROOM_NOT_FOUND
    * - Status 'playing' -> ROOM_PLAYING
-   * - Room full (>= 6 players) -> ROOM_FULL
+   * - Room full (>= MAX_PLAYERS players) -> ROOM_FULL
    * - Appends player with connected: true, joinedAt, keeps seat order.
    *
    * @param {string|object} codeOrRoom
@@ -296,9 +298,11 @@ export class RoomStore {
       return room;
     }
 
-    // Capacity limit: max 6 players (rules.md section 5.1)
-    if (room.players.length >= 6) {
-      throw new RoomError('ROOM_FULL', 'Phòng đã đủ 6 người');
+    // Capacity limit: max MAX_PLAYERS players (rules.md section 5.1, extended
+    // per owner request from the original 6-player cap; shared/engine.mjs's
+    // buildOrdinaryDeck scales the deck proportionally for n > 6).
+    if (room.players.length >= MAX_PLAYERS) {
+      throw new RoomError('ROOM_FULL', `Phòng đã đủ ${MAX_PLAYERS} người`);
     }
 
     const nowMs = this.now();

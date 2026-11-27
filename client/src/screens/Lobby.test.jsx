@@ -170,7 +170,7 @@ describe('Lobby screen', () => {
       expect(playerNames).toEqual(['An', 'Bình', 'Chi']);
     });
 
-    it('displays the player count relative to max 6 players', () => {
+    it('displays the player count relative to max 10 players', () => {
       render(
         <Lobby
           isHost={false}
@@ -179,7 +179,7 @@ describe('Lobby screen', () => {
         />
       );
 
-      expect(screen.getByText('3/6')).toBeTruthy();
+      expect(screen.getByText('3/10')).toBeTruthy();
     });
   });
 
