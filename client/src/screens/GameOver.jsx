@@ -12,7 +12,6 @@
  * - t.leaveButton: Text for leave room button (fallback: "Rời phòng")
  * - t.waitingForRematchMessage: Notice for non-host players (fallback: "Đang chờ chủ phòng chơi lại")
  */
-import React from 'react';
 import './GameOver.css';
 
 export default function GameOver({

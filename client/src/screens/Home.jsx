@@ -12,7 +12,6 @@
  * - t.resumingMessage: Message shown when auto-reconnecting (default: "Đang vào lại phòng…")
  */
 
-import React from 'react';
 import './Home.css';
 
 export function Home({

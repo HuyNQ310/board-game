@@ -1,4 +1,3 @@
-import React from 'react';
 import SeatRing from '../components/SeatRing.jsx';
 import DrawPile from '../components/DrawPile.jsx';
 import DiscardPile from '../components/DiscardPile.jsx';

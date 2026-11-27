@@ -470,7 +470,8 @@ export function createHandlers(arg1 = {}, arg2 = {}) {
               : room.game;
           }
 
-          const { game: _, ...roomPayload } = room;
+          const roomPayload = { ...room };
+          delete roomPayload.game;
           safeAck({
             ok: true,
             code: room.code,

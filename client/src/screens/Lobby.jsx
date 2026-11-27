@@ -16,7 +16,6 @@
  * - t.leaveRoomButton: Text for leave room button (default: "Rời phòng")
  */
 
-import React from 'react';
 import './Lobby.css';
 
 export function Lobby({

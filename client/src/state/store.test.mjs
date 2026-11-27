@@ -3,7 +3,6 @@ import assert from 'node:assert/strict';
 import {
   reducer,
   initialState,
-  ACTION_TYPES,
   ROOM_STATE_RECEIVED,
   GAME_STATE_RECEIVED,
   ERROR_RECEIVED,

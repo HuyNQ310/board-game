@@ -178,7 +178,7 @@ export function createGame(playerIds, rng = Math.random) {
  * @param {'bomb'|'disconnect'|string} reason
  * @param {() => number} rng
  */
-export function eliminatePlayer(state, playerId, reason = 'disconnect', rng = Math.random) {
+export function eliminatePlayer(state, playerId, reason = 'disconnect', _rng = Math.random) {
   if (state.phase === 'over') {
     return cloneState(state);
   }
