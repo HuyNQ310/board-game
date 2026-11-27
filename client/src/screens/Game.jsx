@@ -44,31 +44,32 @@ export function Game({
           players={players}
           myPlayerId={myPlayerId}
           currentPlayerId={currentPlayerId}
+          centerContent={
+            <div className="game-screen__center">
+              <DrawPile deckCount={deckCount} t={t} />
+
+              <div className="game-screen__center-info">
+                {effectiveTurnsLeft > 1 && (
+                  <div
+                    className="game-screen__turns-left"
+                    data-testid="turns-left"
+                    aria-live="polite"
+                  >
+                    Còn {effectiveTurnsLeft} lượt
+                  </div>
+                )}
+              </div>
+
+              <DiscardPile
+                discardCount={discardCount}
+                discardTop={discardTop}
+                renderCard={renderCard}
+                t={t}
+              />
+            </div>
+          }
         />
       </header>
-
-      <main className="game-screen__center">
-        <DrawPile deckCount={deckCount} t={t} />
-
-        <div className="game-screen__center-info">
-          {effectiveTurnsLeft > 1 && (
-            <div
-              className="game-screen__turns-left"
-              data-testid="turns-left"
-              aria-live="polite"
-            >
-              Còn {effectiveTurnsLeft} lượt
-            </div>
-          )}
-        </div>
-
-        <DiscardPile
-          discardCount={discardCount}
-          discardTop={discardTop}
-          renderCard={renderCard}
-          t={t}
-        />
-      </main>
 
       <section
         className="game-screen__action-hand-placeholder"

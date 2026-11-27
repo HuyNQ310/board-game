@@ -2,17 +2,17 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
+  gap: 3px;
   user-select: none;
 }
 
 .draw-pile__card {
-  width: 75px;
-  height: 105px;
-  border-radius: 8px;
+  width: 50px;
+  height: 68px;
+  border-radius: 6px;
   background-color: #2e3a4b;
-  border: 2px solid #1f2733;
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.25), 2px 2px 0 #1b222d, 4px 4px 0 #121820;
+  border: 1.5px solid #1f2733;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3), 1px 1px 0 #1b222d, 2px 2px 0 #121820;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -22,9 +22,9 @@
 
 .draw-pile__pattern {
   position: absolute;
-  inset: 4px;
+  inset: 3px;
   border: 1px dashed rgba(255, 255, 255, 0.25);
-  border-radius: 5px;
+  border-radius: 4px;
   pointer-events: none;
 }
 
@@ -32,76 +32,111 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 2px;
   z-index: 1;
 }
 
 .draw-pile__icon {
-  font-size: 20px;
+  font-size: 16px;
 }
 
 .draw-pile__badge {
-  background-color: rgba(255, 255, 255, 0.9);
+  background-color: rgba(255, 255, 255, 0.92);
   color: #2e3a4b;
   font-weight: bold;
-  font-size: 14px;
-  padding: 2px 8px;
-  border-radius: 10px;
-  min-width: 20px;
+  font-size: 11px;
+  padding: 1px 5px;
+  border-radius: 8px;
+  min-width: 16px;
   text-align: center;
+  line-height: 1.2;
 }
 
 .draw-pile__info {
   display: flex;
   flex-direction: column;
   align-items: center;
-  line-height: 1.2;
+  line-height: 1.15;
 }
 
 .draw-pile__label {
-  font-size: 12px;
+  font-size: 10.5px;
   font-weight: 600;
-  color: #2b2326;
+  color: #f6efe2;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+  white-space: nowrap;
 }
 
 .draw-pile__count {
-  font-size: 11px;
-  color: #666666;
+  font-size: 9.5px;
+  color: rgba(246, 239, 226, 0.85);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+  white-space: nowrap;
+}
+
+/* Tablet screens (768px+) */
+@media (min-width: 768px) {
+  .draw-pile {
+    gap: 4px;
+  }
+
+  .draw-pile__card {
+    width: 58px;
+    height: 80px;
+    border-radius: 7px;
+  }
+
+  .draw-pile__icon {
+    font-size: 18px;
+  }
+
+  .draw-pile__badge {
+    font-size: 12px;
+    padding: 1px 6px;
+  }
+
+  .draw-pile__label {
+    font-size: 11.5px;
+  }
+
+  .draw-pile__count {
+    font-size: 10px;
+  }
 }
 
 /* Desktop screen layout (1024px+) */
 @media (min-width: 1024px) {
   .draw-pile {
-    gap: 10px;
+    gap: 5px;
   }
 
   .draw-pile__card {
-    width: 130px;
-    height: 182px;
-    border-radius: 12px;
-    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.25), 3px 3px 0 #1b222d, 6px 6px 0 #121820;
+    width: 66px;
+    height: 92px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3), 2px 2px 0 #1b222d, 3px 3px 0 #121820;
   }
 
   .draw-pile__pattern {
-    inset: 6px;
-    border-radius: 8px;
+    inset: 4px;
+    border-radius: 6px;
   }
 
   .draw-pile__icon {
-    font-size: 30px;
+    font-size: 20px;
   }
 
   .draw-pile__badge {
-    font-size: 18px;
-    padding: 4px 12px;
-    border-radius: 14px;
+    font-size: 13px;
+    padding: 2px 7px;
+    border-radius: 10px;
   }
 
   .draw-pile__label {
-    font-size: 15px;
+    font-size: 12.5px;
   }
 
   .draw-pile__count {
-    font-size: 13px;
+    font-size: 11px;
   }
 }

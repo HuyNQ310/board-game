@@ -108,7 +108,12 @@ function computeSeatPositions(opponentsCount, hasSelf = true) {
   });
 }
 
-export function SeatRing({ players = [], myPlayerId, currentPlayerId }) {
+export function SeatRing({
+  players = [],
+  myPlayerId,
+  currentPlayerId,
+  centerContent = null,
+}) {
   const safePlayers = Array.isArray(players) ? players : [];
 
   const selfPlayer = safePlayers.find((p) => p && p.id === myPlayerId);
@@ -204,7 +209,13 @@ export function SeatRing({ players = [], myPlayerId, currentPlayerId }) {
       style={{ '--seat-count': safePlayers.length }}
     >
       <div className="seat-ring__table">
-        <div className="seat-ring__felt" aria-hidden="true" />
+        <div className="seat-ring__felt" aria-hidden={centerContent ? undefined : 'true'}>
+          {centerContent && (
+            <div className="seat-ring__center" data-testid="seat-ring-center">
+              {centerContent}
+            </div>
+          )}
+        </div>
         <div className="seat-ring__opponents">
           {opponents.map((player, index) =>
             renderSeat(player, false, opponentPositions[index])

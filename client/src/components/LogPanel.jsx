@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import './LogPanel.css';
 
 function fallbackRenderLogLine(entry) {
@@ -10,12 +10,31 @@ function fallbackRenderLogLine(entry) {
   return parts || JSON.stringify(entry);
 }
 
-export function LogPanel({ entries = [], renderLogLine }) {
+export function LogPanel({
+  entries = [],
+  renderLogLine,
+  defaultCollapsed = true,
+  isCollapsed: controlledCollapsed,
+  onToggleCollapse,
+}) {
+  const [internalCollapsed, setInternalCollapsed] = useState(defaultCollapsed);
+  const isCollapsed = controlledCollapsed !== undefined ? controlledCollapsed : internalCollapsed;
+
+  const handleToggle = () => {
+    if (onToggleCollapse) {
+      onToggleCollapse(!isCollapsed);
+    }
+    if (controlledCollapsed === undefined) {
+      setInternalCollapsed((prev) => !prev);
+    }
+  };
+
   const safeEntries = Array.isArray(entries) ? entries : [];
   const bottomRef = useRef(null);
   const contentRef = useRef(null);
 
   useEffect(() => {
+    if (isCollapsed) return;
     // Scroll ONLY this panel's own internal list (contentRef), by setting
     // its scrollTop directly -- never the page. `scrollIntoView` (even with
     // `block: 'nearest'`) falls back to scrolling the whole document when
@@ -38,25 +57,46 @@ export function LogPanel({ entries = [], renderLogLine }) {
     } else {
       content.scrollTop = content.scrollHeight;
     }
-  }, [safeEntries]);
+  }, [safeEntries, isCollapsed]);
 
   const renderFn = typeof renderLogLine === 'function' ? renderLogLine : fallbackRenderLogLine;
 
+  const rootClasses = [
+    'log-panel',
+    isCollapsed ? 'log-panel--collapsed' : '',
+  ]
+    .filter(Boolean)
+    .join(' ');
+
   return (
     <div
-      className="log-panel"
+      className={rootClasses}
       data-testid="log-panel"
       role="region"
       aria-label="Nhật ký trò chơi"
     >
       <div className="log-panel__header">
         <h3 className="log-panel__title">Nhật ký</h3>
+        <button
+          type="button"
+          className="log-panel__toggle-btn"
+          onClick={handleToggle}
+          aria-expanded={!isCollapsed}
+          aria-controls="log-panel-content"
+          aria-label={isCollapsed ? 'Mở rộng nhật ký' : 'Thu gọn nhật ký'}
+        >
+          <span className="log-panel__toggle-icon" aria-hidden="true">
+            {isCollapsed ? '▲' : '▼'}
+          </span>
+        </button>
       </div>
       <div
+        id="log-panel-content"
         className="log-panel__content"
         role="log"
         aria-live="polite"
-        tabIndex={0}
+        tabIndex={isCollapsed ? -1 : 0}
+        aria-hidden={isCollapsed}
         ref={contentRef}
       >
         {safeEntries.length === 0 ? (
