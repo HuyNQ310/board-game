@@ -91,10 +91,13 @@
   }
 }
 
-/* Desktop screen layout (1024px+) */
+/* Desktop screen layout (1024px+): use most of the viewport width instead
+   of a narrow centered column (owner request: "full web screen, not
+   limited like mobile"). Capped at 1800px so it doesn't stretch
+   uncomfortably wide on ultra-wide monitors. */
 @media (min-width: 1024px) {
   .game-screen {
-    max-width: 1140px;
+    max-width: min(95vw, 1800px);
     padding: 24px 32px;
     gap: 20px;
   }
@@ -121,7 +124,7 @@
   }
 
   .game-screen__footer {
-    max-width: 960px;
+    max-width: min(90vw, 1400px);
     margin: 0 auto;
   }
 }
