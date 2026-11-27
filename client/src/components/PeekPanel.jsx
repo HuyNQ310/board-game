@@ -155,13 +155,20 @@ export default function PeekPanel({
             const posLabel = t[POSITION_KEYS[index]] || DEFAULT_POS_LABELS[index] || `${index + 1}`;
 
             return (
-              <li key={`peek-card-${index}`} className="peek-panel__item" role="listitem">
-                <div className="peek-panel__position-badge" aria-hidden="true">
-                  <span className="peek-panel__position-dot" style={{ backgroundColor: meta.color }} />
-                  <span className="peek-panel__position-text">{posLabel}</span>
-                </div>
-
+              <li
+                key={`peek-card-${index}`}
+                className="peek-panel__item"
+                role="listitem"
+                aria-label={posLabel}
+              >
                 <div className="peek-panel__card-content">
+                  <span
+                    className="peek-panel__position-corner"
+                    aria-hidden="true"
+                    style={{ backgroundColor: meta.color }}
+                  >
+                    {index + 1}
+                  </span>
                   {typeof renderCard === 'function' ? (
                     renderCard({
                       type: cardType,

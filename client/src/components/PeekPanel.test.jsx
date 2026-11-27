@@ -51,17 +51,21 @@ describe('PeekPanel', () => {
       const listItems = screen.getAllByRole('listitem');
       expect(listItems).toHaveLength(3);
 
-      // 1st entry: Top position ("1. Trên cùng") with "Mèo Bùm"
-      expect(listItems[0].textContent).toContain('1. Trên cùng');
+      // Corner badges show plain numbers 1/2/3 (owner request: numbered
+      // corner badges on cards laid out side by side, not a vertical list
+      // with a full position label above each card); the fuller position
+      // description still lives in aria-label for accessibility.
+      expect(listItems[0].textContent).toContain('1');
       expect(listItems[0].textContent).toContain('Mèo Bùm');
+      expect(listItems[0]).toHaveAttribute('aria-label', '1. Trên cùng');
 
-      // 2nd entry: Middle position ("2. Ở giữa") with "Ngủ Trưa"
-      expect(listItems[1].textContent).toContain('2. Ở giữa');
+      expect(listItems[1].textContent).toContain('2');
       expect(listItems[1].textContent).toContain('Ngủ Trưa');
+      expect(listItems[1]).toHaveAttribute('aria-label', '2. Ở giữa');
 
-      // 3rd entry: Bottom position ("3. Thứ ba") with "Kìm Cắt Dây"
-      expect(listItems[2].textContent).toContain('3. Thứ ba');
+      expect(listItems[2].textContent).toContain('3');
       expect(listItems[2].textContent).toContain('Kìm Cắt Dây');
+      expect(listItems[2]).toHaveAttribute('aria-label', '3. Thứ ba');
     });
 
     it('renders all 3 entries in order when peek contains card objects ({ type })', () => {
@@ -77,15 +81,15 @@ describe('PeekPanel', () => {
       expect(listItems).toHaveLength(3);
 
       // Position 1: attack -> Truy Đuổi
-      expect(listItems[0].textContent).toContain('1. Trên cùng');
+      expect(listItems[0].textContent).toContain('1');
       expect(listItems[0].textContent).toContain('Truy Đuổi');
 
       // Position 2: favor -> Nài Nỉ
-      expect(listItems[1].textContent).toContain('2. Ở giữa');
+      expect(listItems[1].textContent).toContain('2');
       expect(listItems[1].textContent).toContain('Nài Nỉ');
 
       // Position 3: shuffle -> Xáo Trộn
-      expect(listItems[2].textContent).toContain('3. Thứ ba');
+      expect(listItems[2].textContent).toContain('3');
       expect(listItems[2].textContent).toContain('Xáo Trộn');
     });
   });
@@ -114,13 +118,13 @@ describe('PeekPanel', () => {
       expect(screen.getByText('Ba lá tiếp theo trong cọc:')).toBeDefined();
 
       const listItems = screen.getAllByRole('listitem');
-      expect(listItems[0].textContent).toContain('Vị trí #1');
+      expect(listItems[0]).toHaveAttribute('aria-label', 'Vị trí #1');
       expect(listItems[0].textContent).toContain('Bom nổ');
 
-      expect(listItems[1].textContent).toContain('Vị trí #2');
+      expect(listItems[1]).toHaveAttribute('aria-label', 'Vị trí #2');
       expect(listItems[1].textContent).toContain('Mèo thường');
 
-      expect(listItems[2].textContent).toContain('Vị trí #3');
+      expect(listItems[2]).toHaveAttribute('aria-label', 'Vị trí #3');
       expect(listItems[2].textContent).toContain('Mắt nhìn');
     });
   });
