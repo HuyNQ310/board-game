@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import './SeatRing.css';
 
 /**
@@ -108,12 +109,81 @@ function computeSeatPositions(opponentsCount, hasSelf = true) {
   });
 }
 
+const TURN_DURATION_SECONDS = 30;
+
 export function SeatRing({
   players = [],
   myPlayerId,
   currentPlayerId,
   centerContent = null,
+  turnDeadline,
 }) {
+  const [prevTurnDeadline, setPrevTurnDeadline] = useState(turnDeadline);
+  const [prevCurrentPlayerId, setPrevCurrentPlayerId] = useState(currentPlayerId);
+  const [secondsLeft, setSecondsLeft] = useState(() => {
+    if (
+      currentPlayerId &&
+      typeof turnDeadline === 'number' &&
+      !Number.isNaN(turnDeadline) &&
+      turnDeadline > Date.now()
+    ) {
+      return Math.max(0, Math.ceil((turnDeadline - Date.now()) / 1000));
+    }
+    return null;
+  });
+
+  if (turnDeadline !== prevTurnDeadline || currentPlayerId !== prevCurrentPlayerId) {
+    setPrevTurnDeadline(turnDeadline);
+    setPrevCurrentPlayerId(currentPlayerId);
+    if (
+      currentPlayerId &&
+      typeof turnDeadline === 'number' &&
+      !Number.isNaN(turnDeadline) &&
+      turnDeadline > Date.now()
+    ) {
+      setSecondsLeft(Math.max(0, Math.ceil((turnDeadline - Date.now()) / 1000)));
+    } else {
+      setSecondsLeft(null);
+    }
+  }
+
+  useEffect(() => {
+    if (
+      !currentPlayerId ||
+      typeof turnDeadline !== 'number' ||
+      Number.isNaN(turnDeadline) ||
+      turnDeadline <= Date.now()
+    ) {
+      setSecondsLeft(null);
+      return;
+    }
+
+    const computeRemaining = () => {
+      const diff = turnDeadline - Date.now();
+      return Math.max(0, Math.ceil(diff / 1000));
+    };
+
+    setSecondsLeft(computeRemaining());
+
+    const intervalId = setInterval(() => {
+      const remaining = computeRemaining();
+      setSecondsLeft(remaining);
+      if (remaining <= 0) {
+        clearInterval(intervalId);
+      }
+    }, 1000);
+
+    return () => {
+      clearInterval(intervalId);
+    };
+  }, [turnDeadline, currentPlayerId]);
+
+  const hasCountdown = typeof secondsLeft === 'number';
+  const ringProgress = hasCountdown
+    ? Math.min(100, Math.max(0, Math.round((secondsLeft / TURN_DURATION_SECONDS) * 100)))
+    : 0;
+  const isUrgent = hasCountdown && secondsLeft <= 5;
+
   const safePlayers = Array.isArray(players) ? players : [];
 
   const selfPlayer = safePlayers.find((p) => p && p.id === myPlayerId);
@@ -127,6 +197,7 @@ export function SeatRing({
   const renderSeat = (player, isSelf = false, position = null) => {
     if (!player) return null;
     const isCurrent = player.id === currentPlayerId;
+    const hasActiveTimer = isCurrent && hasCountdown;
     const isAlive = player.alive !== false;
     const isConnected = player.connected !== false;
 
@@ -160,8 +231,22 @@ export function SeatRing({
         aria-label={`${player.name}${isSelf ? ' (Bạn)' : ''}`}
         style={seatStyle}
       >
-        <div className="seat-ring__avatar" aria-hidden="true">
-          {initial}
+        <div
+          className={`seat-ring__avatar-wrap${hasActiveTimer ? ' seat-ring__avatar-wrap--timer' : ''}`}
+          style={hasActiveTimer ? { '--ring-progress': `${ringProgress}%` } : undefined}
+          data-testid={hasActiveTimer ? 'avatar-timer-wrap' : undefined}
+        >
+          {hasActiveTimer && (
+            <div
+              className={`seat-ring__timer-ring${isUrgent ? ' seat-ring__timer-ring--urgent' : ''}`}
+              data-testid="avatar-timer-ring"
+              aria-hidden="true"
+              style={{ '--ring-progress': `${ringProgress}%` }}
+            />
+          )}
+          <div className="seat-ring__avatar" aria-hidden="true">
+            {initial}
+          </div>
         </div>
         <div className="seat-ring__details">
           <div className="seat-ring__name" title={player.name}>
@@ -174,8 +259,20 @@ export function SeatRing({
         </div>
         <div className="seat-ring__badges">
           {isCurrent && (
-            <span className="seat-ring__badge seat-ring__badge--current">
+            <span
+              className={`seat-ring__badge seat-ring__badge--current${
+                isUrgent ? ' seat-ring__badge--urgent' : ''
+              }`}
+            >
               Đến lượt
+              {hasActiveTimer && (
+                <span
+                  className="seat-ring__countdown"
+                  data-testid="seat-countdown"
+                >
+                  {' '}({secondsLeft}s)
+                </span>
+              )}
             </span>
           )}
           {!isAlive && (

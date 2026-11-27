@@ -45,11 +45,13 @@
   position: absolute;
   inset: 16px 10px;
   border-radius: 9999px;
-  background: radial-gradient(ellipse 70% 60% at 50% 46%, #1e4b37 0%, #153a2b 70%, #0d271c 100%);
+  background:
+    radial-gradient(ellipse 65% 55% at 50% 40%, rgba(72, 175, 125, 0.20) 0%, rgba(35, 110, 75, 0.06) 55%, transparent 80%),
+    radial-gradient(ellipse 85% 75% at 50% 44%, #226244 0%, #194e36 45%, #113827 75%, #0a2318 100%);
   border: 4px solid #3d2b1f; /* Wood/leather table rail */
   box-shadow:
-    inset 0 0 16px rgba(0, 0, 0, 0.45),
-    inset 0 0 0 2px rgba(212, 175, 55, 0.3), /* Gold inlay trim */
+    inset 0 0 20px rgba(0, 0, 0, 0.5),
+    inset 0 0 0 2px rgba(212, 175, 55, 0.35), /* Gold inlay trim */
     0 4px 14px rgba(0, 0, 0, 0.18);
   pointer-events: none;
   z-index: 1;
@@ -178,11 +180,15 @@
   padding: 3px 4px;
 }
 
+.seat-ring--dense .seat-ring__avatar-wrap {
+  margin-bottom: 2px;
+}
+
 .seat-ring--dense .seat-ring__avatar {
   width: 24px;
   height: 24px;
   font-size: 11px;
-  margin-bottom: 2px;
+  margin-bottom: 0;
 }
 
 .seat-ring--dense .seat-ring__name {
@@ -200,9 +206,53 @@
 }
 
 /* -------------------------------------------------------------
- * 6. Internal Seat Content Elements
+ * 6. Internal Seat Content Elements & Turn Timer Ring
  * ------------------------------------------------------------- */
+.seat-ring__avatar-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  margin-bottom: 3px;
+}
+
+.seat-ring__timer-ring {
+  --timer-ring-color: #e67e22;
+  --timer-ring-track: rgba(230, 126, 34, 0.2);
+  --timer-ring-glow: rgba(230, 126, 34, 0.45);
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  background: conic-gradient(
+    var(--timer-ring-color) var(--ring-progress, 100%),
+    var(--timer-ring-track) 0
+  );
+  box-shadow: 0 0 6px var(--timer-ring-glow);
+  pointer-events: none;
+  z-index: 0;
+  transition: box-shadow 0.2s ease;
+}
+
+.seat-ring__timer-ring--urgent {
+  --timer-ring-color: #e74c3c;
+  --timer-ring-track: rgba(231, 76, 60, 0.25);
+  --timer-ring-glow: rgba(231, 76, 60, 0.7);
+  animation: pulse-urgent-ring 1s infinite alternate ease-in-out;
+}
+
+@keyframes pulse-urgent-ring {
+  from {
+    box-shadow: 0 0 4px rgba(231, 76, 60, 0.5);
+  }
+  to {
+    box-shadow: 0 0 9px rgba(231, 76, 60, 0.9);
+  }
+}
+
 .seat-ring__avatar {
+  position: relative;
+  z-index: 1;
   width: 28px;
   height: 28px;
   border-radius: 50%;
@@ -213,7 +263,7 @@
   justify-content: center;
   font-weight: bold;
   font-size: 12px;
-  margin-bottom: 3px;
+  margin-bottom: 0;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
@@ -272,6 +322,15 @@
 .seat-ring__badge--current {
   background-color: #e67e22;
   color: #ffffff;
+}
+
+.seat-ring__badge--urgent {
+  background-color: #c0392b;
+}
+
+.seat-ring__countdown {
+  font-weight: 700;
+  letter-spacing: 0.2px;
 }
 
 .seat-ring__badge--eliminated {
@@ -410,11 +469,15 @@
     padding: 6px 12px;
   }
 
+  .seat-ring__avatar-wrap {
+    margin-bottom: 3px;
+  }
+
   .seat-ring__avatar {
     width: 32px;
     height: 32px;
     font-size: 14px;
-    margin-bottom: 3px;
+    margin-bottom: 0;
   }
 
   .seat-ring__name {
@@ -445,6 +508,17 @@
  * 9. Dark Mode Theme Support
  * ------------------------------------------------------------- */
 @media (prefers-color-scheme: dark) {
+  .seat-ring__felt {
+    background:
+      radial-gradient(ellipse 65% 55% at 50% 40%, rgba(55, 145, 102, 0.16) 0%, rgba(28, 88, 60, 0.05) 55%, transparent 80%),
+      radial-gradient(ellipse 85% 75% at 50% 44%, #1a4a34 0%, #133a29 45%, #0d281c 75%, #06160f 100%);
+    border-color: #2c1f16;
+    box-shadow:
+      inset 0 0 24px rgba(0, 0, 0, 0.7),
+      inset 0 0 0 2px rgba(212, 175, 55, 0.25),
+      0 4px 14px rgba(0, 0, 0, 0.35);
+  }
+
   .seat-ring__seat {
     background-color: #272225;
     color: #f6efe2;
@@ -470,6 +544,18 @@
   }
 }
 
+[data-theme='dark'] .seat-ring__felt,
+.dark .seat-ring__felt {
+  background:
+    radial-gradient(ellipse 65% 55% at 50% 40%, rgba(55, 145, 102, 0.16) 0%, rgba(28, 88, 60, 0.05) 55%, transparent 80%),
+    radial-gradient(ellipse 85% 75% at 50% 44%, #1a4a34 0%, #133a29 45%, #0d281c 75%, #06160f 100%);
+  border-color: #2c1f16;
+  box-shadow:
+    inset 0 0 24px rgba(0, 0, 0, 0.7),
+    inset 0 0 0 2px rgba(212, 175, 55, 0.25),
+    0 4px 14px rgba(0, 0, 0, 0.35);
+}
+
 [data-theme='dark'] .seat-ring__seat,
 .dark .seat-ring__seat {
   background-color: #272225;
@@ -493,7 +579,11 @@
  * 10. Prefers-Reduced-Motion
  * ------------------------------------------------------------- */
 @media (prefers-reduced-motion: reduce) {
-  .seat-ring__seat {
+  .seat-ring__seat,
+  .seat-ring__timer-ring,
+  .seat-ring__timer-ring--urgent,
+  .seat-ring__avatar-wrap {
+    animation: none !important;
     transition: none !important;
   }
 }
