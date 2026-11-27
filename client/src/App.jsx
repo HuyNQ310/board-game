@@ -32,6 +32,7 @@ import PeekPanel from './components/PeekPanel.jsx';
 import Toast from './components/Toast.jsx';
 import Chat from './components/Chat.jsx';
 import HelpModal from './components/HelpModal.jsx';
+import ConfirmDialog from './components/ConfirmDialog.jsx';
 
 // Rule descriptions for cards (rules.md section 4.1 & card.md)
 const CARD_RULES_VI = {
@@ -83,6 +84,7 @@ function AppContent() {
   const [isReconnecting, setIsReconnecting] = useState(false);
   const [chatMessages, setChatMessages] = useState([]);
   const [helpOpen, setHelpOpen] = useState(false);
+  const [leaveConfirmOpen, setLeaveConfirmOpen] = useState(false);
 
   // Local UI-only interaction state
   const [selectedCardIds, setSelectedCardIds] = useState(() => new Set());
@@ -1109,11 +1111,7 @@ function AppContent() {
                 stays consistent for everyone else. */}
             <button
               type="button"
-              onClick={() => {
-                if (window.confirm('Rời trận đấu? Bạn sẽ bị loại khỏi ván này.')) {
-                  handleLeaveRoom();
-                }
-              }}
+              onClick={() => setLeaveConfirmOpen(true)}
               aria-label="Rời trận đấu"
               title="Rời trận đấu"
               style={{
@@ -1133,6 +1131,18 @@ function AppContent() {
             >
               🚪
             </button>
+            <ConfirmDialog
+              open={leaveConfirmOpen}
+              title="Rời trận đấu?"
+              message="Bạn sẽ bị loại khỏi ván này và không thể quay lại. Vẫn muốn rời đi chứ?"
+              confirmLabel="Rời trận"
+              cancelLabel="Ở lại"
+              onConfirm={() => {
+                setLeaveConfirmOpen(false);
+                handleLeaveRoom();
+              }}
+              onCancel={() => setLeaveConfirmOpen(false)}
+            />
 
             {/* Help / how-to-play trigger */}
             <button
