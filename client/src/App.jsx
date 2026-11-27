@@ -675,28 +675,13 @@ function AppContent() {
     }
   }, [canPeek, strings, dispatch]);
 
-  const handleFavorAction = useCallback(() => {
-    if (!canFavor) return;
-    setTargetPickerAction('favor');
-    setTargetPickerOpen(true);
-  }, [canFavor]);
-
-  const handleCatPairAction = useCallback(() => {
-    if (!canCatPair) return;
-    const selectedCats = catCardsInHand.filter((c) => selectedCardIds.has(c.id));
-    if (selectedCats.length !== 2) {
-      setSelectedCardIds(new Set([catCardsInHand[0].id, catCardsInHand[1].id]));
-    }
-    setTargetPickerAction('catPair');
-    setTargetPickerOpen(true);
-  }, [canCatPair, catCardsInHand, selectedCardIds]);
-
-  const handlePickTarget = useCallback(
-    async (targetPlayerId) => {
-      setTargetPickerOpen(false);
-      const actionType = targetPickerAction;
-      setTargetPickerAction(null);
-
+  // Sends the actual targeted action to the server. Factored out of
+  // handlePickTarget so a lone-candidate action (see handleFavorAction /
+  // handleCatPairAction below) can call it directly without ever opening
+  // the TargetPicker -- with only one possible target, asking "who?" is
+  // just an extra tap for no reason.
+  const performTargetedAction = useCallback(
+    async (actionType, targetPlayerId) => {
       if (actionType === 'favor') {
         const ack = await emitWithAck('game:action', {
           type: 'play',
@@ -731,7 +716,41 @@ function AppContent() {
         }
       }
     },
-    [targetPickerAction, strings, dispatch]
+    [strings, dispatch]
+  );
+
+  const handleFavorAction = useCallback(() => {
+    if (!canFavor) return;
+    if (candidates.length === 1) {
+      performTargetedAction('favor', candidates[0].id);
+      return;
+    }
+    setTargetPickerAction('favor');
+    setTargetPickerOpen(true);
+  }, [canFavor, candidates, performTargetedAction]);
+
+  const handleCatPairAction = useCallback(() => {
+    if (!canCatPair) return;
+    const selectedCats = catCardsInHand.filter((c) => selectedCardIds.has(c.id));
+    if (selectedCats.length !== 2) {
+      setSelectedCardIds(new Set([catCardsInHand[0].id, catCardsInHand[1].id]));
+    }
+    if (candidates.length === 1) {
+      performTargetedAction('catPair', candidates[0].id);
+      return;
+    }
+    setTargetPickerAction('catPair');
+    setTargetPickerOpen(true);
+  }, [canCatPair, catCardsInHand, selectedCardIds, candidates, performTargetedAction]);
+
+  const handlePickTarget = useCallback(
+    async (targetPlayerId) => {
+      setTargetPickerOpen(false);
+      const actionType = targetPickerAction;
+      setTargetPickerAction(null);
+      await performTargetedAction(actionType, targetPlayerId);
+    },
+    [targetPickerAction, performTargetedAction]
   );
 
   const handleCancelTarget = useCallback(() => {
