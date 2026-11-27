@@ -1,0 +1,250 @@
+/* DefuseDialog.css - Modal dialog for bomb reinsertion */
+
+.defuse-dialog-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  z-index: 1000;
+  backdrop-filter: blur(3px);
+  animation: defuse-dialog-fade-in 0.2s ease-out;
+}
+
+@keyframes defuse-dialog-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.defuse-dialog {
+  background-color: #2b2326;
+  color: #f6efe2;
+  border: 2px solid #e74c3c;
+  border-radius: 14px;
+  width: 100%;
+  max-width: 400px;
+  box-shadow: 0 12px 30px rgba(231, 76, 60, 0.25), 0 8px 24px rgba(0, 0, 0, 0.6);
+  box-sizing: border-box;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  animation: defuse-dialog-scale-in 0.2s ease-out;
+}
+
+@keyframes defuse-dialog-scale-in {
+  from {
+    transform: scale(0.95);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
+.defuse-dialog__header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.defuse-dialog__icon {
+  font-size: 1.6rem;
+}
+
+.defuse-dialog__title {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #2ecc71;
+  line-height: 1.2;
+}
+
+.defuse-dialog__prompt {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #d1c8c5;
+  line-height: 1.4;
+}
+
+.defuse-dialog__controls {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background-color: rgba(0, 0, 0, 0.25);
+  padding: 16px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.defuse-dialog__slider-wrap {
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+}
+
+/* Accessible and touch-friendly range input */
+.defuse-dialog__slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 10px;
+  border-radius: 5px;
+  background: #4a3e42;
+  outline: none;
+  margin: 12px 0;
+  cursor: pointer;
+}
+
+.defuse-dialog__slider:focus-visible {
+  outline: 3px solid #ffcc00;
+  outline-offset: 4px;
+}
+
+/* Slider thumb styling - minimum 44x44px touch area via padding/size */
+.defuse-dialog__slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #e74c3c;
+  border: 3px solid #ffffff;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+  transition: transform 0.15s ease, background-color 0.15s ease;
+}
+
+.defuse-dialog__slider::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+  background: #ff5252;
+}
+
+.defuse-dialog__slider::-moz-range-thumb {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #e74c3c;
+  border: 3px solid #ffffff;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+  transition: transform 0.15s ease, background-color 0.15s ease;
+}
+
+.defuse-dialog__slider::-moz-range-thumb:hover {
+  transform: scale(1.15);
+  background: #ff5252;
+}
+
+.defuse-dialog__slider-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #a39599;
+}
+
+.defuse-dialog__slider-label--top {
+  color: #f39c12;
+}
+
+.defuse-dialog__slider-label--bottom {
+  color: #3498db;
+}
+
+.defuse-dialog__indicator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 8px;
+  background-color: rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
+  gap: 2px;
+}
+
+.defuse-dialog__position-val {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.defuse-dialog__position-sub {
+  font-size: 0.8rem;
+  color: #e0d6d0;
+  font-style: italic;
+}
+
+.defuse-dialog__footer {
+  display: flex;
+  width: 100%;
+}
+
+.defuse-dialog__confirm-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 48px;
+  min-width: 44px;
+  padding: 12px 20px;
+  border-radius: 8px;
+  border: 2px solid #c0392b;
+  background: linear-gradient(135deg, #e74c3c, #c0392b);
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 1.05rem;
+  font-weight: 700;
+  cursor: pointer;
+  user-select: none;
+  box-shadow: 0 4px 12px rgba(231, 76, 60, 0.4);
+  transition: background 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.defuse-dialog__confirm-btn:hover {
+  background: linear-gradient(135deg, #ff5252, #e74c3c);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(231, 76, 60, 0.5);
+}
+
+.defuse-dialog__confirm-btn:active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 6px rgba(231, 76, 60, 0.3);
+}
+
+.defuse-dialog__confirm-btn:focus-visible {
+  outline: 3px solid #ffcc00;
+  outline-offset: 3px;
+}
+
+.defuse-dialog__confirm-icon {
+  font-size: 1.2rem;
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .defuse-dialog-backdrop,
+  .defuse-dialog {
+    animation: none !important;
+  }
+  .defuse-dialog__slider::-webkit-slider-thumb,
+  .defuse-dialog__slider::-moz-range-thumb,
+  .defuse-dialog__confirm-btn {
+    transition: none !important;
+  }
+  .defuse-dialog__confirm-btn:hover,
+  .defuse-dialog__confirm-btn:active {
+    transform: none !important;
+  }
+}

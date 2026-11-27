@@ -1,0 +1,136 @@
+/* PeekPanel.css - Vertical top-to-bottom card preview for Peek action */
+
+.peek-panel {
+  display: flex;
+  flex-direction: column;
+  background-color: #2e3a4b;
+  color: #f6efe2;
+  border: 2px solid #3498db;
+  border-radius: 12px;
+  padding: 14px 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), 0 0 12px rgba(52, 152, 219, 0.3);
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 360px;
+  animation: peek-panel-slide-in 0.25s ease-out;
+}
+
+@keyframes peek-panel-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.peek-panel__header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  padding-bottom: 10px;
+}
+
+.peek-panel__header-icon {
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.peek-panel__header-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.peek-panel__title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.peek-panel__subtitle {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #bdc3c7;
+  line-height: 1.2;
+}
+
+.peek-panel__cards-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.peek-panel__item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.peek-panel__position-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #ecf0f1;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.peek-panel__position-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  box-shadow: 0 0 4px rgba(255, 255, 255, 0.4);
+}
+
+.peek-panel__position-text {
+  line-height: 1;
+}
+
+.peek-panel__card-content {
+  width: 100%;
+}
+
+/* Fallback card preview styling */
+.peek-panel__fallback-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background-color: #f6efe2;
+  color: #2b2326;
+  border: 1px solid #d1c5b8;
+  border-left-width: 6px;
+  border-radius: 6px;
+  padding: 8px 12px;
+  min-height: 44px;
+  box-sizing: border-box;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.peek-panel__fallback-icon {
+  font-size: 1.3rem;
+  line-height: 1;
+}
+
+.peek-panel__fallback-name {
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .peek-panel {
+    animation: none !important;
+  }
+}

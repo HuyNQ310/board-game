@@ -1,0 +1,185 @@
+/* ActionBar.css - Mobile-first action bar with 44x44px minimum touch targets */
+
+.action-bar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px 12px;
+}
+
+.action-bar__turns-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background-color: #d35400;
+  color: #ffffff;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  animation: pulse-turns 1.5s infinite alternate ease-in-out;
+}
+
+@keyframes pulse-turns {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.04);
+  }
+}
+
+.action-bar__turns-icon {
+  font-size: 1rem;
+}
+
+.action-bar__buttons {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+}
+
+/* Base button rules: min 44x44px touch targets */
+.action-bar__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background-color: #2e3a4b;
+  color: #f6efe2;
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  user-select: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  transition: background-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.action-bar__btn:hover:not(:disabled) {
+  background-color: #3b4a5f;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.action-bar__btn:active:not(:disabled) {
+  transform: translateY(1px);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.action-bar__btn:focus-visible {
+  outline: 3px solid #ffcc00;
+  outline-offset: 2px;
+}
+
+.action-bar__btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.action-bar__btn-icon {
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.action-bar__btn-label {
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+/* Prominent "Rút bài" (Draw) button */
+.action-bar__btn--draw {
+  min-width: 120px;
+  min-height: 48px;
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #e67e22, #d35400);
+  border: 2px solid #f39c12;
+  color: #ffffff;
+  font-size: 1rem;
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgba(230, 126, 34, 0.35);
+}
+
+.action-bar__btn--draw:hover:not(:disabled) {
+  background: linear-gradient(135deg, #f39c12, #e67e22);
+  border-color: #f1c40f;
+  box-shadow: 0 6px 16px rgba(230, 126, 34, 0.5);
+}
+
+.action-bar__btn--draw:disabled {
+  background: #3a3a3a;
+  border-color: #555555;
+  color: #888888;
+  box-shadow: none;
+}
+
+/* Card-specific action button accents */
+.action-bar__btn--skip {
+  border-color: #f1c40f;
+}
+
+.action-bar__btn--attack {
+  border-color: #e74c3c;
+}
+
+.action-bar__btn--favor {
+  border-color: #e84393;
+}
+
+.action-bar__btn--cat-pair {
+  border-color: #9b59b6;
+}
+
+.action-bar__btn--peek {
+  border-color: #3498db;
+}
+
+.action-bar__btn--shuffle {
+  border-color: #2ecc71;
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .action-bar__turns-badge {
+    animation: none !important;
+  }
+  .action-bar__btn {
+    transition: none !important;
+  }
+  .action-bar__btn:hover:not(:disabled),
+  .action-bar__btn:active:not(:disabled) {
+    transform: none !important;
+  }
+}
+
+/* Larger screens layout */
+@media (min-width: 768px) {
+  .action-bar {
+    padding: 12px 24px;
+    gap: 12px;
+  }
+
+  .action-bar__btn {
+    font-size: 0.9rem;
+    padding: 10px 18px;
+  }
+
+  .action-bar__btn--draw {
+    min-width: 140px;
+    font-size: 1.05rem;
+  }
+}
