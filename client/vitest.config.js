@@ -9,5 +9,6 @@ export default defineConfig({
     // Only run vitest-style (.test.jsx/.test.tsx) suites here.
     // .test.mjs files are node:test-style suites run separately via `node --test`.
     include: ['src/**/*.test.{jsx,tsx}'],
+    setupFiles: ['./src/test-setup.js'],
   },
 });
