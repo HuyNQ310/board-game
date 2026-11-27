@@ -20,6 +20,7 @@
  * - The caller is responsible for capping the selection count (e.g. at 2 cards) and validating pair legality.
  */
 
+import { useState, useRef, useEffect } from 'react';
 import './Hand.css';
 
 const DEFAULT_CARD_LABELS = {
@@ -44,6 +45,39 @@ const DEFAULT_CARD_ICONS = {
   cat: '🐱',
 };
 
+function getPrefersReducedMotion() {
+  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+    return false;
+  }
+  return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
+
+function usePrefersReducedMotion() {
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(getPrefersReducedMotion);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+      return;
+    }
+    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const handleChange = (e) => {
+      setPrefersReducedMotion(e.matches);
+    };
+
+    if (mediaQuery.addEventListener) {
+      mediaQuery.addEventListener('change', handleChange);
+      return () => mediaQuery.removeEventListener('change', handleChange);
+    } else if (mediaQuery.addListener) {
+      mediaQuery.addListener(handleChange);
+      return () => mediaQuery.removeListener(handleChange);
+    }
+  }, []);
+
+  return prefersReducedMotion;
+}
+
+const getCardKey = (card, index) => (card && card.id != null ? card.id : `card-${index}`);
+
 export default function Hand({
   cards = [],
   selectedIds,
@@ -52,6 +86,51 @@ export default function Hand({
   renderCard,
   t = {},
 }) {
+  const cardsList = Array.isArray(cards) ? cards : [];
+  const cardsCount = cardsList.length;
+  const prefersReducedMotion = usePrefersReducedMotion();
+
+  // Track initial deal transition from empty/undefined to populated
+  const hasDealtRef = useRef(cardsCount > 0);
+  const initialDealtIdsRef = useRef(
+    cardsCount > 0 ? new Set(cardsList.map(getCardKey)) : new Set()
+  );
+
+  const [isDealing, setIsDealing] = useState(() => {
+    return Boolean(cardsCount > 0 && !getPrefersReducedMotion());
+  });
+
+  // When cards transition from empty/undefined to populated for the first time
+  if (cardsCount > 0 && !hasDealtRef.current) {
+    hasDealtRef.current = true;
+    initialDealtIdsRef.current = new Set(cardsList.map(getCardKey));
+    if (!prefersReducedMotion && !isDealing) {
+      setIsDealing(true);
+    }
+  }
+
+  // End dealing mode if hand size changes from the initial dealt set (draw/play)
+  if (isDealing && cardsCount !== initialDealtIdsRef.current.size) {
+    setIsDealing(false);
+  }
+
+  // Auto-clear dealing state once the staggered entrance animation has completed
+  useEffect(() => {
+    if (!isDealing) return;
+    const durationMs = cardsCount * 80 + 350;
+    const timer = setTimeout(() => {
+      setIsDealing(false);
+    }, durationMs);
+    return () => clearTimeout(timer);
+  }, [isDealing, cardsCount]);
+
+  // Cancel dealing animation immediately if user prefers reduced motion
+  useEffect(() => {
+    if (prefersReducedMotion && isDealing) {
+      setIsDealing(false);
+    }
+  }, [prefersReducedMotion, isDealing]);
+
   const isSelected = (id) => {
     if (!selectedIds) return false;
     if (selectedIds instanceof Set) return selectedIds.has(id);
@@ -83,6 +162,8 @@ export default function Hand({
     <section className="hand-container" aria-label={handLabel}>
       <div className="hand-scroll-strip" role="list">
         {cards.map((card, index) => {
+          const cardKey = getCardKey(card, index);
+          const isCardDealing = isDealing && initialDealtIdsRef.current.has(cardKey);
           const selected = isSelected(card.id);
           const playable = isPlayable(card.id);
           const cardLabel = t[card.type] || DEFAULT_CARD_LABELS[card.type] || card.type;
@@ -94,10 +175,24 @@ export default function Hand({
             }
           };
 
+          const slotClasses = [
+            'hand-card-slot',
+            selected ? 'hand-card-slot--selected' : '',
+            !playable ? 'hand-card-slot--disabled' : '',
+            isCardDealing ? 'hand-card-slot--dealing' : '',
+          ]
+            .filter(Boolean)
+            .join(' ');
+
+          const slotStyle = isCardDealing
+            ? { '--deal-delay': `${index * 80}ms` }
+            : undefined;
+
           return (
             <div
               key={card.id || `card-${index}`}
-              className={`hand-card-slot ${selected ? 'hand-card-slot--selected' : ''} ${!playable ? 'hand-card-slot--disabled' : ''}`}
+              className={slotClasses}
+              style={slotStyle}
               role="listitem"
             >
               {typeof renderCard === 'function' ? (

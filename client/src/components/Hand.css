@@ -53,6 +53,54 @@
   filter: grayscale(40%);
 }
 
+/* Dealing entrance animation (one-time entrance effect) */
+@keyframes hand-deal-in {
+  0% {
+    opacity: 0;
+    transform: translateY(28px) scale(0.92);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes hand-deal-in-selected {
+  0% {
+    opacity: 0;
+    transform: translateY(16px) scale(0.92);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(-12px) scale(1);
+  }
+}
+
+@keyframes hand-deal-in-disabled {
+  0% {
+    opacity: 0;
+    transform: translateY(28px) scale(0.92);
+  }
+  100% {
+    opacity: 0.45;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.hand-card-slot--dealing {
+  animation: hand-deal-in 300ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  animation-delay: var(--deal-delay, 0ms);
+  will-change: transform, opacity;
+}
+
+.hand-card-slot--dealing.hand-card-slot--selected {
+  animation-name: hand-deal-in-selected;
+}
+
+.hand-card-slot--dealing.hand-card-slot--disabled {
+  animation-name: hand-deal-in-disabled;
+}
+
 /* Fallback card button when renderCard is not provided */
 .hand-card-fallback {
   min-width: 68px;
@@ -145,6 +193,14 @@
     outline: 2px solid #27ae60;
     border-radius: 8px;
   }
+  .hand-card-slot--dealing {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .hand-card-slot--dealing.hand-card-slot--disabled {
+    opacity: 0.45 !important;
+  }
 }
 
 /* Responsive adjustments for tablet */
@@ -187,6 +243,17 @@
 
   .hand-card-slot--selected {
     transform: translateY(-16px);
+  }
+
+  @keyframes hand-deal-in-selected {
+    0% {
+      opacity: 0;
+      transform: translateY(12px) scale(0.92);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(-16px) scale(1);
+    }
   }
 
   .hand-card-fallback {

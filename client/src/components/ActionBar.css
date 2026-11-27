@@ -10,6 +10,14 @@
   padding: 8px 12px;
 }
 
+.action-bar__status-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
 .action-bar__turns-badge {
   display: inline-flex;
   align-items: center;
@@ -35,6 +43,37 @@
 
 .action-bar__turns-icon {
   font-size: 1rem;
+}
+
+.action-bar__timer-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background-color: #2c3e50;
+  color: #ffffff;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.action-bar__timer-badge--urgent {
+  background-color: #c0392b;
+  border-color: #e74c3c;
+  color: #ffffff;
+}
+
+.action-bar__timer-icon {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.action-bar__timer-text {
+  line-height: 1.2;
+  white-space: nowrap;
 }
 
 .action-bar__buttons {
@@ -157,6 +196,10 @@
   .action-bar__turns-badge {
     animation: none !important;
   }
+  .action-bar__timer-badge {
+    transition: none !important;
+    animation: none !important;
+  }
   .action-bar__btn {
     transition: none !important;
   }
@@ -170,6 +213,10 @@
 @media (min-width: 768px) {
   .action-bar {
     padding: 12px 24px;
+    gap: 12px;
+  }
+
+  .action-bar__status-row {
     gap: 12px;
   }
 
@@ -191,6 +238,10 @@
     gap: 14px;
   }
 
+  .action-bar__status-row {
+    gap: 14px;
+  }
+
   .action-bar__turns-badge {
     font-size: 1rem;
     padding: 8px 18px;
@@ -198,6 +249,16 @@
   }
 
   .action-bar__turns-icon {
+    font-size: 1.25rem;
+  }
+
+  .action-bar__timer-badge {
+    font-size: 1rem;
+    padding: 8px 18px;
+    border-radius: 24px;
+  }
+
+  .action-bar__timer-icon {
     font-size: 1.25rem;
   }
 

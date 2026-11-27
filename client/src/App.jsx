@@ -980,6 +980,7 @@ function AppContent() {
                 onShuffle={handleShuffleAction}
                 turnsLeft={gameState?.turnsLeft}
                 formatTurnsLeft={strings.game?.turnsLeft}
+                turnDeadline={isMyTurn ? gameState?.turnDeadline : null}
               />
             }
             handSlot={
