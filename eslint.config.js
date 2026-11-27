@@ -28,7 +28,10 @@ export default [
         clearTimeout: "readonly",
         setInterval: "readonly",
         clearInterval: "readonly",
-        URL: "readonly"
+        setImmediate: "readonly",
+        clearImmediate: "readonly",
+        URL: "readonly",
+        crypto: "readonly"
       }
     }
   },
@@ -39,13 +42,16 @@ export default [
         window: "readonly",
         document: "readonly",
         localStorage: "readonly",
+        sessionStorage: "readonly",
         navigator: "readonly",
         fetch: "readonly",
         console: "readonly",
         setTimeout: "readonly",
         clearTimeout: "readonly",
         setInterval: "readonly",
-        clearInterval: "readonly"
+        clearInterval: "readonly",
+        crypto: "readonly",
+        KeyboardEvent: "readonly"
       }
     }
   }
