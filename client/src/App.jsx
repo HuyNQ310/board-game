@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import './styles/base.css';
 
 import {
@@ -425,6 +425,48 @@ function AppContent() {
   const myPlayer = useMemo(() => {
     return mergedGamePlayers.find((p) => p.id === myPlayerId) || null;
   }, [mergedGamePlayers, myPlayerId]);
+
+  // Notify the player clearly when someone else's action targets THEM --
+  // per rules.md section E2, `attack`/`favor`/`cat` log entries carry a
+  // `target` field; previously this only showed up in the (now collapsible,
+  // easy-to-miss) log panel. Watches for new log entries since the last
+  // render (keyed by log length, since the log is append-only) rather than
+  // reacting to every gameState update, so it only fires once per event.
+  const lastSeenLogLengthRef = useRef(0);
+  useEffect(() => {
+    const log = gameState?.log;
+    if (!Array.isArray(log)) return;
+
+    if (log.length < lastSeenLogLengthRef.current) {
+      // A new/different game (rematch, or a fresh game:state after reconnect
+      // with a shorter log) -- resync without replaying old notifications.
+      lastSeenLogLengthRef.current = log.length;
+      return;
+    }
+
+    const newEntries = log.slice(lastSeenLogLengthRef.current);
+    lastSeenLogLengthRef.current = log.length;
+    if (newEntries.length === 0 || !myPlayerId) return;
+
+    for (const entry of newEntries) {
+      if (!entry || entry.target !== myPlayerId || entry.actor === myPlayerId) continue;
+      const actorPlayer = mergedGamePlayers.find((p) => p.id === entry.actor);
+      const actorName = actorPlayer?.name || entry.actor;
+
+      let message = null;
+      if (entry.type === 'attack') {
+        message = `${actorName} vừa đánh Truy Đuổi — bạn sẽ phải chơi thêm lượt!`;
+      } else if (entry.type === 'favor') {
+        message = `${actorName} vừa Nài Nỉ — họ đã lấy ngẫu nhiên 1 lá từ tay bạn.`;
+      } else if (entry.type === 'cat') {
+        message = `${actorName} vừa chơi cặp Mèo Vằn nhắm vào bạn — họ đã lấy ngẫu nhiên 1 lá từ tay bạn.`;
+      }
+      if (message) {
+        dispatch({ type: ACTION_TYPES.ERROR_RECEIVED, payload: { code: null, message } });
+        break; // one toast at a time; if several targeted us in one update, the log panel has the rest
+      }
+    }
+  }, [gameState?.log, myPlayerId, mergedGamePlayers, dispatch]);
 
   const isMyTurn =
     gameState?.phase === 'play' &&
