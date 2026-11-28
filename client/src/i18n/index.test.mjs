@@ -282,3 +282,65 @@ test('voice chat localization strings and mic errors exist in vi and en', () => 
     }
   }
 });
+
+test('account strings and auth error codes exist in vi and en with full parity', () => {
+  const authErrorCodes = [
+    'USERNAME_INVALID',
+    'PASSWORD_INVALID',
+    'USERNAME_TAKEN',
+    'INVALID_CREDENTIALS',
+    'UNAUTHORIZED',
+  ];
+  const accountKeys = [
+    'buttonLabel',
+    'leaderboardButtonLabel',
+    'rulesButton',
+    'title',
+    'closeAriaLabel',
+    'tabAccount',
+    'tabLeaderboard',
+    'login',
+    'register',
+    'username',
+    'usernamePlaceholder',
+    'password',
+    'passwordPlaceholder',
+    'displayName',
+    'displayNamePlaceholder',
+    'submit',
+    'loginSubmit',
+    'registerSubmit',
+    'submitting',
+    'logout',
+    'stats',
+    'gamesPlayed',
+    'wins',
+    'winRate',
+    'guestNote',
+    'leaderboardTitle',
+    'leaderboardSubtitle',
+    'leaderboardLoading',
+    'leaderboardEmpty',
+    'leaderboardRank',
+    'leaderboardPlayer',
+    'leaderboardWins',
+    'leaderboardGames',
+    'refreshLeaderboard',
+  ];
+
+  for (const locale of ['vi', 'en']) {
+    const strings = getStrings(locale);
+    for (const code of authErrorCodes) {
+      assert.strictEqual(typeof strings.errors[code], 'string', `Missing errors.${code} in ${locale}`);
+      assert.ok(strings.errors[code].length > 0, `Empty errors.${code} in ${locale}`);
+    }
+    assert.ok(strings.account, `Missing account object in ${locale}`);
+    for (const key of accountKeys) {
+      assert.strictEqual(typeof strings.account[key], 'string', `Missing account.${key} in ${locale}`);
+      assert.ok(strings.account[key].length > 0, `Empty account.${key} in ${locale}`);
+    }
+  }
+
+  assert.deepStrictEqual(missingKeys('vi', 'en'), []);
+  assert.deepStrictEqual(missingKeys('en', 'vi'), []);
+});

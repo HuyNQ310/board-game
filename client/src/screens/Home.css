@@ -68,19 +68,23 @@
 .home-topbar-actions {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 8px;
 }
 
 .btn-lang-toggle,
-.btn-theme-picker {
+.btn-theme-picker,
+.btn-account,
+.btn-leaderboard,
+.btn-rules-link {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
   min-height: 44px;
   min-width: 44px;
-  padding: 8px 16px;
-  font-size: 0.9rem;
+  padding: 8px 14px;
+  font-size: 0.88rem;
   font-weight: 600;
   color: #2b2326;
   background-color: rgba(255, 255, 255, 0.85);
@@ -88,18 +92,31 @@
   border-radius: 9999px;
   backdrop-filter: blur(10px);
   box-shadow: 0 2px 10px rgba(43, 35, 38, 0.08);
+  text-decoration: none;
+  white-space: nowrap;
   transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
 }
 
+.btn-account--signed-in {
+  border-color: rgba(183, 28, 28, 0.4);
+  background-color: rgba(255, 255, 255, 0.94);
+}
+
 .btn-lang-toggle:hover:not(:disabled),
-.btn-theme-picker:hover:not(:disabled) {
+.btn-theme-picker:hover:not(:disabled),
+.btn-account:hover:not(:disabled),
+.btn-leaderboard:hover:not(:disabled),
+.btn-rules-link:hover {
   background-color: #ffffff;
   border-color: rgba(43, 35, 38, 0.28);
   transform: translateY(-1px);
 }
 
 .btn-lang-toggle:focus-visible,
-.btn-theme-picker:focus-visible {
+.btn-theme-picker:focus-visible,
+.btn-account:focus-visible,
+.btn-leaderboard:focus-visible,
+.btn-rules-link:focus-visible {
   outline: 3px solid #ffcc00;
   outline-offset: 2px;
 }
@@ -448,7 +465,10 @@
   }
 
   .btn-lang-toggle,
-  .btn-theme-picker {
+  .btn-theme-picker,
+  .btn-account,
+  .btn-leaderboard,
+  .btn-rules-link {
     min-height: 36px;
     padding: 4px 12px;
     font-size: 0.82rem;

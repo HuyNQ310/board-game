@@ -33,6 +33,7 @@ import Toast from './components/Toast.jsx';
 import Chat from './components/Chat.jsx';
 import HelpModal from './components/HelpModal.jsx';
 import ThemePicker from './components/ThemePicker.jsx';
+import AccountModal from './components/AccountModal.jsx';
 import CardFlightLayer from './components/CardFlightLayer.jsx';
 import {
   getStoredCardTheme,
@@ -258,6 +259,13 @@ function AppContent() {
   }, [chatBubbles, mutedChatIds]);
   const [helpOpen, setHelpOpen] = useState(false);
   const [themePickerOpen, setThemePickerOpen] = useState(false);
+  const [accountModalOpen, setAccountModalOpen] = useState(false);
+  const [accountInitialTab, setAccountInitialTab] = useState('account');
+  const [currentUser, setCurrentUser] = useState(null);
+  const [authBusy, setAuthBusy] = useState(false);
+  const [authError, setAuthError] = useState(null);
+  const [leaderboard, setLeaderboard] = useState([]);
+  const [loadingLeaderboard, setLoadingLeaderboard] = useState(false);
   const [cardTheme, setCardTheme] = useState(() => getStoredCardTheme());
   const [tableTheme, setTableTheme] = useState(() => getStoredTableTheme());
   const [cardFlights, setCardFlights] = useState([]);
@@ -265,15 +273,227 @@ function AppContent() {
   const lastSelectedCardRectRef = useRef(null);
   const prevAnimSnapshotRef = useRef(null);
 
-  const handleSelectCardTheme = useCallback((nextTheme) => {
-    setCardTheme(nextTheme);
-    setStoredCardTheme(nextTheme);
+  const syncPreferencesToServer = useCallback(
+    (patch) => {
+      if (!currentUser) return;
+      fetch('/api/profile/preferences', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(patch),
+      })
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data) => {
+          if (data?.ok && data.user) {
+            setCurrentUser(data.user);
+          }
+        })
+        .catch(() => {});
+    },
+    [currentUser]
+  );
+
+  const applyAuthenticatedUser = useCallback(
+    (user) => {
+      setCurrentUser(user || null);
+      if (!user) return;
+      if (user.displayName) {
+        setName(user.displayName);
+        try {
+          if (typeof localStorage !== 'undefined') {
+            localStorage.setItem('meo-no:playerName', user.displayName);
+          }
+        } catch {}
+      }
+      if (user.cardTheme) {
+        setCardTheme(user.cardTheme);
+        setStoredCardTheme(user.cardTheme);
+      }
+      if (user.tableTheme) {
+        setTableTheme(user.tableTheme);
+        setStoredTableTheme(user.tableTheme);
+      }
+      if (user.locale === 'en' || user.locale === 'vi') {
+        dispatch({ type: ACTION_TYPES.LOCALE_CHANGED, payload: user.locale });
+        try {
+          if (typeof localStorage !== 'undefined') {
+            localStorage.setItem('meo-no:locale', user.locale);
+          }
+        } catch {}
+      }
+    },
+    [dispatch]
+  );
+
+  const handleRefreshLeaderboard = useCallback(async () => {
+    setLoadingLeaderboard(true);
+    try {
+      const res = await fetch('/api/leaderboard', { credentials: 'include' });
+      const data = await res.json();
+      if (res.ok && data?.ok && Array.isArray(data.leaderboard)) {
+        setLeaderboard(data.leaderboard);
+      }
+    } catch {
+      // Ignore transient leaderboard fetch errors
+    } finally {
+      setLoadingLeaderboard(false);
+    }
   }, []);
 
-  const handleSelectTableTheme = useCallback((nextTheme) => {
-    setTableTheme(nextTheme);
-    setStoredTableTheme(nextTheme);
+  // Load authenticated user session on mount (no-op for Guest mode)
+  useEffect(() => {
+    let active = true;
+    fetch('/api/auth/me', { credentials: 'include' })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (active && data?.ok && data.user) {
+          applyAuthenticatedUser(data.user);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, [applyAuthenticatedUser]);
+
+  // Refresh stats when entering gameOver while logged in
+  const currentUserRef = useRef(currentUser);
+  useEffect(() => {
+    currentUserRef.current = currentUser;
+  }, [currentUser]);
+
+  useEffect(() => {
+    if (screen !== 'gameOver' || !currentUserRef.current) return;
+    fetch('/api/auth/me', { credentials: 'include' })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data?.ok && data.user) {
+          setCurrentUser(data.user);
+        }
+      })
+      .catch(() => {});
+  }, [screen]);
+
+  const handleLogin = useCallback(
+    async ({ username, password }) => {
+      setAuthBusy(true);
+      setAuthError(null);
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ username, password }),
+        });
+        const data = await res.json();
+        if (!res.ok || !data?.ok) {
+          setAuthError(data?.code || data?.message || 'INVALID_CREDENTIALS');
+          return;
+        }
+        applyAuthenticatedUser(data.user);
+        try {
+          getSocket()?.emit('auth:sync', { token: data.token || null });
+        } catch {}
+        setAccountModalOpen(false);
+        showToast(
+          {
+            code: null,
+            message:
+              locale === 'en'
+                ? `Welcome back, ${data.user.displayName}!`
+                : `Chào mừng ${data.user.displayName} quay lại!`,
+          },
+          'success'
+        );
+      } catch {
+        setAuthError('SERVER_ERROR');
+      } finally {
+        setAuthBusy(false);
+      }
+    },
+    [applyAuthenticatedUser, locale, showToast]
+  );
+
+  const handleRegister = useCallback(
+    async ({ username, password, displayName }) => {
+      setAuthBusy(true);
+      setAuthError(null);
+      try {
+        const res = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
+            username,
+            password,
+            displayName,
+            cardTheme,
+            tableTheme,
+            locale,
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok || !data?.ok) {
+          setAuthError(data?.code || data?.message || 'INVALID_ACTION');
+          return;
+        }
+        applyAuthenticatedUser(data.user);
+        try {
+          getSocket()?.emit('auth:sync', { token: data.token || null });
+        } catch {}
+        setAccountModalOpen(false);
+        showToast(
+          {
+            code: null,
+            message:
+              locale === 'en'
+                ? `Account ${data.user.username} created!`
+                : `Đã tạo tài khoản ${data.user.username}!`,
+          },
+          'success'
+        );
+      } catch {
+        setAuthError('SERVER_ERROR');
+      } finally {
+        setAuthBusy(false);
+      }
+    },
+    [applyAuthenticatedUser, cardTheme, tableTheme, locale, showToast]
+  );
+
+  const handleLogout = useCallback(async () => {
+    setAuthBusy(true);
+    try {
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include',
+      });
+    } catch {}
+    setCurrentUser(null);
+    setAuthError(null);
+    try {
+      getSocket()?.emit('auth:sync', { token: null });
+    } catch {}
+    setAuthBusy(false);
   }, []);
+
+  const handleSelectCardTheme = useCallback(
+    (nextTheme) => {
+      setCardTheme(nextTheme);
+      setStoredCardTheme(nextTheme);
+      syncPreferencesToServer({ cardTheme: nextTheme });
+    },
+    [syncPreferencesToServer]
+  );
+
+  const handleSelectTableTheme = useCallback(
+    (nextTheme) => {
+      setTableTheme(nextTheme);
+      setStoredTableTheme(nextTheme);
+      syncPreferencesToServer({ tableTheme: nextTheme });
+    },
+    [syncPreferencesToServer]
+  );
 
   useEffect(() => {
     try {
@@ -294,7 +514,8 @@ function AppContent() {
         localStorage.setItem('meo-no:locale', nextLocale);
       }
     } catch {}
-  }, [locale, dispatch]);
+    syncPreferencesToServer({ locale: nextLocale });
+  }, [locale, dispatch, syncPreferencesToServer]);
 
   // Local UI-only interaction state
   const [selectedCardIds, setSelectedCardIds] = useState(() => new Set());
@@ -2257,6 +2478,18 @@ function AppContent() {
             onJoinCodeChange={setJoinCode}
             isResuming={isResuming}
             onOpenThemePicker={() => setThemePickerOpen(true)}
+            user={currentUser}
+            onOpenAccount={() => {
+              setAccountInitialTab('account');
+              setAuthError(null);
+              setAccountModalOpen(true);
+            }}
+            onOpenLeaderboard={() => {
+              setAccountInitialTab('leaderboard');
+              setAuthError(null);
+              setAccountModalOpen(true);
+              handleRefreshLeaderboard();
+            }}
             cardTheme={cardTheme}
             tableTheme={tableTheme}
             locale={locale}
@@ -2286,6 +2519,22 @@ function AppContent() {
         tableTheme={tableTheme}
         onSelectTableTheme={handleSelectTableTheme}
         locale={locale}
+      />
+      <AccountModal
+        open={accountModalOpen}
+        onClose={() => setAccountModalOpen(false)}
+        user={currentUser}
+        leaderboard={leaderboard}
+        loadingLeaderboard={loadingLeaderboard}
+        authBusy={authBusy}
+        authError={authError}
+        onLogin={handleLogin}
+        onRegister={handleRegister}
+        onLogout={handleLogout}
+        onRefreshLeaderboard={handleRefreshLeaderboard}
+        locale={locale}
+        t={strings}
+        initialTab={accountInitialTab}
       />
     </>
   );

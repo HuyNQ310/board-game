@@ -12,7 +12,7 @@
  * - t.resumingMessage: Message shown when auto-reconnecting (default: "Đang vào lại phòng…")
  */
 
-import { Bomb, Palette, Layers, Zap, Smartphone } from 'lucide-react';
+import { Bomb, Palette, Layers, Zap, Smartphone, User, Trophy, BookOpen } from 'lucide-react';
 import Card from '../components/Card.jsx';
 import LocaleFlag from '../components/FlagIcon.jsx';
 import './Home.css';
@@ -48,6 +48,9 @@ export function Home({
   isResuming,
   onOpenThemePicker,
   onToggleLocale,
+  user = null,
+  onOpenAccount,
+  onOpenLeaderboard,
   cardTheme = 'deck1',
   tableTheme = 'pastel-green',
   locale = 'vi',
@@ -93,34 +96,75 @@ export function Home({
           <span>{isEn ? 'Exploding Kittens • 2–10 players' : 'Mèo Nổ • 2–10 người'}</span>
         </div>
 
-        {(typeof onToggleLocale === 'function' || typeof onOpenThemePicker === 'function') && (
-          <div className="home-topbar-actions">
-            {typeof onToggleLocale === 'function' && (
-              <button
-                type="button"
-                className="btn btn-lang-toggle"
-                onClick={onToggleLocale}
-                aria-label={isEn ? 'Switch to Vietnamese' : 'Chuyển sang Tiếng Anh'}
-                data-testid="lang-toggle-btn"
-              >
-                <LocaleFlag locale={locale} size={18} />
-                <span>{isEn ? 'EN' : 'VI'}</span>
-              </button>
-            )}
+        <div className="home-topbar-actions">
+          {typeof onToggleLocale === 'function' && (
+            <button
+              type="button"
+              className="btn btn-lang-toggle"
+              onClick={onToggleLocale}
+              aria-label={isEn ? 'Switch to Vietnamese' : 'Chuyển sang Tiếng Anh'}
+              data-testid="lang-toggle-btn"
+            >
+              <LocaleFlag locale={locale} size={18} />
+              <span>{isEn ? 'EN' : 'VI'}</span>
+            </button>
+          )}
 
-            {typeof onOpenThemePicker === 'function' && (
-              <button
-                type="button"
-                className="btn btn-theme-picker"
-                onClick={onOpenThemePicker}
-                aria-label={isEn ? 'Choose card & table theme' : 'Chọn giao diện bài và bàn'}
-              >
-                <Palette size={16} aria-hidden="true" />
-                <span>{isEn ? 'Themes' : 'Giao diện'}</span>
-              </button>
-            )}
-          </div>
-        )}
+          {typeof onOpenThemePicker === 'function' && (
+            <button
+              type="button"
+              className="btn btn-theme-picker"
+              onClick={onOpenThemePicker}
+              aria-label={isEn ? 'Choose card & table theme' : 'Chọn giao diện bài và bàn'}
+            >
+              <Palette size={16} aria-hidden="true" />
+              <span>{isEn ? 'Themes' : 'Giao diện'}</span>
+            </button>
+          )}
+
+          {typeof onOpenAccount === 'function' && (
+            <button
+              type="button"
+              className={`btn btn-account ${user ? 'btn-account--signed-in' : ''}`}
+              onClick={onOpenAccount}
+              aria-label={
+                user
+                  ? user.displayName
+                  : t?.accountButton || (isEn ? 'Account' : 'Tài khoản')
+              }
+              data-testid="home-account-btn"
+            >
+              <User size={16} aria-hidden="true" />
+              <span>
+                {user
+                  ? user.displayName
+                  : t?.accountButton || (isEn ? 'Account' : 'Tài khoản')}
+              </span>
+            </button>
+          )}
+
+          {typeof onOpenLeaderboard === 'function' && (
+            <button
+              type="button"
+              className="btn btn-leaderboard"
+              onClick={onOpenLeaderboard}
+              aria-label={t?.leaderboardButton || (isEn ? 'Leaderboard' : 'Xếp hạng')}
+              data-testid="home-leaderboard-btn"
+            >
+              <Trophy size={16} aria-hidden="true" />
+              <span>{t?.leaderboardButton || (isEn ? 'Leaderboard' : 'Xếp hạng')}</span>
+            </button>
+          )}
+
+          <a
+            href={isEn ? '/en/rules' : '/luat-choi'}
+            className="btn btn-rules-link"
+            data-testid="home-rules-link"
+          >
+            <BookOpen size={16} aria-hidden="true" />
+            <span>{t?.rulesButton || (isEn ? 'Rules' : 'Luật chơi')}</span>
+          </a>
+        </div>
       </div>
 
       <section className="home-hero">

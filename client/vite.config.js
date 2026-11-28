@@ -9,6 +9,12 @@ export default defineConfig({
         target: 'http://localhost:3000',
         ws: true,
       },
+      '/api': 'http://localhost:3000',
+      '/luat-choi': 'http://localhost:3000',
+      '/en/rules': 'http://localhost:3000',
+      '/robots.txt': 'http://localhost:3000',
+      '/sitemap.xml': 'http://localhost:3000',
+      '/llms.txt': 'http://localhost:3000',
     },
   },
 });
