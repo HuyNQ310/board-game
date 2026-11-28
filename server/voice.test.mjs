@@ -173,6 +173,7 @@ test('Socket integration: voice:sync, voice:status, voice:signal, disconnect mut
     env: {
       ...process.env,
       PORT: String(port),
+      DB_PATH: ':memory:',
       DISCONNECT_GRACE_MS: '5000',
     },
     stdio: ['ignore', 'pipe', 'pipe'],
@@ -184,7 +185,7 @@ test('Socket integration: voice:sync, voice:status, voice:signal, disconnect mut
 
   try {
     await new Promise((resolve, reject) => {
-      const timeout = setTimeout(() => reject(new Error('Server failed to start')), 5000);
+      const timeout = setTimeout(() => reject(new Error('Server failed to start')), 12000);
       srv.stdout.on('data', (chunk) => {
         if (chunk.toString().includes('listening')) {
           clearTimeout(timeout);

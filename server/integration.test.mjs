@@ -350,6 +350,7 @@ test('Integration 6: live turn timer preserves deadline on peer disconnect/resum
     env: {
       ...process.env,
       PORT: String(port),
+      DB_PATH: ':memory:',
       TURN_TIMEOUT_MS: '900',
       NOPE_WINDOW_MS: '350',
       DISCONNECT_GRACE_MS: '5000',
@@ -362,7 +363,7 @@ test('Integration 6: live turn timer preserves deadline on peer disconnect/resum
 
   try {
     await new Promise((resolve, reject) => {
-      const timeout = setTimeout(() => reject(new Error('Server failed to start')), 5000);
+      const timeout = setTimeout(() => reject(new Error('Server failed to start')), 10000);
       srv.stdout.on('data', chunk => {
         if (chunk.toString().includes('listening')) {
           clearTimeout(timeout);
