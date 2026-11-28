@@ -1,0 +1,56 @@
+# Mèo Nổ Online (Exploding Kittens Online)
+
+> Free real-time multiplayer survival card game for 2–10 players in any web browser (Vietnamese & English). No download or mandatory sign-up required; create or join a room with a 5-character code, play 12 distinct card types with a zero-leak 5-second Nope reaction window, and talk over built-in WebRTC voice chat.
+
+## Key Facts
+
+- **Title:** Mèo Nổ Online / Exploding Kittens Online
+- **Genre:** Multiplayer tabletop survival card game (Web Application / Browser Game)
+- **Languages:** Vietnamese (`vi`) and English (`en`)
+- **Player Count:** 2–10 players per room (join via 5-character room code; dynamic deck scaling for 7–10 players)
+- **Starting Hand:** 5 cards per player (1 Defuse / Kìm Cắt Dây + 4 ordinary cards)
+- **Turn Structure:** Play 0 or more cards, then draw 1 card to end your turn; 30-second turn timer with automatic action on timeout and 120-second reconnect grace period
+- **Zero-Leak 5s Nope Window:** Any Nopeable action card (`Attack`, `Skip`, `Reverse`, `Shuffle`, `Favor`, `See the Future`, or a `Cat Pair`) opens a 5-second server-authoritative reaction window where eligible opponents can play `KHÔNG! / Nope` (stacking odd/even cancels). Player hands, draw pile order, and `See the Future` previews never leak to other clients.
+- **Voice Chat & Per-Player Controls:** Peer-to-peer WebRTC browser voice chat (`voice:sync`, `voice:status`, `voice:signal`) with real-time speaking indicator, plus per-player audio mute and text-chat mute controls alongside live room chat.
+- **Account & Leaderboard:** Optional account registration/login backed by SQLite (`node:sqlite` + scrypt password hashing) for synced theme/language preferences and win/game leaderboard; guest play requires zero login.
+- **Cost & Platform:** 100% free, zero ads, runs in desktop and mobile web browsers (PWA-capable via `manifest.webmanifest`).
+
+## Card Types (12 Cards)
+
+1. **Mèo Bùm (`boom`) — Exploding Kitten:** Drawing this eliminates you unless you play a `Kìm Cắt Dây / Defuse`. Cannot be noped.
+2. **Kìm Cắt Dây (`defuse`) — Defuse:** Saves you from `Mèo Bùm` and lets you secretly re-insert the bomb anywhere into the draw pile (top, bottom, or any index).
+3. **Truy Đuổi (`attack`) — Attack:** Ends your current turn without drawing and forces the next living player to take 2 turns (stackable `+2` turns).
+4. **Ngủ Trưa (`skip`) — Skip:** Immediately ends 1 remaining turn without drawing a card.
+5. **Đảo Chiều (`reverse`) — Reverse:** Reverses the play direction (clockwise <-> counter-clockwise) and ends your current turn without drawing.
+6. **Xáo Trộn (`shuffle`) — Shuffle:** Randomly shuffles the draw pile; your turn continues.
+7. **Nài Nỉ (`favor`) — Favor:** Forces a chosen living opponent to hand over 1 random card from their hand.
+8. **Mắt Thần (`peek`) — See the Future:** Privately reveals the top 3 cards of the draw pile to only you.
+9. **KHÔNG! (`nope`) — Nope:** Cancels any action card or Cat Pair during the 5-second reaction window (playing a second Nope cancels the first Nope, etc.). Cannot block `Mèo Bùm` or `Kìm Cắt Dây`.
+10. **Mèo Vằn (`cat`) — Striped Cat:** Play a matching pair of 2 `Mèo Vằn` cards to steal 1 random card from a chosen living player.
+11. **Mèo Taco (`taco`) — Taco Cat:** Play a matching pair of 2 `Mèo Taco` cards to steal 1 random card from a chosen living player.
+12. **Mèo Khoai Tây (`potato`) — Hairy Potato Cat:** Play a matching pair of 2 `Mèo Khoai Tây` cards to steal 1 random card from a chosen living player.
+
+## Themes & Customization
+
+- **3 Card Deck Themes:**
+  - `deck1`: Illustrated (`Bộ bài số 1 — Minh họa`) — custom hand-drawn cat illustrations (`vi` and `en` card art)
+  - `deck2`: Classic (`Bộ bài số 2 — Cổ điển`) — minimalist vector cards
+  - `deck3`: Neon Night (`Bộ bài số 3 — Đêm Neon`) — high-contrast dark mode deck
+- **4 Pastel Table Themes:**
+  - `pastel-green` (Mint Green `#b8e2c4`, default)
+  - `pastel-yellow` (Warm Cream Yellow `#fceaa8`)
+  - `pastel-pink` (Soft Rose Pink `#fad2df`)
+  - `pastel-blue` (Sky Blue `#c4e2fb`)
+
+## Technical Architecture
+
+- **Frontend:** React 18, Vite 5, Socket.IO client 4, WebRTC audio mesh, full Vietnamese/English i18n
+- **Backend:** Node.js 20+ LTS, Express 4, Socket.IO 4, pure deterministic card engine (`shared/engine.mjs`), sequential per-room action queue, rate limiting
+- **Persistence & Deployment:** Single Node.js process serving API, WebSocket, and built static assets; SQLite (`node:sqlite`) persistence; Docker container ready
+
+## Links
+
+- [Play Mèo Nổ Online (Vietnamese)](/): Create or join a room instantly
+- [Play Exploding Kittens Online (English)](/en): English entry point
+- [Luật chơi Mèo Nổ & 12 lá bài (Tiếng Việt)](/luat-choi): Full Vietnamese rules and card guide
+- [Exploding Kittens Rules & 12-Card Guide (English)](/en/rules): Full English rules and card guide

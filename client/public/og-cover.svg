@@ -1,0 +1,125 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630" role="img" aria-labelledby="og-title og-desc">
+  <title id="og-title">Mèo Nổ Online — Exploding Kittens</title>
+  <desc id="og-desc">2–10 Người Chơi • 12 Lá Bài • Voice Chat</desc>
+  <defs>
+    <linearGradient id="tableBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#e3f6ea" />
+      <stop offset="50%" stop-color="#d3eedb" />
+      <stop offset="100%" stop-color="#b8e2c4" />
+    </linearGradient>
+    <radialGradient id="tableGlow" cx="50%" cy="46%" r="55%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.45" />
+      <stop offset="100%" stop-color="#7eb892" stop-opacity="0.1" />
+    </radialGradient>
+    <filter id="cardShadow" x="-15%" y="-15%" width="130%" height="135%">
+      <feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#1E2733" flood-opacity="0.18" />
+    </filter>
+  </defs>
+
+  <!-- Pastel Green Card Table Background -->
+  <rect width="1200" height="630" fill="url(#tableBg)" />
+  <rect width="1200" height="630" fill="url(#tableGlow)" />
+  <rect x="28" y="28" width="1144" height="574" rx="34" fill="none" stroke="#7eb892" stroke-width="3" stroke-dasharray="10 8" opacity="0.65" />
+
+  <!-- Subtle Floating Pastel Accents -->
+  <circle cx="110" cy="110" r="64" fill="#fceaa8" opacity="0.45" />
+  <circle cx="1095" cy="525" r="78" fill="#fad2df" opacity="0.45" />
+  <circle cx="1060" cy="108" r="44" fill="#c4e2fb" opacity="0.55" />
+
+  <!-- Left Content Column -->
+  <g transform="translate(78, 128)">
+    <!-- Pill Badge -->
+    <rect x="0" y="0" width="290" height="42" rx="21" fill="#2E3A4B" />
+    <text x="145" y="27" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="16" font-weight="700" fill="#F6EFE2" letter-spacing="0.4">GAME THẺ BÀI SINH TỒN</text>
+
+    <!-- Main Brand Title -->
+    <text x="0" y="122" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="74" font-weight="900" fill="#2B2326" letter-spacing="-1.5">Mèo Nổ Online</text>
+    <text x="2" y="176" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="34" font-weight="700" fill="#1B315E">Exploding Kittens</text>
+
+    <!-- Feature Line -->
+    <rect x="0" y="214" width="540" height="54" rx="16" fill="#F6EFE2" stroke="#7eb892" stroke-width="2" />
+    <text x="270" y="248" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="22" font-weight="700" fill="#2B2326">2–10 Người Chơi  •  12 Lá Bài  •  Voice Chat</text>
+
+    <!-- Mini Feature Chips -->
+    <g transform="translate(0, 294)">
+      <rect x="0" y="0" width="166" height="42" rx="12" fill="#B71C1C" />
+      <text x="83" y="27" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="16" font-weight="700" fill="#FFFFFF">5s KHÔNG! / Nope</text>
+
+      <rect x="180" y="0" width="166" height="42" rx="12" fill="#0F766E" />
+      <text x="263" y="27" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="16" font-weight="700" fill="#FFFFFF">WebRTC Voice</text>
+
+      <rect x="360" y="0" width="180" height="42" rx="12" fill="#1B315E" />
+      <text x="450" y="27" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="16" font-weight="700" fill="#FFFFFF">Chơi Ngay Miễn Phí</text>
+    </g>
+  </g>
+
+  <!-- Right Stylized Card Fan -->
+  <g transform="translate(690, 96)">
+    <!-- Back Card: See the Future (Blue) -->
+    <g transform="translate(175, 45) rotate(14)" filter="url(#cardShadow)">
+      <rect x="0" y="0" width="175" height="245" rx="18" fill="#F6EFE2" stroke="#2B2326" stroke-width="3" />
+      <rect x="10" y="10" width="155" height="34" rx="10" fill="#1D4ED8" />
+      <text x="88" y="33" text-anchor="middle" font-family="system-ui, sans-serif" font-size="15" font-weight="800" fill="#FFFFFF">MẮT THẦN</text>
+      <circle cx="88" cy="135" r="44" fill="#dbeafe" stroke="#1D4ED8" stroke-width="4" />
+      <circle cx="88" cy="135" r="20" fill="#1D4ED8" />
+      <circle cx="80" cy="128" r="6" fill="#FFFFFF" />
+      <rect x="14" y="198" width="147" height="32" rx="8" fill="#EDE4D4" />
+      <text x="88" y="219" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" font-weight="700" fill="#2B2326">Xem 3 lá trên cùng</text>
+    </g>
+
+    <!-- Left Card: Defuse (Teal) -->
+    <g transform="translate(20, 72) rotate(-13)" filter="url(#cardShadow)">
+      <rect x="0" y="0" width="175" height="245" rx="18" fill="#F6EFE2" stroke="#2B2326" stroke-width="3" />
+      <rect x="10" y="10" width="155" height="34" rx="10" fill="#0F766E" />
+      <text x="88" y="33" text-anchor="middle" font-family="system-ui, sans-serif" font-size="15" font-weight="800" fill="#FFFFFF">KÌM CẮT DÂY</text>
+      <!-- Pliers & wire motif -->
+      <path d="M50 155 Q88 90 126 155" fill="none" stroke="#B71C1C" stroke-width="6" stroke-linecap="round" />
+      <path d="M55 125 L120 125" fill="none" stroke="#0F766E" stroke-width="8" stroke-linecap="round" />
+      <circle cx="88" cy="125" r="14" fill="#0F766E" />
+      <polygon points="88,78 104,106 72,106" fill="#14B8A6" />
+      <rect x="14" y="198" width="147" height="32" rx="8" fill="#EDE4D4" />
+      <text x="88" y="219" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" font-weight="700" fill="#2B2326">Cứu mạng khỏi bom</text>
+    </g>
+
+    <!-- Center Hero Card: Exploding Kitten (Crimson) -->
+    <g transform="translate(95, 22) rotate(1)" filter="url(#cardShadow)">
+      <rect x="0" y="0" width="196" height="274" rx="20" fill="#F6EFE2" stroke="#2B2326" stroke-width="3.5" />
+      <rect x="12" y="12" width="172" height="38" rx="11" fill="#B71C1C" />
+      <text x="98" y="37" text-anchor="middle" font-family="system-ui, sans-serif" font-size="17" font-weight="900" fill="#FFFFFF">MÈO BÙM!</text>
+      <!-- Stylized mischievous round bomb cat -->
+      <circle cx="98" cy="142" r="52" fill="#2E3A4B" />
+      <polygon points="56,108 66,72 88,96" fill="#2E3A4B" />
+      <polygon points="140,108 130,72 108,96" fill="#2E3A4B" />
+      <!-- Sparks / fuse -->
+      <path d="M148 158 Q166 144 162 124" fill="none" stroke="#D97706" stroke-width="5" stroke-linecap="round" />
+      <circle cx="162" cy="118" r="9" fill="#F59E0B" />
+      <circle cx="162" cy="118" r="4" fill="#FEF08A" />
+      <!-- Big Cat Eyes -->
+      <circle cx="79" cy="136" r="11" fill="#FFFFFF" />
+      <circle cx="117" cy="136" r="11" fill="#FFFFFF" />
+      <circle cx="81" cy="136" r="5" fill="#2B2326" />
+      <circle cx="115" cy="136" r="5" fill="#2B2326" />
+      <!-- Nose & grin -->
+      <polygon points="98,148 93,154 103,154" fill="#FAD2DF" />
+      <path d="M84 162 Q98 173 112 162" fill="none" stroke="#F6EFE2" stroke-width="3.5" stroke-linecap="round" />
+      <!-- Footer rule box -->
+      <rect x="14" y="218" width="168" height="40" rx="10" fill="#EDE4D4" />
+      <text x="98" y="243" text-anchor="middle" font-family="system-ui, sans-serif" font-size="13" font-weight="800" fill="#B71C1C">Rút phải là NỔ!</text>
+    </g>
+
+    <!-- Bottom Mini Card Strip (Nope, Taco, Striped) -->
+    <g transform="translate(28, 338)">
+      <rect x="0" y="0" width="110" height="58" rx="12" fill="#F6EFE2" stroke="#B71C1C" stroke-width="2.5" />
+      <text x="55" y="26" text-anchor="middle" font-family="system-ui, sans-serif" font-size="14" font-weight="900" fill="#B71C1C">KHÔNG!</text>
+      <text x="55" y="45" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" font-weight="600" fill="#2B2326">Nope</text>
+
+      <rect x="128" y="0" width="110" height="58" rx="12" fill="#F6EFE2" stroke="#B86522" stroke-width="2.5" />
+      <text x="183" y="26" text-anchor="middle" font-family="system-ui, sans-serif" font-size="14" font-weight="900" fill="#B86522">MÈO TACO</text>
+      <text x="183" y="45" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" font-weight="600" fill="#2B2326">Taco Cat</text>
+
+      <rect x="256" y="0" width="110" height="58" rx="12" fill="#F6EFE2" stroke="#6D28D9" stroke-width="2.5" />
+      <text x="311" y="26" text-anchor="middle" font-family="system-ui, sans-serif" font-size="14" font-weight="900" fill="#6D28D9">MÈO VẰN</text>
+      <text x="311" y="45" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" font-weight="600" fill="#2B2326">Striped Cat</text>
+    </g>
+  </g>
+</svg>

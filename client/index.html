@@ -5,11 +5,217 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="theme-color" content="#d3eedb" />
+    <meta name="robots" content="index, follow" />
+    <title>Mèo Nổ Online — Game Thẻ Bài Sinh Tồn 2–10 Người (Exploding Kittens)</title>
+    <meta
+      name="description"
+      content="Chơi Mèo Nổ Online (Exploding Kittens) miễn phí cùng 2–10 người trực tiếp trên trình duyệt: 12 lá bài chiến thuật, cửa sổ KHÔNG! 5 giây, Voice Chat WebRTC, chat realtime và bảng xếp hạng."
+    />
+    <meta
+      name="keywords"
+      content="Mèo Nổ Online, Exploding Kittens Online, game thẻ bài sinh tồn, board game online, chơi bài 2-10 người, voice chat webrtc, game bạn bè trình duyệt"
+    />
+    <link rel="canonical" href="/" />
+    <link rel="alternate" hreflang="vi" href="/" />
+    <link rel="alternate" hreflang="en" href="/en" />
+    <link rel="alternate" hreflang="x-default" href="/" />
+    <link rel="icon" type="image/svg+xml" href="/og-cover.svg" />
     <link rel="manifest" href="/manifest.webmanifest" />
-    <title>Mèo Nổ</title>
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Mèo Nổ Online" />
+    <meta property="og:title" content="Mèo Nổ Online — Game Thẻ Bài Sinh Tồn 2–10 Người (Exploding Kittens)" />
+    <meta
+      property="og:description"
+      content="Tạo phòng mã 5 ký tự, đấu trí 12 lá bài với cửa sổ KHÔNG! 5 giây, Voice Chat WebRTC và tắt tiếng riêng từng người. Không cần cài đặt."
+    />
+    <meta property="og:image" content="/og-cover.svg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Mèo Nổ Online — Exploding Kittens 2–10 người chơi" />
+    <meta property="og:locale" content="vi_VN" />
+    <meta property="og:locale:alternate" content="en_US" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Mèo Nổ Online — Game Thẻ Bài Sinh Tồn 2–10 Người" />
+    <meta
+      name="twitter:description"
+      content="Chơi Exploding Kittens Online 2–10 người miễn phí trên trình duyệt với 12 lá bài, 5s Nope và Voice Chat WebRTC."
+    />
+    <meta name="twitter:image" content="/og-cover.svg" />
+
+    <!-- Structured Data (VideoGame + WebApplication + FAQPage) -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": ["VideoGame", "WebApplication"],
+            "name": "Mèo Nổ Online",
+            "alternateName": "Exploding Kittens Online",
+            "description": "Game thẻ bài sinh tồn nhiều người chơi (2–10 người) trực tiếp trên trình duyệt với 12 loại lá bài, cửa sổ phản ứng KHÔNG! 5 giây, Voice Chat WebRTC, chat phòng realtime, 3 bộ bài, 4 bàn pastel và tài khoản bảng xếp hạng tùy chọn.",
+            "numberOfPlayers": {
+              "@type": "QuantitativeValue",
+              "minValue": 2,
+              "maxValue": 10
+            },
+            "gamePlatform": "Web Browser",
+            "inLanguage": ["vi", "en"],
+            "operatingSystem": "Any",
+            "applicationCategory": "GameApplication",
+            "image": "/og-cover.svg",
+            "offers": {
+              "@type": "Offer",
+              "price": "0",
+              "priceCurrency": "VND"
+            },
+            "featureList": [
+              "2–10 players per room via 5-character room code",
+              "12 distinct card types (Exploding Kitten, Defuse, Attack, Skip, Reverse, Shuffle, Favor, See the Future, Nope, Striped Cat, Taco Cat, Hairy Potato Cat)",
+              "Zero-leak 5-second Nope reaction window",
+              "Built-in WebRTC browser voice chat with per-player audio and chat mute controls",
+              "Realtime room text chat and 30-second turn timer",
+              "3 card deck themes (Illustrated, Classic, Neon Night) and 4 pastel table themes",
+              "Optional SQLite-backed account system and leaderboard"
+            ]
+          },
+          {
+            "@type": "FAQPage",
+            "mainEntity": [
+              {
+                "@type": "Question",
+                "name": "Mèo Nổ Online chơi được bao nhiêu người một phòng?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Mỗi phòng chơi Mèo Nổ Online hỗ trợ từ 2 đến 10 người chơi qua mã phòng 5 ký tự, tự động điều chỉnh tỉ lệ bộ bài khi chơi từ 7–10 người."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Trò chơi có bao nhiêu loại lá bài?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Game có đủ 12 loại lá bài: Mèo Bùm (Exploding Kitten), Kìm Cắt Dây (Defuse), Truy Đuổi (Attack), Ngủ Trưa (Skip), Đảo Chiều (Reverse), Xáo Trộn (Shuffle), Nài Nỉ (Favor), Mắt Thần (See the Future), KHÔNG! (Nope), Mèo Vằn (Striped Cat), Mèo Taco (Taco Cat) và Mèo Khoai Tây (Hairy Potato Cat)."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Có cần cài đặt ứng dụng hay đăng nhập để chơi không?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Không cần tải app hay đăng nhập. Bạn có thể tạo phòng và chơi ngay trên trình duyệt điện thoại hoặc máy tính; đăng ký tài khoản là tùy chọn để lưu bảng xếp hạng và giao diện."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Game có hỗ trợ Voice Chat và tắt tiếng từng người không?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Có. Mèo Nổ Online tích hợp Voice Chat WebRTC ngay trong trình duyệt cùng nút bật/tắt mic, chỉ báo người đang nói và tùy chọn tắt tiếng thoại hoặc ẩn chat riêng cho từng người chơi."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Cửa sổ KHÔNG! (Nope) 5 giây hoạt động như thế nào?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Khi có người đánh lá hành động hoặc cặp mèo, đối thủ có 5 giây để tung lá KHÔNG! nhằm chặn hành động đó. Các lá KHÔNG! có thể chồng lên nhau để phản chặn."
+                }
+              }
+            ]
+          }
+        ]
+      }
+    </script>
+
+    <style>
+      .seo-prerender {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        max-width: 860px;
+        margin: 24px auto;
+        padding: 24px 20px;
+        background: #f6efe2;
+        color: #2b2326;
+        border: 2px solid #7eb892;
+        border-radius: 20px;
+        line-height: 1.55;
+      }
+      .seo-prerender h1 {
+        margin: 0 0 10px;
+        font-size: 1.75rem;
+      }
+      .seo-prerender h2 {
+        margin: 20px 0 8px;
+        font-size: 1.2rem;
+      }
+      .seo-prerender ul {
+        margin: 8px 0 16px;
+        padding-left: 20px;
+      }
+      .seo-prerender nav {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 16px;
+      }
+      .seo-prerender nav a {
+        display: inline-flex;
+        align-items: center;
+        min-height: 44px;
+        padding: 8px 16px;
+        border-radius: 10px;
+        background: #2e3a4b;
+        color: #ffffff;
+        font-weight: 700;
+        text-decoration: none;
+      }
+      @media (prefers-color-scheme: dark) {
+        .seo-prerender {
+          background: #252023;
+          color: #f6efe2;
+          border-color: #486b56;
+        }
+        .seo-prerender nav a {
+          background: #3b4d66;
+        }
+      }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <main class="seo-prerender">
+        <h1>Mèo Nổ Online — Game Thẻ Bài Sinh Tồn 2–10 Người (Exploding Kittens)</h1>
+        <p>
+          Chơi Mèo Nổ Online miễn phí trực tiếp trên trình duyệt cùng bạn bè (2–10 người/phòng), không
+          cần cài đặt hay đăng nhập bắt buộc. Hỗ trợ tiếng Việt &amp; tiếng Anh, Voice Chat WebRTC,
+          chat phòng thời gian thực, 3 bộ bài, 4 bàn pastel và bảng xếp hạng tùy chọn.
+        </p>
+
+        <h2>12 Lá Bài Trong Game</h2>
+        <ul>
+          <li><strong>Mèo Bùm (Exploding Kitten):</strong> Rút phải là bị loại trừ khi có Kìm Cắt Dây.</li>
+          <li><strong>Kìm Cắt Dây (Defuse):</strong> Cứu mạng khỏi Mèo Bùm và bí mật đặt lại bom vào bộ rút.</li>
+          <li><strong>Truy Đuổi (Attack):</strong> Kết thúc lượt không rút, người kế tiếp phải chơi 2 lượt.</li>
+          <li><strong>Ngủ Trưa (Skip):</strong> Bỏ qua 1 lượt mà không cần rút bài.</li>
+          <li><strong>Đảo Chiều (Reverse):</strong> Đổi chiều vòng chơi và kết thúc lượt không rút bài.</li>
+          <li><strong>Xáo Trộn (Shuffle):</strong> Xáo ngẫu nhiên bộ bài rút.</li>
+          <li><strong>Nài Nỉ (Favor):</strong> Lấy ngẫu nhiên 1 lá từ tay một người chơi khác.</li>
+          <li><strong>Mắt Thần (See the Future):</strong> Xem bí mật 3 lá trên cùng của bộ rút.</li>
+          <li><strong>KHÔNG! (Nope):</strong> Chặn mọi hành động trong cửa sổ phản ứng 5 giây.</li>
+          <li><strong>Mèo Vằn (Striped Cat), Mèo Taco (Taco Cat), Mèo Khoai Tây (Hairy Potato Cat):</strong> Đánh cặp 2 lá cùng giống để lấy ngẫu nhiên 1 lá của đối thủ.</li>
+        </ul>
+
+        <nav aria-label="Tài liệu và luật chơi">
+          <a href="/luat-choi">Luật chơi Tiếng Việt</a>
+          <a href="/en/rules">English Rules</a>
+          <a href="/en">Play in English</a>
+          <a href="/llms.txt">llms.txt</a>
+        </nav>
+      </main>
+    </div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

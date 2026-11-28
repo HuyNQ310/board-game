@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Exploding Kittens Online Rules &amp; 12-Card Guide (Mèo Nổ)</title>
+    <meta
+      name="description"
+      content="Complete Exploding Kittens Online (Mèo Nổ) rules for 2–10 players: 5-card starting hand, 5-second Nope reaction window, WebRTC voice chat, and all 12 card types."
+    />
+    <meta name="robots" content="index, follow" />
+    <meta name="theme-color" content="#d3eedb" />
+    <link rel="canonical" href="/en/rules" />
+    <link rel="alternate" hreflang="vi" href="/luat-choi" />
+    <link rel="alternate" hreflang="en" href="/en/rules" />
+    <link rel="alternate" hreflang="x-default" href="/luat-choi" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta property="og:type" content="article" />
+    <meta property="og:site_name" content="Mèo Nổ Online" />
+    <meta property="og:title" content="Exploding Kittens Online Rules &amp; 12-Card Guide" />
+    <meta
+      property="og:description"
+      content="Learn all 12 cards, the 5-second Nope window, WebRTC voice chat, and how to survive a 2–10 player match of Exploding Kittens Online."
+    />
+    <meta property="og:image" content="/og-cover.svg" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:locale:alternate" content="vi_VN" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Exploding Kittens Online Rules &amp; 12-Card Guide" />
+    <meta
+      name="twitter:description"
+      content="Full rules for 2–10 players, 12 card types, 5s Nope window, and browser WebRTC voice chat."
+    />
+    <meta name="twitter:image" content="/og-cover.svg" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "Article",
+            "headline": "Exploding Kittens Online Rules & 12-Card Guide",
+            "description": "Complete rules for Mèo Nổ / Exploding Kittens Online (2–10 players): setup, 5-second Nope reaction window, WebRTC voice chat, and all 12 card effects.",
+            "inLanguage": "en",
+            "author": {
+              "@type": "Organization",
+              "name": "Mèo Nổ Online"
+            },
+            "publisher": {
+              "@type": "Organization",
+              "name": "Mèo Nổ Online"
+            },
+            "mainEntityOfPage": "/en/rules"
+          },
+          {
+            "@type": "FAQPage",
+            "mainEntity": [
+              {
+                "@type": "Question",
+                "name": "How many cards does each player start with?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Every player is dealt 5 starting cards: 1 Defuse (Kìm Cắt Dây) card and 4 random ordinary cards."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "How many card types exist in Exploding Kittens Online?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "There are 12 card types: Exploding Kitten (Mèo Bùm), Defuse (Kìm Cắt Dây), Attack (Truy Đuổi), Skip (Ngủ Trưa), Reverse (Đảo Chiều), Shuffle (Xáo Trộn), Favor (Nài Nỉ), See the Future (Mắt Thần), Nope (KHÔNG!), Striped Cat (Mèo Vằn), Taco Cat (Mèo Taco), and Hairy Potato Cat (Mèo Khoai Tây)."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "How does the 5-second Nope reaction window work?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "When an action card or Cat Pair is played, eligible opponents have 5 seconds to play a Nope card to cancel it. Stacking Nopes toggles cancellation: an odd number cancels the action while an even number lets it resolve."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Can I mute individual players in voice chat or text chat?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Yes. Built-in WebRTC browser voice chat and room text chat include per-player audio mute and chat mute controls."
+                }
+              }
+            ]
+          }
+        ]
+      }
+    </script>
+    <style>
+      :root {
+        --bg: #d3eedb;
+        --bg-soft: #e6f6eb;
+        --surface: #f6efe2;
+        --surface-elevated: #ffffff;
+        --ink: #2b2326;
+        --ink-muted: #574d50;
+        --navy: #2e3a4b;
+        --navy-hover: #1e2733;
+        --border: #7eb892;
+        --card-border: #d8cebe;
+        --accent-cream: #ede4d4;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #151b18;
+          --bg-soft: #1d2621;
+          --surface: #252023;
+          --surface-elevated: #2e282b;
+          --ink: #f6efe2;
+          --ink-muted: #cfc6bf;
+          --navy: #3b4d66;
+          --navy-hover: #4b6180;
+          --border: #486b56;
+          --card-border: #473e42;
+          --accent-cream: #342c30;
+        }
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        font-size: 16px;
+        scroll-behavior: smooth;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        html {
+          scroll-behavior: auto;
+        }
+        *,
+        *::before,
+        *::after {
+          transition: none !important;
+          animation: none !important;
+        }
+      }
+
+      body {
+        margin: 0;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        line-height: 1.6;
+        color: var(--ink);
+        background: linear-gradient(180deg, var(--bg-soft) 0%, var(--bg) 100%);
+        min-height: 100vh;
+      }
+
+      .container {
+        max-width: 980px;
+        margin: 0 auto;
+        padding: 20px 16px 56px;
+      }
+
+      .topbar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: center;
+        justify-content: space-between;
+        background: var(--surface);
+        border: 2px solid var(--border);
+        border-radius: 18px;
+        padding: 12px 16px;
+        margin-bottom: 24px;
+      }
+
+      .brand {
+        font-size: 1.125rem;
+        font-weight: 800;
+        color: var(--ink);
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        min-height: 44px;
+        padding: 4px 8px;
+      }
+
+      .nav-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+      }
+
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 44px;
+        min-width: 44px;
+        padding: 10px 18px;
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 0.95rem;
+        text-decoration: none;
+        border: 2px solid transparent;
+        cursor: pointer;
+      }
+
+      .btn-primary {
+        background: var(--navy);
+        color: #ffffff;
+      }
+
+      .btn-primary:hover,
+      .btn-primary:focus-visible {
+        background: var(--navy-hover);
+      }
+
+      .btn-secondary {
+        background: var(--accent-cream);
+        color: var(--ink);
+        border-color: var(--card-border);
+      }
+
+      .btn-secondary:hover,
+      .btn-secondary:focus-visible {
+        border-color: var(--border);
+      }
+
+      .btn:focus-visible,
+      a:focus-visible {
+        outline: 3px solid var(--navy);
+        outline-offset: 2px;
+      }
+
+      .hero {
+        background: var(--surface);
+        border: 2px solid var(--border);
+        border-radius: 24px;
+        padding: 28px 24px;
+        margin-bottom: 24px;
+      }
+
+      .hero h1 {
+        margin: 0 0 12px;
+        font-size: clamp(1.75rem, 3.6vw, 2.5rem);
+        line-height: 1.2;
+      }
+
+      .hero p {
+        margin: 0 0 18px;
+        color: var(--ink-muted);
+        max-width: 72ch;
+      }
+
+      .fact-pills {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 20px;
+      }
+
+      .pill {
+        background: var(--surface-elevated);
+        border: 1px solid var(--card-border);
+        border-radius: 999px;
+        padding: 6px 14px;
+        font-size: 0.9rem;
+        font-weight: 700;
+      }
+
+      section.panel {
+        background: var(--surface);
+        border: 2px solid var(--card-border);
+        border-radius: 20px;
+        padding: 24px;
+        margin-bottom: 22px;
+      }
+
+      section.panel h2 {
+        margin: 0 0 14px;
+        font-size: 1.45rem;
+      }
+
+      .rules-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+        gap: 14px;
+      }
+
+      .rule-box {
+        background: var(--surface-elevated);
+        border: 1px solid var(--card-border);
+        border-radius: 14px;
+        padding: 16px;
+      }
+
+      .rule-box h3 {
+        margin: 0 0 6px;
+        font-size: 1.05rem;
+      }
+
+      .rule-box p {
+        margin: 0;
+        color: var(--ink-muted);
+        font-size: 0.95rem;
+      }
+
+      .cards-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 16px;
+      }
+
+      .card-item {
+        background: var(--surface-elevated);
+        border: 2px solid var(--card-border);
+        border-radius: 16px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .card-banner {
+        padding: 10px 14px;
+        color: #ffffff;
+        font-weight: 800;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .card-banner small {
+        font-weight: 600;
+        opacity: 0.92;
+      }
+
+      .card-body {
+        padding: 14px;
+        font-size: 0.95rem;
+        color: var(--ink);
+      }
+
+      .card-meta {
+        margin-top: 8px;
+        font-size: 0.85rem;
+        color: var(--ink-muted);
+        font-weight: 600;
+      }
+
+      .faq-list {
+        display: grid;
+        gap: 12px;
+      }
+
+      .faq-item {
+        background: var(--surface-elevated);
+        border: 1px solid var(--card-border);
+        border-radius: 14px;
+        padding: 14px 16px;
+      }
+
+      .faq-item h3 {
+        margin: 0 0 6px;
+        font-size: 1.02rem;
+      }
+
+      .faq-item p {
+        margin: 0;
+        color: var(--ink-muted);
+      }
+
+      footer {
+        text-align: center;
+        color: var(--ink-muted);
+        font-size: 0.9rem;
+        padding-top: 12px;
+      }
+
+      footer a {
+        color: var(--ink);
+        font-weight: 700;
+        display: inline-flex;
+        align-items: center;
+        min-height: 44px;
+        padding: 0 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header class="topbar">
+        <a class="brand" href="/">Exploding Kittens — Mèo Nổ Online</a>
+        <nav class="nav-actions" aria-label="Navigation">
+          <a class="btn btn-secondary" href="/luat-choi" hreflang="vi" lang="vi">Luật Tiếng Việt</a>
+          <a class="btn btn-primary" href="/">Play Now</a>
+        </nav>
+      </header>
+
+      <main>
+        <section class="hero">
+          <h1>Exploding Kittens Online Rules &amp; 12-Card Guide</h1>
+          <p>
+            Mèo Nổ Online (Exploding Kittens Online) is a free real-time multiplayer survival card
+            game for <strong>2–10 players</strong> directly in your browser. Create or join a room
+            with a 5-character code—no app install or mandatory login required—and enjoy 12 strategic
+            cards, a zero-leak 5-second Nope window, and built-in WebRTC voice chat.
+          </p>
+          <div class="fact-pills">
+            <span class="pill">2–10 Players / Room</span>
+            <span class="pill">12 Card Types</span>
+            <span class="pill">5s Nope Window</span>
+            <span class="pill">WebRTC Voice &amp; Per-Player Mute</span>
+          </div>
+          <a class="btn btn-primary" href="/">Play Now — Create or Join a Room</a>
+        </section>
+
+        <section class="panel" aria-labelledby="flow-heading">
+          <h2 id="flow-heading">1. Core Rules &amp; Turn Flow</h2>
+          <div class="rules-grid">
+            <article class="rule-box">
+              <h3>Starting Setup</h3>
+              <p>
+                Every player is dealt <strong>5 cards</strong>: <strong>1 Defuse (Kìm Cắt Dây)</strong>
+                and 4 ordinary cards. The draw pile contains <code>players - 1</code> Exploding
+                Kittens, and scales automatically for 7–10 player lobbies.
+              </p>
+            </article>
+            <article class="rule-box">
+              <h3>30-Second Turn Timer</h3>
+              <p>
+                On your turn, play <strong>0 or more action cards or cat pairs</strong>, then
+                <strong>draw 1 card</strong> to end your turn. If the 30-second timer expires, the
+                server automatically draws or defuses to the middle of the deck.
+              </p>
+            </article>
+            <article class="rule-box">
+              <h3>Zero-Leak 5s Nope Window</h3>
+              <p>
+                Playing an action card or Cat Pair triggers a <strong>5-second Nope window</strong>.
+                Any eligible opponent can play <strong>Nope (KHÔNG!)</strong> to cancel it—or stack
+                another Nope to counter-cancel. Hands and deck order never leak to other players.
+              </p>
+            </article>
+            <article class="rule-box">
+              <h3>Reconnect Grace &amp; Winning</h3>
+              <p>
+                Disconnected players keep their seat for <strong>120 seconds</strong> so they can
+                rejoin seamlessly. The last surviving player wins the match!
+              </p>
+            </article>
+          </div>
+        </section>
+
+        <section class="panel" aria-labelledby="cards-heading">
+          <h2 id="cards-heading">2. All 12 Card Types</h2>
+          <div class="cards-grid">
+            <article class="card-item">
+              <div class="card-banner" style="background: #b71c1c">
+                <span>Exploding Kitten</span>
+                <small>Mèo Bùm</small>
+              </div>
+              <div class="card-body">
+                If you draw this card, you explode and are eliminated immediately—unless you have a
+                <strong>Defuse</strong> card to survive.
+                <div class="card-meta">Cannot be noped</div>
+              </div>
+            </article>
+
+            <article class="card-item">
+              <div class="card-banner" style="background: #0f766e">
+                <span>Defuse</span>
+                <small>Kìm Cắt Dây</small>
+              </div>
+              <div class="card-body">
+                Saves you when you draw an Exploding Kitten and lets you secretly place the bomb back
+                anywhere inside the draw pile (top, bottom, or any index).
+                <div class="card-meta">Cannot be noped</div>
+              </div>
+            </article>
+
+            <article class="card-item">
+              <div class="card-banner" style="background: #c2410c">
+                <span>Attack</span>
+                <small>Truy Đuổi</small>
+              </div>
+              <div class="card-body">
+                Ends your turn without drawing and forces the next living player to take
+                <strong>2 consecutive turns</strong> (stackable).
+                <div class="card-meta">Nopeable (5s window)</div>
+              </div>
+            </article>
+
+            <article class="card-item">
+              <div class="card-banner" style="background: #a16207">
+                <span>Skip</span>
+                <small>Ngủ Trưa</small>
+              </div>
+              <div class="card-body">
+                Immediately ends 1 remaining turn without drawing a card. Useful for surviving an
+                Attack or avoiding a known bomb.
+                <div class="card-meta">Nopeable (5s window)</div>
+              </div>
+            </article>
+
+            <article class="card-item">
+              <div class="card-banner" style="background: #1b315e">
+                <span>Reverse</span>
+                <small>Đảo Chiều</small>
+              </div>
+              <div class="card-body">
+                Reverses the order of play (clockwise &harr; counter-clockwise) and ends your current
+                turn without drawing a card.
+                <div class="card-meta">Nopeable (5s window)</div>
+              </div>
+            </article>
+
+            <article class="card-item">
+              <div class="card-banner" style="background: #15803d">
+                <span>Shuffle</span>
+                <small>Xáo Trộn</small>
+              </div>
+              <div class="card-body">
+                Randomly shuffles the draw pile. Your turn continues so you can play more cards or
+                draw afterward.
+                <div class="card-meta">Nopeable (5s window)</div>
+              </div>
+            </article>
+
+            <article class="card-item">
+              <div class="card-banner" style="background: #be185d">
+                <span>Favor</span>
+                <small>Nài Nỉ</small>
+              </div>
+              <div class="card-body">
+                Pick a living opponent to steal 1 random card from their hand.
+                <div class="card-meta">Nopeable (5s window)</div>
+              </div>
+            </article>
+
+            <article class="card-item">
+              <div class="card-banner" style="background: #1d4ed8">
+                <span>See the Future</span>
+                <small>Mắt Thần</small>
+              </div>
+              <div class="card-body">
+                Privately inspect the <strong>top 3 cards</strong> of the draw pile in exact draw order
+                (1 &rarr; 2 &rarr; 3). Only you can see them.
+                <div class="card-meta">Nopeable (5s window)</div>
+              </div>
+            </article>
+
+            <article class="card-item">
+              <div class="card-banner" style="background: #991b1b">
+                <span>Nope</span>
+                <small>KHÔNG!</small>
+              </div>
+              <div class="card-body">
+                Stops any opponent's action card or Cat Pair during the 5-second window. Can also be
+                played on top of another Nope!
+                <div class="card-meta">Cannot stop Exploding Kitten or Defuse</div>
+              </div>
+            </article>
+
+            <article class="card-item">
+              <div class="card-banner" style="background: #6d28d9">
+                <span>Striped Cat</span>
+                <small>Mèo Vằn</small>
+              </div>
+              <div class="card-body">
+                Powerless alone. Play a <strong>matching pair of 2 Striped Cats</strong> to steal 1
+                random card from any living opponent.
+                <div class="card-meta">Cat pairs are Nopeable</div>
+              </div>
+            </article>
+
+            <article class="card-item">
+              <div class="card-banner" style="background: #b86522">
+                <span>Taco Cat</span>
+                <small>Mèo Taco</small>
+              </div>
+              <div class="card-body">
+                Powerless alone. Play a <strong>matching pair of 2 Taco Cats</strong> to steal 1
+                random card from any living opponent.
+                <div class="card-meta">Cat pairs are Nopeable</div>
+              </div>
+            </article>
+
+            <article class="card-item">
+              <div class="card-banner" style="background: #7c742b">
+                <span>Hairy Potato Cat</span>
+                <small>Mèo Khoai Tây</small>
+              </div>
+              <div class="card-body">
+                Powerless alone. Play a <strong>matching pair of 2 Hairy Potato Cats</strong> to steal
+                1 random card from any living opponent.
+                <div class="card-meta">Cat pairs are Nopeable</div>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section class="panel" aria-labelledby="voice-heading">
+          <h2 id="voice-heading">3. Voice Chat, Themes &amp; Optional Accounts</h2>
+          <div class="rules-grid">
+            <article class="rule-box">
+              <h3>WebRTC Voice Chat &amp; Per-Player Controls</h3>
+              <p>
+                Toggle your microphone right inside the room with live speaking indicators. Every
+                player can independently <strong>mute voice audio</strong> or
+                <strong>hide text chat</strong> per opponent at any time.
+              </p>
+            </article>
+            <article class="rule-box">
+              <h3>3 Card Decks &amp; 4 Pastel Table Themes</h3>
+              <p>
+                Switch between 3 card deck themes (<em>Illustrated</em>, <em>Classic</em>,
+                <em>Neon Night</em>) and 4 pastel table themes (Green, Yellow, Pink, Blue).
+              </p>
+            </article>
+            <article class="rule-box">
+              <h3>Guest Play or Optional Leaderboard</h3>
+              <p>
+                Play instantly as a guest with zero login, or create an optional SQLite-backed
+                account to track wins on the leaderboard and sync preferences.
+              </p>
+            </article>
+          </div>
+        </section>
+
+        <section class="panel" aria-labelledby="faq-heading">
+          <h2 id="faq-heading">4. Frequently Asked Questions</h2>
+          <div class="faq-list">
+            <article class="faq-item">
+              <h3>How many cards does each player start with?</h3>
+              <p>5 cards: 1 Defuse (Kìm Cắt Dây) plus 4 random ordinary cards.</p>
+            </article>
+            <article class="faq-item">
+              <h3>Can I pair two different cat types together?</h3>
+              <p>No. A Cat Pair requires 2 identical cats (two Striped Cats, two Taco Cats, or two Hairy Potato Cats).</p>
+            </article>
+            <article class="faq-item">
+              <h3>Do I need to install an app or register?</h3>
+              <p>No download or login is required. Everything runs in modern mobile and desktop web browsers.</p>
+            </article>
+          </div>
+        </section>
+      </main>
+
+      <footer>
+        <a href="/">Play (VI)</a>
+        <a href="/en">Play (EN)</a>
+        <a href="/luat-choi" hreflang="vi">Luật Tiếng Việt</a>
+        <a href="/llms.txt">llms.txt</a>
+      </footer>
+    </div>
+  </body>
+</html>

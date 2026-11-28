@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Luật Chơi Mèo Nổ Online &amp; Chi Tiết 12 Lá Bài (Exploding Kittens)</title>
+    <meta
+      name="description"
+      content="Hướng dẫn luật chơi Mèo Nổ Online cho 2–10 người: cách chia bài, cửa sổ phản ứng KHÔNG! 5 giây, Voice Chat WebRTC và chi tiết toàn bộ 12 lá bài."
+    />
+    <meta name="robots" content="index, follow" />
+    <meta name="theme-color" content="#d3eedb" />
+    <link rel="canonical" href="/luat-choi" />
+    <link rel="alternate" hreflang="vi" href="/luat-choi" />
+    <link rel="alternate" hreflang="en" href="/en/rules" />
+    <link rel="alternate" hreflang="x-default" href="/luat-choi" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta property="og:type" content="article" />
+    <meta property="og:site_name" content="Mèo Nổ Online" />
+    <meta property="og:title" content="Luật Chơi Mèo Nổ Online &amp; Chi Tiết 12 Lá Bài" />
+    <meta
+      property="og:description"
+      content="Tìm hiểu toàn bộ luật chơi Mèo Nổ Online 2–10 người, chức năng 12 lá bài và hệ thống Voice Chat trực tiếp trên trình duyệt."
+    />
+    <meta property="og:image" content="/og-cover.svg" />
+    <meta property="og:locale" content="vi_VN" />
+    <meta property="og:locale:alternate" content="en_US" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Luật Chơi Mèo Nổ Online &amp; 12 Lá Bài" />
+    <meta
+      name="twitter:description"
+      content="Hướng dẫn đầy đủ 12 lá bài Mèo Nổ Online, cửa sổ KHÔNG! 5 giây và Voice Chat."
+    />
+    <meta name="twitter:image" content="/og-cover.svg" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "Article",
+            "headline": "Luật Chơi Mèo Nổ Online & Chi Tiết 12 Lá Bài",
+            "description": "Hướng dẫn đầy đủ luật chơi Mèo Nổ Online cho 2–10 người, cửa sổ phản ứng KHÔNG! 5 giây, Voice Chat WebRTC và công dụng từng lá trong 12 loại bài.",
+            "inLanguage": "vi",
+            "author": {
+              "@type": "Organization",
+              "name": "Mèo Nổ Online"
+            },
+            "publisher": {
+              "@type": "Organization",
+              "name": "Mèo Nổ Online"
+            },
+            "mainEntityOfPage": "/luat-choi"
+          },
+          {
+            "@type": "FAQPage",
+            "mainEntity": [
+              {
+                "@type": "Question",
+                "name": "Mỗi người chơi được chia bao nhiêu lá khi bắt đầu ván Mèo Nổ?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Mỗi người chơi bắt đầu với 5 lá bài gồm 1 lá Kìm Cắt Dây (Defuse) và 4 lá bài thường ngẫu nhiên."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Có bao nhiêu loại lá bài trong Mèo Nổ Online?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Trò chơi gồm đúng 12 loại lá bài: Mèo Bùm, Kìm Cắt Dây, Truy Đuổi, Ngủ Trưa, Đảo Chiều, Xáo Trộn, Nài Nỉ, Mắt Thần, KHÔNG!, Mèo Vằn, Mèo Taco và Mèo Khoai Tây."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Cửa sổ phản ứng KHÔNG! (Nope) 5 giây hoạt động ra sao?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Khi có người đánh lá hành động hoặc cặp mèo, mọi đối thủ có 5 giây để đánh lá KHÔNG! nhằm chặn hành động đó. Nếu có thêm lá KHÔNG! chồng lên, số lần lẻ sẽ hủy hành động và số lần chẵn sẽ cho phép thực thi."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Làm sao để tắt mic hoặc ẩn chat của một người chơi cụ thể?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Mèo Nổ Online hỗ trợ Voice Chat WebRTC và trò chuyện văn bản theo phòng, kèm nút tắt tiếng (Mute Voice) và ẩn chat (Mute Chat) riêng cho từng người chơi."
+                }
+              }
+            ]
+          }
+        ]
+      }
+    </script>
+    <style>
+      :root {
+        --bg: #d3eedb;
+        --bg-soft: #e6f6eb;
+        --surface: #f6efe2;
+        --surface-elevated: #ffffff;
+        --ink: #2b2326;
+        --ink-muted: #574d50;
+        --navy: #2e3a4b;
+        --navy-hover: #1e2733;
+        --border: #7eb892;
+        --card-border: #d8cebe;
+        --accent-cream: #ede4d4;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #151b18;
+          --bg-soft: #1d2621;
+          --surface: #252023;
+          --surface-elevated: #2e282b;
+          --ink: #f6efe2;
+          --ink-muted: #cfc6bf;
+          --navy: #3b4d66;
+          --navy-hover: #4b6180;
+          --border: #486b56;
+          --card-border: #473e42;
+          --accent-cream: #342c30;
+        }
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        font-size: 16px;
+        scroll-behavior: smooth;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        html {
+          scroll-behavior: auto;
+        }
+        *,
+        *::before,
+        *::after {
+          transition: none !important;
+          animation: none !important;
+        }
+      }
+
+      body {
+        margin: 0;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        line-height: 1.6;
+        color: var(--ink);
+        background: linear-gradient(180deg, var(--bg-soft) 0%, var(--bg) 100%);
+        min-height: 100vh;
+      }
+
+      .container {
+        max-width: 980px;
+        margin: 0 auto;
+        padding: 20px 16px 56px;
+      }
+
+      .topbar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: center;
+        justify-content: space-between;
+        background: var(--surface);
+        border: 2px solid var(--border);
+        border-radius: 18px;
+        padding: 12px 16px;
+        margin-bottom: 24px;
+      }
+
+      .brand {
+        font-size: 1.125rem;
+        font-weight: 800;
+        color: var(--ink);
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        min-height: 44px;
+        padding: 4px 8px;
+      }
+
+      .nav-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+      }
+
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 44px;
+        min-width: 44px;
+        padding: 10px 18px;
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 0.95rem;
+        text-decoration: none;
+        border: 2px solid transparent;
+        cursor: pointer;
+      }
+
+      .btn-primary {
+        background: var(--navy);
+        color: #ffffff;
+      }
+
+      .btn-primary:hover,
+      .btn-primary:focus-visible {
+        background: var(--navy-hover);
+      }
+
+      .btn-secondary {
+        background: var(--accent-cream);
+        color: var(--ink);
+        border-color: var(--card-border);
+      }
+
+      .btn-secondary:hover,
+      .btn-secondary:focus-visible {
+        border-color: var(--border);
+      }
+
+      .btn:focus-visible,
+      a:focus-visible {
+        outline: 3px solid var(--navy);
+        outline-offset: 2px;
+      }
+
+      .hero {
+        background: var(--surface);
+        border: 2px solid var(--border);
+        border-radius: 24px;
+        padding: 28px 24px;
+        margin-bottom: 24px;
+      }
+
+      .hero h1 {
+        margin: 0 0 12px;
+        font-size: clamp(1.75rem, 3.6vw, 2.5rem);
+        line-height: 1.2;
+      }
+
+      .hero p {
+        margin: 0 0 18px;
+        color: var(--ink-muted);
+        max-width: 72ch;
+      }
+
+      .fact-pills {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 20px;
+      }
+
+      .pill {
+        background: var(--surface-elevated);
+        border: 1px solid var(--card-border);
+        border-radius: 999px;
+        padding: 6px 14px;
+        font-size: 0.9rem;
+        font-weight: 700;
+      }
+
+      section.panel {
+        background: var(--surface);
+        border: 2px solid var(--card-border);
+        border-radius: 20px;
+        padding: 24px;
+        margin-bottom: 22px;
+      }
+
+      section.panel h2 {
+        margin: 0 0 14px;
+        font-size: 1.45rem;
+      }
+
+      .rules-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+        gap: 14px;
+      }
+
+      .rule-box {
+        background: var(--surface-elevated);
+        border: 1px solid var(--card-border);
+        border-radius: 14px;
+        padding: 16px;
+      }
+
+      .rule-box h3 {
+        margin: 0 0 6px;
+        font-size: 1.05rem;
+      }
+
+      .rule-box p {
+        margin: 0;
+        color: var(--ink-muted);
+        font-size: 0.95rem;
+      }
+
+      .cards-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 16px;
+      }
+
+      .card-item {
+        background: var(--surface-elevated);
+        border: 2px solid var(--card-border);
+        border-radius: 16px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .card-banner {
+        padding: 10px 14px;
+        color: #ffffff;
+        font-weight: 800;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .card-banner small {
+        font-weight: 600;
+        opacity: 0.92;
+      }
+
+      .card-body {
+        padding: 14px;
+        font-size: 0.95rem;
+        color: var(--ink);
+      }
+
+      .card-meta {
+        margin-top: 8px;
+        font-size: 0.85rem;
+        color: var(--ink-muted);
+        font-weight: 600;
+      }
+
+      .faq-list {
+        display: grid;
+        gap: 12px;
+      }
+
+      .faq-item {
+        background: var(--surface-elevated);
+        border: 1px solid var(--card-border);
+        border-radius: 14px;
+        padding: 14px 16px;
+      }
+
+      .faq-item h3 {
+        margin: 0 0 6px;
+        font-size: 1.02rem;
+      }
+
+      .faq-item p {
+        margin: 0;
+        color: var(--ink-muted);
+      }
+
+      footer {
+        text-align: center;
+        color: var(--ink-muted);
+        font-size: 0.9rem;
+        padding-top: 12px;
+      }
+
+      footer a {
+        color: var(--ink);
+        font-weight: 700;
+        display: inline-flex;
+        align-items: center;
+        min-height: 44px;
+        padding: 0 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header class="topbar">
+        <a class="brand" href="/">Mèo Nổ Online</a>
+        <nav class="nav-actions" aria-label="Điều hướng">
+          <a class="btn btn-secondary" href="/en/rules" hreflang="en" lang="en">English Rules</a>
+          <a class="btn btn-primary" href="/">Vào chơi ngay</a>
+        </nav>
+      </header>
+
+      <main>
+        <section class="hero">
+          <h1>Luật Chơi Mèo Nổ Online &amp; Bộ 12 Lá Bài</h1>
+          <p>
+            Mèo Nổ Online (Exploding Kittens Online) là game thẻ bài sinh tồn theo lượt dành cho
+            <strong>2–10 người chơi</strong> ngay trên trình duyệt. Không cần cài đặt, không bắt buộc
+            đăng ký tài khoản: tạo phòng bằng mã 5 ký tự, đấu trí bằng 12 loại lá bài và trò chuyện
+            trực tiếp qua Voice Chat WebRTC.
+          </p>
+          <div class="fact-pills">
+            <span class="pill">2–10 người chơi / phòng</span>
+            <span class="pill">12 loại lá bài</span>
+            <span class="pill">5 giây phản ứng KHÔNG!</span>
+            <span class="pill">Voice Chat WebRTC &amp; Tắt tiếng riêng</span>
+          </div>
+          <a class="btn btn-primary" href="/">Vào chơi ngay — Tạo hoặc vào phòng</a>
+        </section>
+
+        <section class="panel" aria-labelledby="flow-heading">
+          <h2 id="flow-heading">1. Luật chơi cơ bản &amp; Diễn biến một ván</h2>
+          <div class="rules-grid">
+            <article class="rule-box">
+              <h3>Chia bài đầu ván</h3>
+              <p>
+                Mỗi người nhận <strong>5 lá</strong> gồm <strong>1 lá Kìm Cắt Dây (Defuse)</strong> và
+                4 lá bài thường. Số lượng <strong>Mèo Bùm</strong> trong bộ rút bằng số người chơi
+                trừ 1. Với 7–10 người, bộ bài tự động nhân tỉ lệ để giữ nhịp cân bằng.
+              </p>
+            </article>
+            <article class="rule-box">
+              <h3>Lượt chơi 30 giây</h3>
+              <p>
+                Đến lượt mình, bạn có thể đánh <strong>0, 1 hoặc nhiều lá</strong> (hoặc cặp mèo)
+                rồi <strong>rút 1 lá</strong> để kết thúc lượt. Nếu hết 30 giây chưa thao tác, hệ thống
+                tự rút bài hoặc tự gỡ bom ở giữa bộ rút.
+              </p>
+            </article>
+            <article class="rule-box">
+              <h3>Cửa sổ phản ứng KHÔNG! (5 giây)</h3>
+              <p>
+                Khi có người chơi đánh lá hành động (Truy Đuổi, Ngủ Trưa, Đảo Chiều, Xáo Trộn, Nài Nỉ,
+                Mắt Thần) hoặc Cặp Mèo, mọi đối thủ có <strong>5 giây</strong> để tung lá
+                <strong>KHÔNG!</strong>. Số lần KHÔNG! lẻ sẽ chặn hành động; số lần chẵn cho phép
+                thực thi. Bài trên tay và thứ tự bộ rút hoàn toàn bảo mật (zero-leak).
+              </p>
+            </article>
+            <article class="rule-box">
+              <h3>Mất kết nối &amp; Thắng cuộc</h3>
+              <p>
+                Người chơi rớt mạng được giữ chỗ <strong>120 giây</strong> để quay lại ván. Người cuối
+                cùng còn sống sót sau khi các đối thủ bị loại bởi Mèo Bùm sẽ giành chiến thắng.
+              </p>
+            </article>
+          </div>
+        </section>
+
+        <section class="panel" aria-labelledby="cards-heading">
+          <h2 id="cards-heading">2. Chi tiết toàn bộ 12 lá bài trong Mèo Nổ Online</h2>
+          <div class="cards-grid">
+            <article class="card-item">
+              <div class="card-banner" style="background: #b71c1c">
+                <span>Mèo Bùm</span>
+                <small>Exploding Kitten</small>
+              </div>
+              <div class="card-body">
+                Rút phải lá này là bị loại ngay lập tức khỏi ván, trừ khi bạn có lá
+                <strong>Kìm Cắt Dây</strong> để hóa giải.
+                <div class="card-meta">Không thể chặn bằng KHÔNG!</div>
+              </div>
+            </article>
+
+            <article class="card-item">
+              <div class="card-banner" style="background: #0f766e">
+                <span>Kìm Cắt Dây</span>
+                <small>Defuse</small>
+              </div>
+              <div class="card-body">
+                Cứu mạng khi rút phải Mèo Bùm. Sau khi gỡ, bạn bí mật chọn vị trí đặt lại Mèo Bùm
+                vào bộ rút (trên cùng, dưới cùng hoặc bất kỳ vị trí nào).
+                <div class="card-meta">Không thể chặn bằng KHÔNG!</div>
+              </div>
+            </article>
+
+            <article class="card-item">
+              <div class="card-banner" style="background: #c2410c">
+                <span>Truy Đuổi</span>
+                <small>Attack</small>
+              </div>
+              <div class="card-body">
+                Kết thúc lượt ngay lập tức mà không cần rút bài, đồng thời buộc người kế tiếp phải
+                chơi <strong>2 lượt liên tiếp</strong> (có thể cộng dồn).
+                <div class="card-meta">Có thể bị KHÔNG! trong 5 giây</div>
+              </div>
+            </article>
+
+            <article class="card-item">
+              <div class="card-banner" style="background: #a16207">
+                <span>Ngủ Trưa</span>
+                <small>Skip</small>
+              </div>
+              <div class="card-body">
+                Kết thúc 1 lượt hiện tại của bạn mà không cần rút bài. Nếu đang chịu nhiều lượt từ
+                Truy Đuổi, lá này bỏ qua 1 lượt.
+                <div class="card-meta">Có thể bị KHÔNG! trong 5 giây</div>
+              </div>
+            </article>
+
+            <article class="card-item">
+              <div class="card-banner" style="background: #1b315e">
+                <span>Đảo Chiều</span>
+                <small>Reverse</small>
+              </div>
+              <div class="card-body">
+                Đổi hướng vòng chơi (thuận chiều kim đồng hồ &harr; ngược chiều) và kết thúc 1 lượt mà
+                không cần rút bài.
+                <div class="card-meta">Có thể bị KHÔNG! trong 5 giây</div>
+              </div>
+            </article>
+
+            <article class="card-item">
+              <div class="card-banner" style="background: #15803d">
+                <span>Xáo Trộn</span>
+                <small>Shuffle</small>
+              </div>
+              <div class="card-body">
+                Xáo trộn ngẫu nhiên toàn bộ bộ bài rút. Lượt chơi của bạn vẫn tiếp tục bình thường.
+                <div class="card-meta">Có thể bị KHÔNG! trong 5 giây</div>
+              </div>
+            </article>
+
+            <article class="card-item">
+              <div class="card-banner" style="background: #be185d">
+                <span>Nài Nỉ</span>
+                <small>Favor</small>
+              </div>
+              <div class="card-body">
+                Chọn một người chơi còn sống để lấy ngẫu nhiên 1 lá bài từ tay của họ đưa vào tay bạn.
+                <div class="card-meta">Có thể bị KHÔNG! trong 5 giây</div>
+              </div>
+            </article>
+
+            <article class="card-item">
+              <div class="card-banner" style="background: #1d4ed8">
+                <span>Mắt Thần</span>
+                <small>See the Future</small>
+              </div>
+              <div class="card-body">
+                Xem bí mật <strong>3 lá trên cùng</strong> của bộ rút theo thứ tự 1 &rarr; 2 &rarr; 3.
+                Chỉ một mình bạn thấy nội dung lá bài.
+                <div class="card-meta">Có thể bị KHÔNG! trong 5 giây</div>
+              </div>
+            </article>
+
+            <article class="card-item">
+              <div class="card-banner" style="background: #991b1b">
+                <span>KHÔNG!</span>
+                <small>Nope</small>
+              </div>
+              <div class="card-body">
+                Chặn mọi hành động của đối thủ trong cửa sổ 5 giây. Có thể đánh chồng KHÔNG! lên nhau
+                để phản chặn.
+                <div class="card-meta">Không áp dụng cho Mèo Bùm / Kìm Cắt Dây</div>
+              </div>
+            </article>
+
+            <article class="card-item">
+              <div class="card-banner" style="background: #6d28d9">
+                <span>Mèo Vằn</span>
+                <small>Striped Cat</small>
+              </div>
+              <div class="card-body">
+                Không có tác dụng khi đánh lẻ. Ghép <strong>cặp 2 lá Mèo Vằn</strong> để cướp ngẫu
+                nhiên 1 lá từ một người chơi còn sống.
+                <div class="card-meta">Cặp mèo có thể bị KHÔNG!</div>
+              </div>
+            </article>
+
+            <article class="card-item">
+              <div class="card-banner" style="background: #b86522">
+                <span>Mèo Taco</span>
+                <small>Taco Cat</small>
+              </div>
+              <div class="card-body">
+                Không có tác dụng khi đánh lẻ. Ghép <strong>cặp 2 lá Mèo Taco</strong> để cướp ngẫu
+                nhiên 1 lá từ một người chơi còn sống.
+                <div class="card-meta">Cặp mèo có thể bị KHÔNG!</div>
+              </div>
+            </article>
+
+            <article class="card-item">
+              <div class="card-banner" style="background: #7c742b">
+                <span>Mèo Khoai Tây</span>
+                <small>Hairy Potato Cat</small>
+              </div>
+              <div class="card-body">
+                Không có tác dụng khi đánh lẻ. Ghép <strong>cặp 2 lá Mèo Khoai Tây</strong> để cướp
+                ngẫu nhiên 1 lá từ một người chơi còn sống.
+                <div class="card-meta">Cặp mèo có thể bị KHÔNG!</div>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section class="panel" aria-labelledby="voice-heading">
+          <h2 id="voice-heading">3. Voice Chat, Chat phòng &amp; Tùy biến giao diện</h2>
+          <div class="rules-grid">
+            <article class="rule-box">
+              <h3>Voice Chat WebRTC &amp; Tắt tiếng từng người</h3>
+              <p>
+                Bật/tắt micro trực tiếp trên trình duyệt với chỉ báo người đang nói. Bạn có thể
+                <strong>tắt tiếng thoại</strong> hoặc <strong>ẩn tin nhắn chat</strong> riêng của từng
+                người chơi bất kỳ lúc nào.
+              </p>
+            </article>
+            <article class="rule-box">
+              <h3>3 Bộ bài &amp; 4 Bàn chơi Pastel</h3>
+              <p>
+                Tùy chỉnh 3 phong cách bộ bài (<em>Minh họa</em>, <em>Cổ điển</em>, <em>Đêm Neon</em>)
+                và 4 màu bàn pastel (Xanh lá, Vàng kem, Hồng phấn, Xanh dương), hỗ trợ đồng bộ nếu
+                đăng nhập tài khoản.
+              </p>
+            </article>
+            <article class="rule-box">
+              <h3>Tài khoản tùy chọn &amp; Bảng xếp hạng</h3>
+              <p>
+                Chơi ngay ở chế độ khách không cần đăng nhập, hoặc tạo tài khoản tùy chọn (lưu bằng
+                SQLite) để ghi nhận số trận thắng và leo bảng xếp hạng.
+              </p>
+            </article>
+          </div>
+        </section>
+
+        <section class="panel" aria-labelledby="faq-heading">
+          <h2 id="faq-heading">4. Câu hỏi thường gặp</h2>
+          <div class="faq-list">
+            <article class="faq-item">
+              <h3>Mỗi người chơi được chia bao nhiêu lá khi bắt đầu ván?</h3>
+              <p>5 lá: 1 lá Kìm Cắt Dây (Defuse) và 4 lá thường ngẫu nhiên.</p>
+            </article>
+            <article class="faq-item">
+              <h3>Tôi có thể đánh 2 lá mèo khác giống với nhau không?</h3>
+              <p>Không. Cặp mèo phải cùng giống (2 Mèo Vằn, 2 Mèo Taco hoặc 2 Mèo Khoai Tây).</p>
+            </article>
+            <article class="faq-item">
+              <h3>Có cần tải ứng dụng để chơi Mèo Nổ Online không?</h3>
+              <p>
+                Không cần cài đặt. Trò chơi chạy trực tiếp trên trình duyệt điện thoại và máy tính, hỗ
+                trợ thêm chế độ PWA toàn màn hình.
+              </p>
+            </article>
+          </div>
+        </section>
+      </main>
+
+      <footer>
+        <a href="/">Trang chủ</a>
+        <a href="/en/rules" hreflang="en">English Rules</a>
+        <a href="/llms.txt">llms.txt</a>
+      </footer>
+    </div>
+  </body>
+</html>
