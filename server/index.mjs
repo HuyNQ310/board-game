@@ -10,6 +10,13 @@ import * as engineModule from '../shared/engine.mjs';
 import * as handlersModule from './handlers.mjs';
 import { DisconnectTimers } from './timers.mjs';
 import { createRateLimiter } from './handlers.mjs';
+import {
+  ensureVoiceStates,
+  toVoicePeersPayload,
+  setPlayerVoiceState,
+  clearPlayerVoiceState,
+  validateVoiceSignal,
+} from './voice.mjs';
 
 // ============================================================================
 // RoomStore Defensive Adapter
@@ -84,6 +91,7 @@ const engine = {
   applyAction: engineModule.applyAction || engineModule.default?.applyAction,
   eliminatePlayer: engineModule.eliminatePlayer || engineModule.default?.eliminatePlayer,
   viewFor: engineModule.viewFor || engineModule.default?.viewFor,
+  hasOtherLivingPlayer: engineModule.hasOtherLivingPlayer || engineModule.default?.hasOtherLivingPlayer,
   hasEligibleNopeHolder: engineModule.hasEligibleNopeHolder || engineModule.default?.hasEligibleNopeHolder,
   resolvePendingAction: engineModule.resolvePendingAction || engineModule.default?.resolvePendingAction,
   ...engineModule,
@@ -130,6 +138,21 @@ function buildRoomStatePayload(room) {
 async function broadcastState(room) {
   if (!room || !room.code) return;
   io.to(room.code).emit('room:state', buildRoomStatePayload(room));
+
+  if (room.voiceStates instanceof Map && room.voiceStates.size > 0) {
+    const playersById = new Map(
+      (room.players || []).filter((p) => p?.id).map((p) => [p.id, p])
+    );
+    for (const [pid, state] of Array.from(room.voiceStates.entries())) {
+      const player = playersById.get(pid);
+      if (!player) {
+        clearPlayerVoiceState(room, pid);
+      } else if (!player.connected && (state?.micOn || state?.speaking)) {
+        setPlayerVoiceState(room, pid, { micOn: false, speaking: false });
+      }
+    }
+    io.to(room.code).emit('voice:peers', { peers: toVoicePeersPayload(room) });
+  }
 
   if (room.game && typeof engine.viewFor === 'function') {
     const turnDeadline = scheduleTurnTimer(room);
@@ -193,6 +216,7 @@ async function handlePlayerDisconnect(code, playerId) {
   const room = roomStore.getRoom?.(code);
   if (!room) return;
   markPlayerConnected(room, playerId, false);
+  setPlayerVoiceState(room, playerId, { micOn: false, speaking: false });
   await broadcastState(room);
 
   disconnectTimers.start(
@@ -207,10 +231,15 @@ async function handlePlayerDisconnect(code, playerId) {
       try {
         if (current.status === 'playing' && current.game && typeof engine.eliminatePlayer === 'function') {
           current.game = engine.eliminatePlayer(current.game, playerId, 'disconnect', Math.random);
+          const hasPossibleRespondent =
+            typeof engine.hasOtherLivingPlayer === 'function'
+              ? engine.hasOtherLivingPlayer(current.game)
+              : (typeof engine.hasEligibleNopeHolder === 'function'
+                  ? engine.hasEligibleNopeHolder(current.game)
+                  : true);
           if (
             current.game?.phase === 'nope' &&
-            typeof engine.hasEligibleNopeHolder === 'function' &&
-            !engine.hasEligibleNopeHolder(current.game) &&
+            !hasPossibleRespondent &&
             typeof engine.resolvePendingAction === 'function'
           ) {
             current.game = await engine.resolvePendingAction(current.game, Math.random);
@@ -252,6 +281,7 @@ const turnTimers = new DisconnectTimers();
 // Separate rate limiter instance for chat (D12's 10/s applies per-socket per
 // concern; chat shouldn't share a budget with game actions or vice versa).
 const chatRateLimiter = createRateLimiter();
+const voiceRateLimiter = createRateLimiter({ max: 60, windowMs: 1000 });
 
 function scheduleTurnTimer(room) {
   if (!room?.game || room.game.phase === 'over' || !room.game.currentPlayerId) {
@@ -468,6 +498,81 @@ io.on('connection', (socket) => {
       name: player.name,
       text,
       at: Date.now(),
+    });
+    safeAck({ ok: true });
+  });
+
+  // ==========================================================================
+  // WebRTC voice signaling & room voice presence
+  // ==========================================================================
+  const resolveVoiceRoomMember = () => {
+    const playerId = socket.data?.playerId ?? socket.playerId;
+    const code = socket.data?.roomCode ?? socket.roomCode;
+    if (!playerId || !code) return null;
+    const room = roomStore.getRoom?.(code);
+    const player = room?.players?.find((p) => p.id === playerId);
+    if (!room || !player) return null;
+    return { playerId, code, room };
+  };
+
+  socket.on('voice:sync', (payload, ack) => {
+    const safeAck =
+      typeof ack === 'function' ? ack : typeof payload === 'function' ? payload : () => {};
+    const ctx = resolveVoiceRoomMember();
+    if (!ctx) {
+      safeAck(toErrorAck('NOT_IN_ROOM'));
+      return;
+    }
+    ensureVoiceStates(ctx.room);
+    safeAck({ ok: true, peers: toVoicePeersPayload(ctx.room) });
+  });
+
+  socket.on('voice:status', (payload, ack) => {
+    const safeAck =
+      typeof ack === 'function' ? ack : typeof payload === 'function' ? payload : () => {};
+    if (!voiceRateLimiter.consume(socket.id)) {
+      safeAck(toErrorAck('RATE_LIMIT'));
+      return;
+    }
+    const ctx = resolveVoiceRoomMember();
+    if (!ctx) {
+      safeAck(toErrorAck('NOT_IN_ROOM'));
+      return;
+    }
+    const peers = setPlayerVoiceState(
+      ctx.room,
+      ctx.playerId,
+      payload && typeof payload === 'object' ? payload : {}
+    );
+    if (!peers) {
+      safeAck(toErrorAck('NOT_IN_ROOM'));
+      return;
+    }
+    io.to(ctx.code).emit('voice:peers', { peers });
+    safeAck({ ok: true, peers });
+  });
+
+  socket.on('voice:signal', (payload, ack) => {
+    const safeAck = typeof ack === 'function' ? ack : () => {};
+    if (!voiceRateLimiter.consume(socket.id)) {
+      safeAck(toErrorAck('RATE_LIMIT'));
+      return;
+    }
+    const ctx = resolveVoiceRoomMember();
+    if (!ctx) {
+      safeAck(toErrorAck('NOT_IN_ROOM'));
+      return;
+    }
+    const validated = validateVoiceSignal(ctx.room, ctx.playerId, payload);
+    if (!validated) {
+      safeAck(toErrorAck('INVALID_ACTION'));
+      return;
+    }
+    io.to(validated.to).emit('voice:signal', {
+      from: ctx.playerId,
+      type: validated.type,
+      description: validated.description,
+      candidate: validated.candidate,
     });
     safeAck({ ok: true });
   });
