@@ -16,6 +16,7 @@
  */
 
 import { useEffect } from 'react';
+import { Crosshair, User, X } from 'lucide-react';
 import './TargetPicker.css';
 
 export default function TargetPicker({
@@ -66,7 +67,9 @@ export default function TargetPicker({
         aria-describedby="target-picker-desc"
       >
         <header className="target-picker-header">
-          <span className="target-picker-header__icon" aria-hidden="true">🎯</span>
+          <span className="target-picker-header__icon" aria-hidden="true">
+            <Crosshair size={20} aria-hidden="true" />
+          </span>
           <h2 id="target-picker-title" className="target-picker-header__title">
             {t.targetPickerTitle || 'Chọn người chơi'}
           </h2>
@@ -91,7 +94,9 @@ export default function TargetPicker({
                     }}
                     aria-label={candidate.name}
                   >
-                    <span className="target-picker-item__avatar" aria-hidden="true">👤</span>
+                    <span className="target-picker-item__avatar" aria-hidden="true">
+                      <User size={18} aria-hidden="true" />
+                    </span>
                     <span className="target-picker-item__name">{candidate.name}</span>
                   </button>
                 </li>
@@ -111,7 +116,9 @@ export default function TargetPicker({
             onClick={onCancel}
             aria-label={t.cancel || 'Hủy'}
           >
-            <span className="target-picker-cancel-btn__icon" aria-hidden="true">✕</span>
+            <span className="target-picker-cancel-btn__icon" aria-hidden="true">
+              <X size={16} aria-hidden="true" />
+            </span>
             <span className="target-picker-cancel-btn__label">{t.cancel || 'Hủy'}</span>
           </button>
         </footer>

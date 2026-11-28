@@ -23,6 +23,8 @@
  */
 
 import { useEffect } from 'react';
+import { Scissors, Bomb, Timer } from 'lucide-react';
+import { useCountdown } from '../hooks/useCountdown.js';
 import './DefuseDialog.css';
 
 export default function DefuseDialog({
@@ -31,8 +33,10 @@ export default function DefuseDialog({
   insertAt = 0,
   onInsertAtChange,
   onConfirm,
+  turnDeadline = null,
   t = {},
 }) {
+  const secondsLeft = useCountdown(open ? turnDeadline : null, { beepUnderFive: true });
   // rules.md 8.4 explicitly excludes DefuseDialog from being closed via Escape.
   // Intercept and prevent any default Escape behavior.
   useEffect(() => {
@@ -91,6 +95,11 @@ export default function DefuseDialog({
     }
   };
 
+  const bottomLabel =
+    typeof t.bottomOfDeck === 'function'
+      ? t.bottomOfDeck(safeDeckCount)
+      : t.bottomOfDeck || `Sâu nhất (${safeDeckCount})`;
+
   return (
     <div
       className="defuse-dialog-backdrop"
@@ -104,10 +113,24 @@ export default function DefuseDialog({
         aria-describedby="defuse-dialog-desc"
       >
         <header className="defuse-dialog__header">
-          <span className="defuse-dialog__icon" aria-hidden="true">✂️💣</span>
+          <span className="defuse-dialog__icon" aria-hidden="true">
+            <Scissors size={20} aria-hidden="true" />
+            <Bomb size={20} aria-hidden="true" />
+          </span>
           <h2 id="defuse-dialog-title" className="defuse-dialog__title">
             {t.defuseTitle || 'Gỡ bom thành công!'}
           </h2>
+          {typeof secondsLeft === 'number' && (
+            <span
+              className={`defuse-dialog__timer${
+                secondsLeft <= 5 ? ' defuse-dialog__timer--urgent' : ''
+              }`}
+              data-testid="defuse-countdown"
+            >
+              <Timer size={14} aria-hidden="true" />
+              <span>{secondsLeft}s</span>
+            </span>
+          )}
         </header>
 
         <p id="defuse-dialog-desc" className="defuse-dialog__prompt">
@@ -137,7 +160,7 @@ export default function DefuseDialog({
               {t.topOfDeck || 'Trên cùng (0)'}
             </span>
             <span className="defuse-dialog__slider-label defuse-dialog__slider-label--bottom">
-              {t.bottomOfDeck || `Sâu nhất (${safeDeckCount})`}
+              {bottomLabel}
             </span>
           </div>
 
@@ -154,7 +177,9 @@ export default function DefuseDialog({
             onClick={onConfirm}
             aria-label={t.placeBomb || 'Đặt bom'}
           >
-            <span className="defuse-dialog__confirm-icon" aria-hidden="true">💣</span>
+            <span className="defuse-dialog__confirm-icon" aria-hidden="true">
+              <Bomb size={16} aria-hidden="true" />
+            </span>
             <span className="defuse-dialog__confirm-label">{t.placeBomb || 'Đặt bom'}</span>
           </button>
         </footer>

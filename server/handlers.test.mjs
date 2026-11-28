@@ -120,8 +120,8 @@ describe('validateGameActionPayload', () => {
     });
   });
 
-  it('validates type: "play" with valid cards', () => {
-    for (const card of ['skip', 'attack', 'shuffle', 'peek']) {
+  it('validates type: "play" with valid cards including reverse', () => {
+    for (const card of ['skip', 'attack', 'reverse', 'shuffle', 'peek']) {
       assert.deepEqual(validateGameActionPayload({ type: 'play', card }), {
         ok: true,
         action: { type: 'play', card },
@@ -129,11 +129,28 @@ describe('validateGameActionPayload', () => {
     }
   });
 
+  it('normalizes type: "play", card: "nope" and validates standalone nope / passNope', () => {
+    assert.deepEqual(validateGameActionPayload({ type: 'play', card: 'nope' }), {
+      ok: true,
+      action: { type: 'nope' },
+    });
+    assert.deepEqual(validateGameActionPayload({ type: 'nope' }), {
+      ok: true,
+      action: { type: 'nope' },
+    });
+    assert.deepEqual(validateGameActionPayload({ type: 'passNope' }), {
+      ok: true,
+      action: { type: 'passNope' },
+    });
+  });
+
   it('rejects type: "play" with invalid or unplayable cards with INVALID_ACTION', () => {
     assert.deepEqual(validateGameActionPayload({ type: 'play' }), { ok: false, code: 'INVALID_ACTION' });
     assert.deepEqual(validateGameActionPayload({ type: 'play', card: 'boom' }), { ok: false, code: 'INVALID_ACTION' });
     assert.deepEqual(validateGameActionPayload({ type: 'play', card: 'defuse' }), { ok: false, code: 'INVALID_ACTION' });
     assert.deepEqual(validateGameActionPayload({ type: 'play', card: 'cat' }), { ok: false, code: 'INVALID_ACTION' });
+    assert.deepEqual(validateGameActionPayload({ type: 'play', card: 'taco' }), { ok: false, code: 'INVALID_ACTION' });
+    assert.deepEqual(validateGameActionPayload({ type: 'play', card: 'potato' }), { ok: false, code: 'INVALID_ACTION' });
     assert.deepEqual(validateGameActionPayload({ type: 'play', card: 'unknown' }), { ok: false, code: 'INVALID_ACTION' });
   });
 
@@ -156,7 +173,7 @@ describe('validateGameActionPayload', () => {
     );
   });
 
-  it('requires target for catPair and rejects missing/invalid target with INVALID_TARGET', () => {
+  it('requires target for catPair and validates optional cat card (cat, taco, potato)', () => {
     assert.deepEqual(
       validateGameActionPayload({ type: 'catPair' }),
       { ok: false, code: 'INVALID_TARGET' }
@@ -173,6 +190,18 @@ describe('validateGameActionPayload', () => {
       validateGameActionPayload({ type: 'catPair', target: 'player-3' }),
       { ok: true, action: { type: 'catPair', target: 'player-3' } }
     );
+    for (const card of ['cat', 'taco', 'potato']) {
+      assert.deepEqual(
+        validateGameActionPayload({ type: 'catPair', card, target: ' player-3 ' }),
+        { ok: true, action: { type: 'catPair', card, target: 'player-3' } }
+      );
+    }
+    for (const badCard of ['skip', 'nope', '', null, 42]) {
+      assert.deepEqual(
+        validateGameActionPayload({ type: 'catPair', card: badCard, target: 'player-3' }),
+        { ok: false, code: 'INVALID_ACTION' }
+      );
+    }
   });
 
   it('validates defuse with insertAt number and rejects missing/invalid insertAt', () => {
@@ -974,6 +1003,127 @@ describe('Handler: game:action', () => {
       code: 'GAME_OVER',
       message: ERROR_MESSAGES.GAME_OVER,
     });
+  });
+
+  it('auto-resolves nope phase immediately when engine.hasEligibleNopeHolder returns false', async () => {
+    const nopeGame = { version: 2, phase: 'nope', currentPlayerId: 'p1', pendingAction: { type: 'skip' } };
+    const resolvedGame = { version: 3, phase: 'play', currentPlayerId: 'p2' };
+    const fakeRoom = {
+      code: 'NOPE1',
+      status: 'playing',
+      players: [{ id: 'p1', connected: true }, { id: 'p2', connected: true }],
+      game: { version: 1, phase: 'play', currentPlayerId: 'p1' },
+    };
+
+    let resolveCalledWith = null;
+    let broadcastedGame = null;
+
+    const fakeEngine = {
+      applyAction: async () => nopeGame,
+      hasEligibleNopeHolder: (state) => {
+        assert.equal(state, nopeGame);
+        return false;
+      },
+      resolvePendingAction: async (state) => {
+        resolveCalledWith = state;
+        return resolvedGame;
+      },
+    };
+
+    const handlers = createHandlers({
+      roomStore: { getRoom: async () => fakeRoom },
+      engine: fakeEngine,
+      broadcastState: (r) => { broadcastedGame = r.game; },
+    });
+
+    const socket = { id: 's1', playerId: 'p1', roomCode: 'NOPE1' };
+    const { ack, getCallCount, getResponse } = createTestAck();
+
+    await handlers['game:action'](socket, { type: 'play', card: 'skip' }, ack);
+
+    assert.equal(getCallCount(), 1);
+    assert.deepEqual(getResponse(), { ok: true });
+    assert.equal(resolveCalledWith, nopeGame);
+    assert.equal(fakeRoom.game, resolvedGame);
+    assert.equal(broadcastedGame, resolvedGame);
+  });
+
+  it('falls back to applyAction resolveNope when resolvePendingAction is unavailable and hasEligibleNopeHolder is false', async () => {
+    const nopeGame = { version: 2, phase: 'nope', currentPlayerId: 'p1', pendingAction: { type: 'skip' } };
+    const resolvedGame = { version: 3, phase: 'over', winnerId: 'p1' };
+    const fakeRoom = {
+      code: 'NOPE2',
+      status: 'playing',
+      players: [{ id: 'p1', connected: true }, { id: 'p2', connected: true }],
+      game: { version: 1, phase: 'play', currentPlayerId: 'p1' },
+    };
+
+    const calls = [];
+    const fakeEngine = {
+      applyAction: async (state, pid, action) => {
+        calls.push({ state, pid, action });
+        if (calls.length === 1) return nopeGame;
+        return resolvedGame;
+      },
+      hasEligibleNopeHolder: () => false,
+    };
+
+    const handlers = createHandlers({
+      roomStore: { getRoom: async () => fakeRoom },
+      engine: fakeEngine,
+      broadcastState: () => {},
+    });
+
+    const socket = { id: 's1', playerId: 'p1', roomCode: 'NOPE2' };
+    const { ack, getResponse } = createTestAck();
+
+    await handlers['game:action'](socket, { type: 'play', card: 'skip' }, ack);
+
+    assert.deepEqual(getResponse(), { ok: true });
+    assert.equal(calls.length, 2);
+    assert.deepEqual(calls[1].action, { type: 'resolveNope' });
+    assert.equal(calls[1].pid, 'p1');
+    assert.equal(fakeRoom.game, resolvedGame);
+    assert.equal(fakeRoom.status, 'finished');
+  });
+
+  it('stays in nope phase when engine.hasEligibleNopeHolder returns true', async () => {
+    const nopeGame = { version: 2, phase: 'nope', currentPlayerId: 'p1', pendingAction: { type: 'reverse' } };
+    const fakeRoom = {
+      code: 'NOPE3',
+      status: 'playing',
+      players: [{ id: 'p1', connected: true }, { id: 'p2', connected: true }],
+      game: { version: 1, phase: 'play', currentPlayerId: 'p1' },
+    };
+
+    let resolveCalled = false;
+    let broadcastedGame = null;
+
+    const fakeEngine = {
+      applyAction: async () => nopeGame,
+      hasEligibleNopeHolder: () => true,
+      resolvePendingAction: async () => {
+        resolveCalled = true;
+        return {};
+      },
+    };
+
+    const handlers = createHandlers({
+      roomStore: { getRoom: async () => fakeRoom },
+      engine: fakeEngine,
+      broadcastState: (r) => { broadcastedGame = r.game; },
+    });
+
+    const socket = { id: 's1', playerId: 'p1', roomCode: 'NOPE3' };
+    const { ack, getCallCount, getResponse } = createTestAck();
+
+    await handlers['game:action'](socket, { type: 'play', card: 'reverse' }, ack);
+
+    assert.equal(getCallCount(), 1);
+    assert.deepEqual(getResponse(), { ok: true });
+    assert.equal(resolveCalled, false);
+    assert.equal(fakeRoom.game, nopeGame);
+    assert.equal(broadcastedGame, nopeGame);
   });
 });
 

@@ -6,12 +6,38 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 100%;
   min-height: 100vh;
   min-height: 100dvh;
   padding: 16px;
-  background-color: var(--color-bg, #F6EFE2);
-  color: var(--color-text, #2B2326);
+  background: radial-gradient(ellipse at center, #e6f6eb 0%, #d3eedb 55%, #bde3c8 100%);
+  background-color: #d3eedb;
+  color: #2b2326;
   box-sizing: border-box;
+}
+
+.gameover-container[data-table-theme='pastel-green'] {
+  background: radial-gradient(ellipse at center, #e6f6eb 0%, #d3eedb 55%, #bde3c8 100%);
+  background-color: #d3eedb;
+  color: #2b2326;
+}
+
+.gameover-container[data-table-theme='pastel-yellow'] {
+  background: radial-gradient(ellipse at center, #fff9de 0%, #fef0bd 55%, #f9e091 100%);
+  background-color: #fef0bd;
+  color: #2b2326;
+}
+
+.gameover-container[data-table-theme='pastel-pink'] {
+  background: radial-gradient(ellipse at center, #fff0f5 0%, #fde0ea 55%, #f8c8d8 100%);
+  background-color: #fde0ea;
+  color: #2b2326;
+}
+
+.gameover-container[data-table-theme='pastel-blue'] {
+  background: radial-gradient(ellipse at center, #ecf6ff 0%, #d8ecfe 55%, #bddcf9 100%);
+  background-color: #d8ecfe;
+  color: #2b2326;
 }
 
 .gameover-card {
@@ -22,19 +48,20 @@
   max-width: 400px;
   margin: 0 auto;
   padding: 32px 20px;
-  background-color: var(--color-surface, #FFFFFF);
-  border: 2px solid var(--color-border, #D8CEBE);
-  border-radius: 16px;
-  box-shadow: 0 4px 16px rgba(43, 35, 38, 0.08);
+  background-color: #fffcf6;
+  color: #2b2326;
+  border: 1.5px solid rgba(232, 222, 203, 0.95);
+  border-radius: 20px;
+  box-shadow: 0 18px 42px rgba(43, 35, 38, 0.22);
   text-align: center;
   box-sizing: border-box;
 }
 
 .gameover-title {
   font-size: 1.5rem;
-  font-weight: 700;
+  font-weight: 800;
   line-height: 1.25;
-  color: var(--color-primary, #2E3A4B);
+  color: #2b2326;
   margin-bottom: 24px;
 }
 
@@ -49,41 +76,69 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 20px 16px;
-  border-radius: 12px;
-  background-color: var(--color-surface-subtle, #EDE4D4);
-  border: 1px solid var(--color-border, #D8CEBE);
+  gap: 10px;
+  padding: 22px 16px;
+  border-radius: 14px;
+  color: #2b2326;
   box-sizing: border-box;
+}
+
+.gameover-winner-badge {
+  background-color: #fff9e6;
+  border: 1.5px solid #f0d78c;
+}
+
+.gameover-draw-badge {
+  background-color: #faf7f2;
+  border: 1.5px solid #d4c8b5;
 }
 
 .gameover-winner-icon,
 .gameover-draw-icon {
-  font-size: 2.25rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
   line-height: 1;
+  flex-shrink: 0;
+}
+
+.gameover-winner-icon {
+  background: linear-gradient(135deg, #fff3bf 0%, #ffe066 100%);
+  border: 2px solid #f59f00;
+  color: #92400e;
+  box-shadow: 0 4px 12px rgba(245, 159, 0, 0.25);
+}
+
+.gameover-draw-icon {
+  background-color: #edf2f7;
+  border: 2px solid #94a3b8;
+  color: #2e3a4b;
 }
 
 .gameover-winner-label {
   font-size: 0.875rem;
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: var(--color-text-muted, #6B6265);
+  color: #5c5054;
 }
 
 .gameover-winner-name {
   font-size: 1.375rem;
-  font-weight: 700;
+  font-weight: 800;
   line-height: 1.3;
-  color: var(--color-text, #2B2326);
+  color: #2b2326;
   word-break: break-word;
 }
 
 .gameover-draw-message {
   font-size: 1.125rem;
-  font-weight: 600;
+  font-weight: 700;
   line-height: 1.4;
-  color: var(--color-text, #2B2326);
+  color: #2b2326;
   word-break: break-word;
 }
 
@@ -115,7 +170,7 @@
 }
 
 .gameover-btn:focus-visible {
-  outline: 2px solid var(--color-focus, #2E3A4B);
+  outline: 3px solid #2e3a4b;
   outline-offset: 2px;
 }
 
@@ -124,25 +179,39 @@
 }
 
 .gameover-btn-rematch {
-  background-color: var(--color-primary, #2E3A4B);
-  color: var(--color-primary-text, #FFFFFF);
-  border-color: var(--color-primary, #2E3A4B);
+  background-color: #c92a2a;
+  color: #ffffff;
+  border-color: #c92a2a;
+  box-shadow: 0 4px 12px rgba(201, 42, 42, 0.25);
 }
 
 .gameover-btn-rematch:hover {
-  background-color: var(--color-primary-hover, #1E2733);
-  border-color: var(--color-primary-hover, #1E2733);
+  background-color: #a61e1e;
+  border-color: #a61e1e;
+}
+
+.gameover-btn-rematch:disabled {
+  background-color: #8f7e82;
+  border-color: #8f7e82;
+  color: #ffffff;
+  box-shadow: none;
 }
 
 .gameover-btn-leave {
-  background-color: transparent;
-  color: var(--color-text, #2B2326);
-  border-color: var(--color-border, #D8CEBE);
+  background-color: #faf7f2;
+  color: #2b2326;
+  border: 1.5px solid #d4c8b5;
 }
 
 .gameover-btn-leave:hover {
-  background-color: var(--color-surface-subtle, #EDE4D4);
-  border-color: var(--color-text-muted, #6B6265);
+  background-color: #f0e8dc;
+  border-color: #b5a48d;
+}
+
+.gameover-btn-leave:disabled {
+  background-color: #f6efe2;
+  color: #6b6265;
+  border-color: #d8cebe;
 }
 
 .gameover-waiting-message {
@@ -152,23 +221,50 @@
   min-height: 44px;
   padding: 10px 16px;
   font-size: 0.9375rem;
+  font-weight: 600;
   line-height: 1.4;
-  color: var(--color-text-muted, #6B6265);
-  background-color: var(--color-surface-subtle, #EDE4D4);
-  border: 1px dashed var(--color-border, #D8CEBE);
+  color: #3d3336;
+  background-color: #f6efe2;
+  border: 1.5px dashed #c7b8a1;
   border-radius: 10px;
   text-align: center;
   box-sizing: border-box;
 }
 
-/* Dark mode adjustments (for shadows/contrast) */
-@media (prefers-color-scheme: dark) {
+/* Mobile landscape compact fit */
+@media (max-height: 500px) and (orientation: landscape) {
+  .gameover-container {
+    padding: 10px;
+  }
+
   .gameover-card {
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    padding: 16px 18px;
   }
 
   .gameover-title {
-    color: var(--color-text, #F6EFE2);
+    font-size: 1.25rem;
+    margin-bottom: 12px;
+  }
+
+  .gameover-result-section {
+    margin-bottom: 14px;
+  }
+
+  .gameover-winner-badge,
+  .gameover-draw-badge {
+    padding: 12px;
+    gap: 6px;
+  }
+
+  .gameover-winner-icon,
+  .gameover-draw-icon {
+    width: 48px;
+    height: 48px;
+  }
+
+  .gameover-actions {
+    flex-direction: row;
+    gap: 10px;
   }
 }
 

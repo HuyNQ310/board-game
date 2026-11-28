@@ -1,9 +1,12 @@
 // @vitest-environment jsdom
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, it, expect, vi, afterEach } from 'vitest';
+import { render, screen, fireEvent, act } from '@testing-library/react';
 import DefuseDialog from './DefuseDialog.jsx';
 
 describe('DefuseDialog', () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
   describe('Visibility', () => {
     it('renders nothing when open is false', () => {
       const { container } = render(<DefuseDialog open={false} />);
@@ -137,6 +140,31 @@ describe('DefuseDialog', () => {
       expect(screen.getByText('Chọn ngăn để nhét bom:')).toBeDefined();
       expect(screen.getByRole('button', { name: 'Xác nhận gài bom' })).toBeDefined();
       expect(screen.getByText('Đầu bộ bài (0)')).toBeDefined();
+    });
+  });
+
+  describe('Defuse countdown display', () => {
+    it('displays remaining seconds and marks urgent <= 5s when turnDeadline is provided', () => {
+      vi.useFakeTimers();
+      const baseNow = new Date('2026-11-28T12:00:00Z').getTime();
+      vi.setSystemTime(baseNow);
+
+      render(
+        <DefuseDialog
+          open={true}
+          deckCount={6}
+          insertAt={3}
+          turnDeadline={baseNow + 7000}
+        />
+      );
+
+      const timer = screen.getByTestId('defuse-countdown');
+      expect(timer).toHaveTextContent('7s');
+      expect(timer.className).not.toContain('defuse-dialog__timer--urgent');
+
+      act(() => { vi.advanceTimersByTime(3000); });
+      expect(screen.getByTestId('defuse-countdown')).toHaveTextContent('4s');
+      expect(screen.getByTestId('defuse-countdown').className).toContain('defuse-dialog__timer--urgent');
     });
   });
 });

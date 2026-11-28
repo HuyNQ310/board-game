@@ -1,9 +1,13 @@
 // @vitest-environment jsdom
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { describe, it, expect, vi, afterEach } from 'vitest';
+import { render, screen, act, cleanup } from '@testing-library/react';
 import PeekPanel from './PeekPanel.jsx';
 
 describe('PeekPanel', () => {
+  afterEach(() => {
+    vi.useRealTimers();
+    cleanup();
+  });
   describe('PeekPanel chỉ hiện cho người đánh (null vs array rendering)', () => {
     /**
      * NOTE: As defined in rules.md sections 6.6, 8.2 and section 11 Phase 3 test criteria:
@@ -88,6 +92,24 @@ describe('PeekPanel', () => {
       expect(listItems[2].textContent).toContain('3. Thứ ba');
       expect(listItems[2].textContent).toContain('Xáo Trộn');
     });
+
+    it('renders new card types (nope, reverse, taco, potato) with default labels and Lucide icons', () => {
+      const { rerender } = render(<PeekPanel peek={['nope', 'reverse', 'taco']} />);
+
+      let listItems = screen.getAllByRole('listitem');
+      expect(listItems).toHaveLength(3);
+      expect(listItems[0].textContent).toContain('KHÔNG!');
+      expect(listItems[0].querySelector('.peek-panel__fallback-icon svg')).not.toBeNull();
+      expect(listItems[1].textContent).toContain('Đảo Chiều');
+      expect(listItems[1].querySelector('.peek-panel__fallback-icon svg')).not.toBeNull();
+      expect(listItems[2].textContent).toContain('Mèo Taco');
+      expect(listItems[2].querySelector('.peek-panel__fallback-icon svg')).not.toBeNull();
+
+      rerender(<PeekPanel peek={['potato', 'taco', 'reverse']} />);
+      listItems = screen.getAllByRole('listitem');
+      expect(listItems[0].textContent).toContain('Mèo Khoai Tây');
+      expect(listItems[0].querySelector('.peek-panel__fallback-icon svg')).not.toBeNull();
+    });
   });
 
   describe('Localization support via t prop', () => {
@@ -168,6 +190,30 @@ describe('PeekPanel', () => {
       expect(screen.getByTestId('custom-card-boom')).toBeDefined();
       expect(screen.getByTestId('custom-card-defuse')).toBeDefined();
       expect(screen.getByTestId('custom-card-attack')).toBeDefined();
+    });
+  });
+
+  describe('Modal dialog and 5s countdown auto-close', () => {
+    it('renders inside a modal dialog, shows 5s countdown, and auto-closes after 5s', () => {
+      vi.useFakeTimers();
+      const baseNow = new Date('2026-11-28T12:00:00Z').getTime();
+      vi.setSystemTime(baseNow);
+      const onClose = vi.fn();
+
+      const { container } = render(
+        <PeekPanel peek={['boom', 'skip', 'defuse']} onClose={onClose} />
+      );
+
+      expect(screen.getByRole('dialog')).toBeDefined();
+      expect(screen.getByTestId('peek-countdown')).toHaveTextContent('5s');
+
+      act(() => { vi.advanceTimersByTime(3000); });
+      expect(screen.getByTestId('peek-countdown')).toHaveTextContent('2s');
+      expect(onClose).not.toHaveBeenCalled();
+
+      act(() => { vi.advanceTimersByTime(2000); });
+      expect(onClose).toHaveBeenCalledTimes(1);
+      expect(container.firstChild).toBeNull();
     });
   });
 });

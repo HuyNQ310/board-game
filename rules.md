@@ -42,7 +42,7 @@ Ngoài phạm vi v1: credit, giới hạn lượt theo ngày, quảng cáo, than
 
 Engine được viết mới theo đặc tả này. Phải export đúng các API sau, và mỗi yêu cầu dưới đây có test riêng:
 
-- `CARD`: object đóng băng với các giá trị `boom`, `defuse`, `attack`, `skip`, `shuffle`, `favor`, `peek`, `cat`.
+- `CARD`: object đóng băng với các giá trị `boom`, `defuse`, `attack`, `skip`, `reverse`, `shuffle`, `favor`, `peek`, `nope`, `cat`, `taco`, `potato`.
 - `GameError`: lớp lỗi cho mọi vi phạm luật.
 - `createGame(playerIds, rng)`
 - `applyAction(state, playerId, action, rng)`
@@ -56,20 +56,23 @@ Engine được viết mới theo đặc tả này. Phải export đúng các AP
 **E2. Nhật ký công khai.** `state.log` là mảng các sự kiện theo thứ tự. Mỗi sự kiện là một trong các dạng sau (không bao giờ chứa tên lá, trừ khi là lá đã lộ công khai):
 
 
-| `type`            | Các trường                                | Khi nào                              |
-| ----------------- | ----------------------------------------- | ------------------------------------ |
-| `draw`            | `actor`                                   | Rút lá thường vào tay                |
-| `bomb_drawn`      | `actor`                                   | Rút phải bom                         |
-| `defused`         | `actor`                                   | Gỡ bom xong (không kèm vị trí)       |
-| `eliminated`      | `actor`, `reason` (`bomb` | `disconnect`) | Người chơi bị loại                   |
-| `skip`            | `actor`                                   | Đánh skip                            |
-| `attack`          | `actor`, `target` (id người kế tiếp)      | Đánh attack                          |
-| `shuffle`         | `actor`                                   | Đánh xáo bài                         |
-| `peek`            | `actor`                                   | Đánh nhìn trước (không kèm nội dung) |
-| `favor`           | `actor`, `target`                         | Đánh nhờ vả (không kèm lá đã lấy)    |
-| `cat`             | `actor`, `target`                         | Chơi cặp mèo (không kèm lá đã lấy)   |
-| `deck_reshuffled` | —                                         | Xáo lại phần bỏ đi vì hết bộ rút     |
-| `game_over`       | `winnerId` (hoặc `null` nếu hòa)          | Ván kết thúc                         |
+| `type`             | Các trường                                | Khi nào                                          |
+| ------------------ | ----------------------------------------- | ------------------------------------------------ |
+| `draw`             | `actor`                                   | Rút lá thường vào tay                            |
+| `bomb_drawn`       | `actor`                                   | Rút phải bom                                     |
+| `defused`          | `actor`                                   | Gỡ bom xong (không kèm vị trí)                   |
+| `eliminated`       | `actor`, `reason` (`bomb` \| `disconnect`) | Người chơi bị loại                               |
+| `skip`             | `actor`                                   | Đánh skip                                        |
+| `reverse`          | `actor`                                   | Đánh đảo chiều                                   |
+| `attack`           | `actor`, `target` (id người kế tiếp)      | Đánh attack                                      |
+| `shuffle`          | `actor`                                   | Đánh xáo bài                                     |
+| `peek`             | `actor`                                   | Đánh nhìn trước (không kèm nội dung)             |
+| `favor`            | `actor`, `target`                         | Đánh nhờ vả (không kèm lá đã lấy)                |
+| `cat`              | `actor`, `target`, `card?`                | Chơi cặp mèo cùng giống (không kèm lá đã lấy)    |
+| `nope`             | `actor`, `count`                          | Đánh KHÔNG! trong cửa sổ phản ứng                |
+| `action_cancelled` | `actor`, `card`                           | Hành động của `actor` bị chặn bởi KHÔNG!         |
+| `deck_reshuffled`  | —                                         | Xáo lại phần bỏ đi vì hết bộ rút                 |
+| `game_over`        | `winnerId` (hoặc `null` nếu hòa)          | Ván kết thúc                                     |
 
 
 Actor và target đều là `playerId`, không phải chỉ số.
@@ -77,11 +80,12 @@ Actor và target đều là `playerId`, không phải chỉ số.
 **E3. Loại người chơi.** `eliminatePlayer(state, playerId, reason, rng)`:
 
 - Đặt `alive = false`, bỏ hết bài trên tay vào bài đã đánh, ghi sự kiện `eliminated`.
-- Nếu người đó đang là người có lượt, chuyển lượt sang người sống kế tiếp và đặt `turnsLeft = 1`.
+- Nếu người đó đang là người có lượt, chuyển lượt sang người sống kế tiếp (theo `direction` hiện tại) và đặt `turnsLeft = 1`.
 - Nếu còn đúng một người sống thì kết thúc ván như mục 4 luật.
 - Nếu đang ở pha `defuse` và người bị loại là `pendingDefuse`, hủy pha đó rồi xử lý như trên.
+- Nếu đang ở pha `nope`: nếu người bị loại là chủ thể hành động đang chờ (`pendingAction.actorId`), hủy `pendingAction` và trở về pha `play`; nếu người bị loại không phải chủ thể nhưng làm hết người đủ điều kiện đánh `nope`, giải quyết ngay `pendingAction` theo số lần `nope` hiện tại.
 
-**E4. Hình dạng** `viewFor(state, playerId)`**.** Trả về đúng cấu trúc ở mục 6.6. Không được trả về chỉ số mảng (`current`, `pendingDefuse`, `winner`) mà phải dùng id.
+**E4. Hình dạng** `viewFor(state, playerId)`**.** Trả về đúng cấu trúc ở mục 6.6. Không được trả về chỉ số mảng (`current`, `pendingDefuse`, `winner`) mà phải dùng id; bao gồm `direction` (`1` hoặc `-1`) và `pendingAction` (`null` hoặc thông tin hành động đang chờ `nope`).
 
 **E5. Thuần.** Mọi hàm: không đổi tham số đầu vào, không dùng biến toàn cục, không dùng `Date` hay `Math.random` trực tiếp (chỉ qua `rng` truyền vào).
 
@@ -117,34 +121,46 @@ Phiên bản chính xác ghi trong `package-lock.json`. Thêm thư viện mới 
 ### 4.1 Bộ bài
 
 
-| Lá        | Số lượng                 | Tác dụng                                                                    |
-| --------- | ------------------------ | --------------------------------------------------------------------------- |
-| `boom`    | n − 1                    | Rút phải là bị loại, trừ khi có gỡ bom                                      |
-| `defuse`  | 2 + n (tổng cả chia tay) | Cứu mạng khi rút phải bom. Không đánh riêng được                            |
-| `attack`  | 4                        | Kết thúc lượt không rút; người kế tiếp chơi 2 lượt                          |
-| `skip`    | 4                        | Kết thúc lượt không rút                                                     |
-| `shuffle` | 4                        | Xáo bộ rút; lượt tiếp tục                                                   |
-| `favor`   | 4                        | Lấy ngẫu nhiên 1 lá của người khác; lượt tiếp tục                           |
-| `peek`    | 5                        | Xem 3 lá trên cùng; lượt tiếp tục                                           |
-| `cat`     | 8                        | Chơi đúng 2 lá cùng lúc, chọn một người, lấy ngẫu nhiên 1 lá; lượt tiếp tục |
+| Lá        | Số lượng                 | Tác dụng                                                                             |
+| --------- | ------------------------ | ------------------------------------------------------------------------------------ |
+| `boom`    | n − 1                    | Rút phải là bị loại, trừ khi có gỡ bom                                               |
+| `defuse`  | 2 + n (tổng cả chia tay) | Cứu mạng khi rút phải bom. Không đánh riêng được                                     |
+| `attack`  | 4                        | Kết thúc lượt không rút; người kế tiếp chơi 2 lượt                                   |
+| `skip`    | 4                        | Kết thúc lượt không rút                                                              |
+| `reverse` | 4                        | Đổi hướng chơi (`direction`: `1` ↔ `-1`) và kết thúc lượt mà không rút bài           |
+| `shuffle` | 4                        | Xáo bộ rút; lượt tiếp tục                                                            |
+| `favor`   | 4                        | Lấy ngẫu nhiên 1 lá của người khác; lượt tiếp tục                                    |
+| `peek`    | 5                        | Xem 3 lá trên cùng; lượt tiếp tục                                                    |
+| `nope`    | 5                        | Chặn bất kỳ hành động nào (trừ `draw`/`boom` và `defuse`); có thể phản-chặn chồng    |
+| `cat`     | 4                        | Chơi cặp 2 lá `cat`, chọn một người, lấy ngẫu nhiên 1 lá; lượt tiếp tục              |
+| `taco`    | 4                        | Chơi cặp 2 lá `taco`, chọn một người khác, lấy ngẫu nhiên 1 lá; lượt tiếp tục        |
+| `potato`  | 4                        | Chơi cặp 2 lá `potato`, chọn một người khác, lấy ngẫu nhiên 1 lá; lượt tiếp tục      |
 
 
-Tổng gỡ bom = 1 mỗi người (trên tay) + 2 (trong bộ rút). Số bom trong bộ rút = n − 1.
+Tổng gỡ bom = 1 mỗi người (trên tay) + 2 (trong bộ rút). Số bom trong bộ rút = n − 1. Tổng số lá thường gốc (với n ≤ 6) = **42** lá; tổng số lá trong ván = `43 + 2n`.
 
 ### 4.2 Chia bài
 
 - Mỗi người: 1 `defuse` + 4 lá lấy từ phần bài thường (không tính bom và gỡ bom), lấy ngẫu nhiên.
 - Bộ rút = phần thường còn lại + (n − 1) `boom` + 2 `defuse`, xáo kỹ.
-- Chia cho n từ 2 đến 10. Với n <= 6, dùng đúng 29 lá bài thường gốc. Với n > 6, số lượng mỗi loại lá thường (attack, skip, shuffle, favor, peek, cat) được nhân tỉ lệ theo n/6 (làm tròn lên; cat luôn làm tròn lên số chẵn) để đủ chia 4 lá thường/người và còn dư cho bộ rút.
+- Chia cho n từ 2 đến 10. Với n <= 6, dùng đúng **42** lá bài thường gốc (tổng cộng `43 + 2n` lá trong ván). Với n từ 7 đến 10, số lượng mỗi loại lá thường (`attack`, `skip`, `reverse`, `shuffle`, `favor`, `peek`, `nope`, `cat`, `taco`, `potato`) được nhân tỉ lệ theo `Math.ceil(base * n / 6)` để đủ chia 4 lá thường/người và còn dư cho bộ rút; riêng các giống mèo (`cat`, `taco`, `potato`) luôn làm tròn lên số chẵn để đánh theo cặp.
 
 ### 4.3 Lượt chơi
 
-- Người có lượt có thể đánh nhiều lá không rút (`skip`, `attack`, `shuffle`, `peek`, `favor`, `cat`) và có thể đánh nhiều lá trước khi kết thúc lượt.
+- Người có lượt có thể đánh nhiều lá không rút (`skip`, `reverse`, `attack`, `shuffle`, `peek`, `favor`, cặp `cat`/`taco`/`potato`) trước khi kết thúc lượt.
+- Hướng chơi mặc định là `direction = 1` (thuận chiều kim đồng hồ). Khi đổi hướng (`reverse`), `direction` đảo giữa `1` và `-1` (ngược chiều).
 - Lượt kết thúc bằng một trong các cách:
-  - `draw`: rút 1 lá. Nếu là lá thường thì vào tay, lượt kết thúc.
-  - `skip`: không rút, lượt kết thúc.
-  - `attack`: không rút, lượt kết thúc, người kế tiếp chơi `2 + (số lượt còn lại của người đánh − 1)` lượt.
-- `shuffle`, `peek`, `favor`, `cat` không kết thúc lượt.
+  - `draw`: rút 1 lá. Nếu là lá thường thì vào tay, `turnsLeft` giảm 1 (hết lượt thì chuyển sang người sống kế tiếp theo `direction`).
+  - `skip`: không rút, `turnsLeft` giảm 1 (hết lượt thì chuyển theo `direction`).
+  - `reverse`: đảo `direction` (`1` ↔ `-1`), không rút, `turnsLeft` giảm 1 (hết lượt thì chuyển sang người sống kế tiếp theo `direction` mới).
+  - `attack`: không rút, lượt kết thúc ngay, người kế tiếp (theo `direction`) chơi `2 + (số lượt còn lại của người đánh − 1)` lượt.
+- `shuffle`, `peek`, `favor`, cặp mèo (`cat`/`taco`/`potato`) không kết thúc lượt.
+- **Cửa sổ phản ứng `nope` (`phase: 'nope'`):**
+  - Khi một người chơi đánh lá hành động (`skip`, `reverse`, `attack`, `shuffle`, `peek`, `favor`, hoặc cặp `cat`/`taco`/`potato`), lá bài được bỏ vào bài đã đánh và nếu có ít nhất một người chơi khác còn sống đang cầm lá `nope` trên tay, ván chuyển sang pha `nope` với cửa sổ phản ứng tối đa **5 giây** (nếu không có ai đủ điều kiện cầm `nope`, hiệu ứng hành động được thực thi ngay).
+  - Bất kỳ hành động nào ngoại trừ rút bài (`draw` / rút phải `boom`) và gỡ bom (`defuse`) đều có thể bị chặn bởi `nope`.
+  - Trong pha `nope`, người chơi đủ điều kiện (còn sống, không phải người vừa tạo hành động/vừa đánh `nope` gần nhất và chưa bấm `passNope` ở đợt hiện tại) có thể gửi `nope` để đặt/đảo trạng thái chặn, hoặc `passNope` ("Cho qua").
+  - **Phản-chặn (Counter-Nope):** mỗi lá `nope` đánh ra tăng bộ đếm `nopeCount` và khởi động lại cửa sổ 5 giây; số lẻ (`nopeCount` lẻ) làm hành động bị hủy, số chẵn (`nopeCount` chẵn) hủy việc chặn để hành động có hiệu lực trở lại.
+  - Khi cửa sổ 5 giây kết thúc hoặc tất cả người đủ điều kiện đều đã chọn `passNope` (hoặc không còn ai cầm `nope`): nếu `nopeCount` lẻ, hành động bị hủy và ghi `action_cancelled` (lá đã đánh không trả lại tay); nếu `nopeCount` chẵn, hiệu ứng của hành động đang chờ mới được áp dụng (ví dụ: lúc này `reverse` mới đảo hướng và trừ lượt, `attack` mới chuyển lượt, `favor`/`catPair` mới lấy bài).
 
 ### 4.4 Rút phải bom
 
@@ -153,9 +169,10 @@ Tổng gỡ bom = 1 mỗi người (trên tay) + 2 (trong bộ rút). Số bom t
 
 ### 4.5 Ràng buộc
 
-- `defuse` và `boom` không được đánh như lá thường.
-- `cat` phải đúng 2 lá (trong v1 chỉ có một loại mèo nên hai lá bất kỳ đều hợp lệ).
+- `defuse` và `boom` không được đánh như lá thường; `nope` chỉ được đánh trong pha `nope` (không tự đánh ở pha `play`).
+- Cặp mèo (`catPair`) phải gồm đúng **2 lá giống hệt nhau cùng một giống mèo** (`cat` + `cat`, `taco` + `taco`, hoặc `potato` + `potato`). Không được ghép hai giống mèo khác nhau.
 - Không được nhắm chính mình hoặc người đã bị loại.
+- `nope` không thể chặn `draw` (kể cả khi rút phải `boom`) và không thể chặn `defuse`.
 - Khi rút mà bộ rút trống: xáo bài đã đánh thành bộ rút mới, ghi `deck_reshuffled`. Nếu cả hai đều trống thì ván kết thúc không có người thắng (`game_over` với `winnerId: null`).
 
 ### 4.6 Kết thúc
@@ -277,9 +294,11 @@ Mọi lỗi từ engine (`GameError`) map sang `INVALID_ACTION` nếu không kh�
 `game:action` ánh xạ trực tiếp sang `applyAction`:
 
 - `{ type: "draw" }`
-- `{ type: "play", card: "skip"|"attack"|"shuffle"|"peek"|"favor", target? }` (`target` bắt buộc với `favor`)
-- `{ type: "catPair", target }`
+- `{ type: "play", card: "skip"|"reverse"|"attack"|"shuffle"|"peek"|"favor", target? }` (`target` bắt buộc với `favor`)
+- `{ type: "catPair", card: "cat"|"taco"|"potato", target }` (cần 2 lá giống hệt nhau cùng một giống mèo)
 - `{ type: "defuse", insertAt }`
+- `{ type: "nope" }` (đánh lá `nope` khi `phase === "nope"` để chặn hoặc phản-chặn hành động đang chờ)
+- `{ type: "passNope" }` (chọn bỏ qua cơ hội đánh `nope` ở cửa sổ phản ứng hiện tại)
 
 Engine nhận `target` là `playerId`, không nhận chỉ số.
 
@@ -317,9 +336,11 @@ Engine nhận `target` là `playerId`, không nhận chỉ số.
 {
   "version": 14,
   "phase": "play",
+  "direction": 1,
   "currentPlayerId": "f3b1…",
   "turnsLeft": 1,
   "pendingDefuseId": null,
+  "pendingAction": null,
   "winnerId": null,
   "deckCount": 17,
   "discardCount": 6,
@@ -337,6 +358,9 @@ Engine nhận `target` là `playerId`, không nhận chỉ số.
 
 ```
 
+- `phase`: một trong `"play" | "nope" | "defuse" | "over"`.
+- `direction`: hướng vòng chơi hiện tại (`1` = thuận chiều kim đồng hồ, `-1` = ngược chiều).
+- `pendingAction`: `null` khi không ở pha `nope`; khi `phase === "nope"`, chứa thông tin công khai của hành động đang chờ (gồm `actorId`, `type`, `card`, `target?`, `nopeCount`, `lastNopeActorId?`, `passedIds`, `deadline?`).
 - `hand` chỉ có ở người xem. Người khác chỉ có `handCount`.
 - `peek` là mảng 3 lá khi người xem vừa đánh `peek` và chưa làm hành động tiếp theo, ngược lại `null`.
 - `discardTop` là lá trên cùng của bài đã đánh, `null` nếu trống.
@@ -409,13 +433,16 @@ Mỗi 60 giây: xóa phòng không có kết nối nào và `lastActiveAt` cách
 - Vùng giữa:
   - Bộ rút: hiện số lá (`deckCount`), không lật.
   - Bài đã đánh: lá trên cùng (`discardTop`) và số lượng (`discardCount`).
+  - Nhãn hướng chơi (`direction`): "Thuận chiều" (`1`) hoặc "Ngược chiều" (`-1`).
   - Nếu `turnsLeft > 1`: nhãn "Còn N lượt".
-- Vùng tay bài: lá của mình, cuộn ngang nếu nhiều. Lá không đánh được thì mờ.
+  - Khi `phase === 'nope'`: banner phản ứng hiển thị hành động đang chờ (`pendingAction`), số lần `KHÔNG!` (`nopeCount`), đếm ngược tối đa 5 giây và nhắc người đủ điều kiện phản ứng.
+- Vùng tay bài: lá của mình, cuộn ngang nếu nhiều; cả 12 lá bài dùng ảnh minh họa đã cắt theo ngôn ngữ (`client/src/assets/cards/vi/` và `en/`). Lá không đánh được thì mờ.
 - Thanh hành động:
   - "Rút bài" (nổi bật, chỉ bật khi đến lượt và `phase === 'play'`).
-  - "Bỏ qua" (skip) và "Tấn công" (attack): hiện khi có lá tương ứng và đến lượt.
-  - "Nhờ vả" và "Chơi cặp mèo": hiện khi có lá tương ứng. Cặp mèo cần đủ 2 lá.
-  - "Nhìn trước" (peek), "Xáo bài" (shuffle): hiện khi có lá tương ứng.
+  - "Bỏ qua" (`skip`), "Đảo chiều" (`reverse`) và "Tấn công" (`attack`): hiện khi có lá tương ứng và đến lượt ở pha `play`.
+  - "Nhờ vả" (`favor`) và "Chơi cặp mèo" (`catPair`): hiện khi có lá tương ứng ở pha `play`. Cặp mèo cần đủ 2 lá cùng giống (`cat`, `taco`, hoặc `potato`).
+  - "Nhìn trước" (`peek`), "Xáo bài" (`shuffle`): hiện khi có lá tương ứng ở pha `play`.
+  - Khi `phase === 'nope'`: hiện nút **"KHÔNG!"** (`nope`, bật khi người chơi còn sống, đủ điều kiện phản ứng và có lá `nope` trên tay) và nút **"Cho qua"** (`passNope`) cho người chưa bỏ qua.
 - Nhật ký: danh sách từ `log`, hiển thị dòng tiếng Việt từ template, cuộn xuống dòng mới nhất.
 - Nếu `status` là `finished`: chuyển sang màn kết quả.
 

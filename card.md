@@ -9,27 +9,33 @@
 - **Màu nền thẻ:** kem `#F6EFE2`. Chữ chính `#2B2326`.
 - **Mặt sau:** nền xanh than `#2E3A4B`, họa tiết mèo nhỏ lặp lại đơn giản, không có chữ.
 - **Quy tắc:** mọi thông tin chức năng phải có cả màu, biểu tượng và chữ.
+- **Tài nguyên minh họa:** toàn bộ 12 lá bài hiện được render trực tiếp bằng ảnh minh họa đã cắt gọn theo ngôn ngữ tại `client/src/assets/cards/vi/` (tiếng Việt) và `client/src/assets/cards/en/` (tiếng Anh).
 
 ### Từng lá
 
 
-| Lá              | Màu dải tên | Biểu tượng nhóm | Minh họa                                                   | Luật ngắn                                          |
-| --------------- | ----------- | --------------- | ---------------------------------------------------------- | -------------------------------------------------- |
-| **Mèo Bùm**     | Đỏ thẫm     | Tròn            | Mèo tròn, mắt to, lửa nhỏ ở đuôi, vẻ tinh nghịch           | Rút phải là bị loại, trừ khi có Kìm Cắt Dây        |
-| **Kìm Cắt Dây** | Xanh ngọc   | Tam giác        | Kìm nhỏ cầm bằng hai chân mèo, dây đỏ và dây xanh bên cạnh | Cứu mạng khi rút phải Mèo Bùm                      |
-| **Truy Đuổi**   | Cam         | Vuông           | Mèo đang chạy, đuôi dựng cao, có vệt chuyển động phía sau  | Kết thúc lượt không rút, người kế tiếp chơi 2 lượt |
-| **Ngủ Trưa**    | Vàng        | Ngũ giác        | Mèo cuộn tròn trên gối, chữ "z" nhỏ bay lên                | Kết thúc lượt không rút                            |
-| **Xáo Trộn**    | Xanh lá     | Sao             | Ba lá bài xoay vòng, mũi tên cong, mèo đẩy bài             | Xáo bộ rút, lượt tiếp tục                          |
-| **Nài Nỉ**      | Hồng        | Lục giác        | Mèo nghiêng đầu, hai chân trước chắp lại, mắt long lanh    | Lấy ngẫu nhiên 1 lá của người khác                 |
-| **Mắt Thần**    | Xanh dương  | Bát giác        | Mèo nhìn qua quả cầu pha lê, ba lá mờ phía trên            | Xem 3 lá trên cùng, chỉ mình thấy                  |
-| **Mèo Vằn**     | Tím         | Thoi            | Mèo vằn đứng nghiêng, không đạo cụ                         | Chơi cặp 2 lá, lấy ngẫu nhiên 1 lá của một người   |
+| Lá                | Màu dải tên          | Biểu tượng nhóm      | Minh họa                                                       | Luật ngắn                                                     |
+| ----------------- | -------------------- | -------------------- | -------------------------------------------------------------- | ------------------------------------------------------------- |
+| **Mèo Bùm**       | Đỏ thẫm              | Tròn                 | Mèo tròn, mắt to, lửa nhỏ ở đuôi, vẻ tinh nghịch               | Rút phải là bị loại, trừ khi có Kìm Cắt Dây                   |
+| **Kìm Cắt Dây**   | Xanh ngọc            | Tam giác             | Kìm nhỏ cầm bằng hai chân mèo, dây đỏ và dây xanh bên cạnh     | Cứu mạng khi rút phải Mèo Bùm                                 |
+| **Truy Đuổi**     | Cam                  | Vuông                | Mèo đang chạy, đuôi dựng cao, có vệt chuyển động phía sau      | Kết thúc lượt không rút, người kế tiếp chơi 2 lượt            |
+| **Ngủ Trưa**      | Vàng                 | Ngũ giác             | Mèo cuộn tròn trên gối, chữ "z" nhỏ bay lên                    | Kết thúc lượt không rút                                       |
+| **Đảo Chiều**     | Xanh navy `#1B315E`  | Mũi tên đảo chiều    | Mèo chạy ngược với 2 mũi tên cong                              | Đổi hướng chơi và kết thúc lượt mà không rút bài              |
+| **Xáo Trộn**      | Xanh lá              | Sao                  | Ba lá bài xoay vòng, mũi tên cong, mèo đẩy bài                 | Xáo bộ rút, lượt tiếp tục                                     |
+| **Nài Nỉ**        | Hồng                 | Lục giác             | Mèo nghiêng đầu, hai chân trước chắp lại, mắt long lanh        | Lấy ngẫu nhiên 1 lá của người khác                            |
+| **Mắt Thần**      | Xanh dương           | Bát giác             | Mèo nhìn qua quả cầu pha lê, ba lá mờ phía trên                | Xem 3 lá trên cùng, chỉ mình thấy                             |
+| **KHÔNG!**        | Đỏ thẫm `#B71C1C`    | Dấu X đỏ             | Mèo khoanh tay cáu kỉnh với tia sét & chữ "KHÔNG!"             | Chặn bất kỳ hành động nào, trừ lá Mèo Bùm hoặc Kìm Cắt Dây    |
+| **Mèo Vằn**       | Tím                  | Thoi                 | Mèo vằn đứng nghiêng, không đạo cụ                             | Chơi cặp 2 lá, lấy ngẫu nhiên 1 lá của một người              |
+| **Mèo Taco**      | Cam đất `#B86522`    | Bánh taco            | Mèo nằm trong vỏ bánh taco                                     | Chơi cặp 2 lá, lấy ngẫu nhiên 1 lá của một người khác         |
+| **Mèo Khoai Tây** | Nâu ô-liu `#7C742B`  | Củ khoai tây         | Mèo tròn xù lông giống khoai tây                               | Chơi cặp 2 lá, lấy ngẫu nhiên 1 lá của một người khác         |
 
 
 ### Ghi chú cho người vẽ
 
-- Giữ một phong cách nét đều cho cả 8 minh họa để bộ bài thống nhất.
+- Giữ một phong cách nét đều cho cả 12 minh họa để bộ bài thống nhất.
 - Mèo Bùm và Kìm Cắt Dây là hai lá quan trọng nhất, nên đặt màu dải tên nổi bật nhất.
-- Mèo Vằn là lá dùng chung cho cặp mèo, minh họa nên trung tính, không gắn với hành động cụ thể.
+- Ba giống mèo (`Mèo Vằn`, `Mèo Taco`, `Mèo Khoai Tây`) chỉ ghép cặp được với đúng lá cùng giống.
 - Chữ luật phải đọc được ở kích thước điện thoại, nên giới hạn ngắn như bảng trên.
+- Ảnh minh họa đã cắt cho từng lá được lưu tại `client/src/assets/cards/vi/` và `client/src/assets/cards/en/`.
 
 Nếu bạn muốn, mình có thể ghi toàn bộ phần này thành [`CARDS.md`](http://CARDS.md) trong thư mục dự án.

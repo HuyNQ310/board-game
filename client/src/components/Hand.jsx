@@ -12,7 +12,8 @@
  * - Fallback card names:
  *   t.boom: "Mèo Bùm", t.defuse: "Kìm Cắt Dây", t.attack: "Truy Đuổi",
  *   t.skip: "Ngủ Trưa", t.shuffle: "Xáo Trộn", t.favor: "Nài Nỉ",
- *   t.peek: "Mắt Thần", t.cat: "Mèo Vằn"
+ *   t.peek: "Mắt Thần", t.cat: "Mèo Vằn", t.reverse: "Đảo Chiều",
+ *   t.nope: "KHÔNG!", t.taco: "Mèo Taco", t.potato: "Mèo Khoai Tây"
  *
  * Optional Props:
  * - getDisabledReason: Function `(card) => string | null`. Optional callback to explain
@@ -27,6 +28,23 @@
  */
 
 import { useState, useRef, useEffect } from 'react';
+import {
+  Bomb,
+  Scissors,
+  Swords,
+  Moon,
+  Shuffle,
+  HandHeart,
+  Eye,
+  Cat,
+  RefreshCw,
+  Ban,
+  Utensils,
+  Cookie,
+  Layers,
+  Check,
+  AlertTriangle,
+} from 'lucide-react';
 import './Hand.css';
 
 const DEFAULT_CARD_LABELS = {
@@ -38,17 +56,25 @@ const DEFAULT_CARD_LABELS = {
   favor: 'Nài Nỉ',
   peek: 'Mắt Thần',
   cat: 'Mèo Vằn',
+  reverse: 'Đảo Chiều',
+  nope: 'KHÔNG!',
+  taco: 'Mèo Taco',
+  potato: 'Mèo Khoai Tây',
 };
 
-const DEFAULT_CARD_ICONS = {
-  boom: '💣',
-  defuse: '✂️',
-  attack: '⚔️',
-  skip: '💤',
-  shuffle: '🔀',
-  favor: '🤲',
-  peek: '👁️',
-  cat: '🐱',
+const CARD_ICON_COMPONENTS = {
+  boom: Bomb,
+  defuse: Scissors,
+  attack: Swords,
+  skip: Moon,
+  shuffle: Shuffle,
+  favor: HandHeart,
+  peek: Eye,
+  cat: Cat,
+  reverse: RefreshCw,
+  nope: Ban,
+  taco: Utensils,
+  potato: Cookie,
 };
 
 function getPrefersReducedMotion() {
@@ -197,7 +223,9 @@ export default function Hand({
     return (
       <section className="hand-container" aria-label={handLabel}>
         <div className="hand-empty" role="status">
-          <span className="hand-empty__icon" aria-hidden="true">🃏</span>
+          <span className="hand-empty__icon" aria-hidden="true">
+            <Layers size={20} aria-hidden="true" />
+          </span>
           <span className="hand-empty__text">{t.emptyHand || 'Không có lá bài nào trên tay'}</span>
         </div>
       </section>
@@ -213,7 +241,7 @@ export default function Hand({
           const selected = isSelected(card.id);
           const playable = isPlayable(card.id);
           const cardLabel = t[card.type] || DEFAULT_CARD_LABELS[card.type] || card.type;
-          const cardIcon = DEFAULT_CARD_ICONS[card.type] || '🎴';
+          const CardIcon = CARD_ICON_COMPONENTS[card.type] || Layers;
 
           const isFeedbackActive = Boolean(
             disabledFeedback && disabledFeedback.cardKey === cardKey
@@ -284,11 +312,13 @@ export default function Hand({
                   aria-pressed={selected}
                   aria-label={`${cardLabel}${selected ? ` (${t.selected || 'Đã chọn'})` : ''}${!playable ? ` (${t.cardDisabled || 'Không thể đánh'})` : ''}`}
                 >
-                  <span className="hand-card-fallback__icon" aria-hidden="true">{cardIcon}</span>
+                  <span className="hand-card-fallback__icon" aria-hidden="true">
+                    <CardIcon size={18} aria-hidden="true" />
+                  </span>
                   <span className="hand-card-fallback__name">{cardLabel}</span>
                   {selected && (
                     <span className="hand-card-fallback__badge" aria-hidden="true">
-                      ✓ {t.selected || 'Đã chọn'}
+                      <Check size={12} aria-hidden="true" /> {t.selected || 'Đã chọn'}
                     </span>
                   )}
                 </button>
@@ -305,7 +335,9 @@ export default function Hand({
                     setDisabledFeedback(null);
                   }}
                 >
-                  <span className="hand-disabled-tooltip__icon" aria-hidden="true">⚠️</span>
+                  <span className="hand-disabled-tooltip__icon" aria-hidden="true">
+                    <AlertTriangle size={15} aria-hidden="true" />
+                  </span>
                   <span className="hand-disabled-tooltip__text">{disabledFeedback.reason}</span>
                 </div>
               )}

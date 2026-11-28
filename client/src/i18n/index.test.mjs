@@ -96,11 +96,14 @@ test('all 12 required event log templates from section E2 exist in log and are c
     'defused',
     'eliminated',
     'skip',
+    'reverse',
     'attack',
     'shuffle',
     'peek',
     'favor',
     'cat',
+    'nope',
+    'action_cancelled',
     'deck_reshuffled',
     'game_over',
   ];
@@ -123,15 +126,91 @@ test('all 12 required event log templates from section E2 exist in log and are c
     assert.ok(typeof strings.log.eliminated('Player1', 'bomb') === 'string');
     assert.ok(typeof strings.log.eliminated('Player1', 'disconnect') === 'string');
     assert.ok(typeof strings.log.skip('Player1') === 'string');
+    assert.ok(typeof strings.log.reverse('Player1') === 'string');
     assert.ok(typeof strings.log.attack('Player1', 'Player2') === 'string');
     assert.ok(typeof strings.log.shuffle('Player1') === 'string');
     assert.ok(typeof strings.log.peek('Player1') === 'string');
     assert.ok(typeof strings.log.favor('Player1', 'Player2') === 'string');
     assert.ok(typeof strings.log.cat('Player1', 'Player2') === 'string');
+    assert.ok(typeof strings.log.cat('Player1', 'Player2', strings.cards.taco) === 'string');
+    assert.ok(typeof strings.log.nope('Player1', null, 1) === 'string');
+    assert.ok(typeof strings.log.nope('Player1', null, 2) === 'string');
+    assert.ok(typeof strings.log.action_cancelled('Player1', strings.cards.attack) === 'string');
     assert.ok(typeof strings.log.deck_reshuffled() === 'string');
     assert.ok(typeof strings.log.game_over('Player1') === 'string');
     assert.ok(typeof strings.log.game_over(null) === 'string');
   }
+});
+
+test('all 12 cards exist with expected names in vi and en', () => {
+  const allCardKeys = [
+    'boom',
+    'defuse',
+    'attack',
+    'skip',
+    'reverse',
+    'shuffle',
+    'favor',
+    'peek',
+    'nope',
+    'cat',
+    'taco',
+    'potato',
+  ];
+
+  for (const locale of ['vi', 'en']) {
+    const strings = getStrings(locale);
+    for (const key of allCardKeys) {
+      assert.strictEqual(typeof strings.cards[key], 'string', `Card ${key} missing in ${locale}`);
+      assert.ok(strings.cards[key].length > 0, `Card ${key} empty in ${locale}`);
+    }
+  }
+
+  const viStrings = getStrings('vi');
+  const enStrings = getStrings('en');
+  assert.strictEqual(viStrings.cards.reverse, 'Đảo Chiều');
+  assert.strictEqual(viStrings.cards.nope, 'KHÔNG!');
+  assert.strictEqual(viStrings.cards.taco, 'Mèo Taco');
+  assert.strictEqual(viStrings.cards.potato, 'Mèo Khoai Tây');
+  assert.strictEqual(enStrings.cards.reverse, 'Reverse');
+  assert.strictEqual(enStrings.cards.nope, 'Nope');
+  assert.strictEqual(enStrings.cards.taco, 'Taco Cat');
+  assert.strictEqual(enStrings.cards.potato, 'Hairy Potato Cat');
+});
+
+test('actions, direction, nopeBanner, and new log templates work as expected', () => {
+  const viStrings = getStrings('vi');
+  const enStrings = getStrings('en');
+
+  assert.strictEqual(viStrings.actions.reverse, 'Đảo chiều');
+  assert.strictEqual(viStrings.actions.nope, 'KHÔNG!');
+  assert.strictEqual(viStrings.actions.passNope, 'Cho qua');
+  assert.strictEqual(enStrings.actions.reverse, 'Reverse');
+  assert.strictEqual(enStrings.actions.nope, 'Nope');
+  assert.strictEqual(enStrings.actions.passNope, 'Allow');
+
+  assert.strictEqual(viStrings.game.directionCw, 'Thuận chiều');
+  assert.strictEqual(viStrings.game.directionCcw, 'Ngược chiều');
+  assert.strictEqual(enStrings.game.directionCw, 'Clockwise');
+  assert.strictEqual(enStrings.game.directionCcw, 'Counter-clockwise');
+
+  assert.strictEqual(viStrings.nopeBanner.title('Alice', 'Truy Đuổi'), 'Alice đánh Truy Đuổi');
+  assert.strictEqual(viStrings.nopeBanner.noped('Bob', 2), 'Bob đã KHÔNG! (×2)');
+  assert.strictEqual(enStrings.nopeBanner.title('Alice', 'Attack'), 'Alice played Attack');
+  assert.strictEqual(enStrings.nopeBanner.noped('Bob', 2), 'Bob played NOPE! (×2)');
+
+  assert.strictEqual(viStrings.log.reverse('Alice'), 'Alice đánh Đảo Chiều');
+  assert.strictEqual(enStrings.log.reverse('Alice'), 'Alice played Reverse');
+  assert.strictEqual(viStrings.log.nope('Bob', null, 1), 'Bob đánh KHÔNG!');
+  assert.strictEqual(viStrings.log.nope('Bob', null, 2), 'Bob đánh KHÔNG! (×2)');
+  assert.strictEqual(enStrings.log.nope('Bob', null, 1), 'Bob played Nope');
+  assert.strictEqual(enStrings.log.nope('Bob', null, 2), 'Bob played Nope (×2)');
+  assert.strictEqual(viStrings.log.action_cancelled('Alice', 'Truy Đuổi'), 'Hành động Truy Đuổi của Alice đã bị chặn!');
+  assert.strictEqual(enStrings.log.action_cancelled('Alice', 'Attack'), "Alice's Attack was noped!");
+  assert.strictEqual(viStrings.log.cat('Alice', 'Bob'), 'Alice chơi cặp mèo nhắm vào Bob');
+  assert.strictEqual(viStrings.log.cat('Alice', 'Bob', 'Mèo Taco'), 'Alice chơi cặp Mèo Taco nhắm vào Bob');
+  assert.strictEqual(enStrings.log.cat('Alice', 'Bob'), 'Alice played a cat pair targeting Bob');
+  assert.strictEqual(enStrings.log.cat('Alice', 'Bob', 'Taco Cat'), 'Alice played a Taco Cat pair targeting Bob');
 });
 
 test('template functions work as expected', () => {
@@ -150,4 +229,13 @@ test('template functions work as expected', () => {
   // gameOver winner
   assert.strictEqual(viStrings.gameOver.winner('Bob'), 'Bob đã chiến thắng!');
   assert.strictEqual(enStrings.gameOver.winner('Bob'), 'Bob won the game!');
+
+  // countdown & defuse insertPosition templates
+  assert.strictEqual(viStrings.actions.countdown(5), 'Còn 5 giây');
+  assert.strictEqual(enStrings.actions.countdown(5), '5s left');
+  assert.strictEqual(viStrings.dialog.defuse.insertPosition(2, 10), 'Vị trí: 2 / 10');
+  assert.strictEqual(enStrings.dialog.defuse.insertPosition(2, 10), 'Position: 2 / 10');
+  assert.strictEqual(viStrings.chat.unreadButtonAriaLabel(3), 'Trò chuyện (3 tin nhắn mới)');
+  assert.strictEqual(enStrings.chat.unreadButtonAriaLabel(1), 'Chat (1 unread message)');
+  assert.strictEqual(enStrings.chat.unreadButtonAriaLabel(3), 'Chat (3 unread messages)');
 });

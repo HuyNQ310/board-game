@@ -1,0 +1,9 @@
+{
+  "name": "Mèo Nổ",
+  "short_name": "Mèo Nổ",
+  "start_url": "/",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#d3eedb",
+  "theme_color": "#d3eedb"
+}

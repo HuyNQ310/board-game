@@ -84,6 +84,8 @@ const engine = {
   applyAction: engineModule.applyAction || engineModule.default?.applyAction,
   eliminatePlayer: engineModule.eliminatePlayer || engineModule.default?.eliminatePlayer,
   viewFor: engineModule.viewFor || engineModule.default?.viewFor,
+  hasEligibleNopeHolder: engineModule.hasEligibleNopeHolder || engineModule.default?.hasEligibleNopeHolder,
+  resolvePendingAction: engineModule.resolvePendingAction || engineModule.default?.resolvePendingAction,
   ...engineModule,
 };
 
@@ -131,15 +133,22 @@ async function broadcastState(room) {
 
   if (room.game && typeof engine.viewFor === 'function') {
     const turnDeadline = scheduleTurnTimer(room);
+    const serverNow = Date.now();
     for (const player of room.players || []) {
       try {
         const view = engine.viewFor(room.game, player.id);
-        io.to(player.id).emit('game:state', { ...view, version: room.game.version, turnDeadline });
+        io.to(player.id).emit('game:state', {
+          ...view,
+          version: room.game.version,
+          turnDeadline,
+          serverNow,
+        });
       } catch (err) {
         console.error('broadcastState: viewFor failed for player', player.id, err);
       }
     }
   } else {
+    room._turnTimerState = null;
     turnTimers.cancel(room.code);
   }
 }
@@ -198,7 +207,18 @@ async function handlePlayerDisconnect(code, playerId) {
       try {
         if (current.status === 'playing' && current.game && typeof engine.eliminatePlayer === 'function') {
           current.game = engine.eliminatePlayer(current.game, playerId, 'disconnect', Math.random);
-          if (current.game.winnerId !== undefined && current.game.winnerId !== null) {
+          if (
+            current.game?.phase === 'nope' &&
+            typeof engine.hasEligibleNopeHolder === 'function' &&
+            !engine.hasEligibleNopeHolder(current.game) &&
+            typeof engine.resolvePendingAction === 'function'
+          ) {
+            current.game = await engine.resolvePendingAction(current.game, Math.random);
+          }
+          if (
+            current.game?.phase === 'over' ||
+            (current.game?.winnerId !== undefined && current.game?.winnerId !== null)
+          ) {
             current.status = 'finished';
           }
         } else {
@@ -226,6 +246,7 @@ async function handlePlayerDisconnect(code, playerId) {
 // own countdown without depending on network latency.
 // ============================================================================
 const TURN_TIMEOUT_MS = Number(process.env.TURN_TIMEOUT_MS) || 30000;
+const NOPE_WINDOW_MS = Number(process.env.NOPE_WINDOW_MS) || 5000;
 const turnTimers = new DisconnectTimers();
 
 // Separate rate limiter instance for chat (D12's 10/s applies per-socket per
@@ -234,43 +255,136 @@ const chatRateLimiter = createRateLimiter();
 
 function scheduleTurnTimer(room) {
   if (!room?.game || room.game.phase === 'over' || !room.game.currentPlayerId) {
-    turnTimers.cancel(room.code);
+    if (room) room._turnTimerState = null;
+    if (room?.code) turnTimers.cancel(room.code);
     return null;
   }
 
-  const deadline = Date.now() + TURN_TIMEOUT_MS;
+  const expectedVersion = room.game.version;
+
+  if (room.game.phase === 'nope') {
+    const expectedNopeCount = room.game.pendingAction?.nopeCount ?? 0;
+    const timerKey = `nope:${expectedVersion}:${expectedNopeCount}`;
+
+    if (
+      turnTimers.has(room.code) &&
+      room._turnTimerState?.key === timerKey &&
+      typeof room._turnTimerState.deadline === 'number' &&
+      room._turnTimerState.deadline > Date.now()
+    ) {
+      return room._turnTimerState.deadline;
+    }
+
+    const deadline = Date.now() + NOPE_WINDOW_MS;
+    room._turnTimerState = { key: timerKey, deadline };
+
+    turnTimers.start(
+      room.code,
+      async () => {
+        const runResolve = async () => {
+          const current = roomStore.getRoom?.(room.code);
+          if (!current?.game || current.game.phase === 'over') return;
+          if (
+            current.game.phase !== 'nope' ||
+            current.game.version !== expectedVersion ||
+            (current.game.pendingAction?.nopeCount ?? 0) !== expectedNopeCount
+          ) {
+            return;
+          }
+
+          try {
+            if (typeof engine.resolvePendingAction === 'function') {
+              current.game = await engine.resolvePendingAction(current.game, Math.random);
+            } else {
+              current.game = await engine.applyAction(
+                current.game,
+                current.game.currentPlayerId,
+                { type: 'resolveNope' },
+                Math.random
+              );
+            }
+            if (
+              current.game.phase === 'over' ||
+              (current.game.winnerId !== undefined && current.game.winnerId !== null)
+            ) {
+              current.status = 'finished';
+            }
+          } catch (err) {
+            console.error('nope window timer resolve error:', err);
+          }
+          await broadcastState(current);
+        };
+
+        if (typeof room.enqueue === 'function') {
+          await room.enqueue(runResolve);
+        } else {
+          await runResolve();
+        }
+      },
+      NOPE_WINDOW_MS
+    );
+
+    return deadline;
+  }
+
   const expectedPlayerId = room.game.currentPlayerId;
-  const expectedPendingDefuseId = room.game.pendingDefuseId;
+  const expectedPendingDefuseId = room.game.pendingDefuseId ?? null;
+  const timerKey = `turn:${expectedVersion}:${room.game.phase}:${expectedPlayerId}:${expectedPendingDefuseId ?? ''}`;
+
+  // Preserve the active turn deadline across non-game-mutating broadcasts
+  // (e.g. a peer disconnecting or resuming) so clients don't hit 0s early
+  // while the server silently resets the turn timer without bumping version.
+  if (
+    turnTimers.has(room.code) &&
+    room._turnTimerState?.key === timerKey &&
+    typeof room._turnTimerState.deadline === 'number' &&
+    room._turnTimerState.deadline > Date.now()
+  ) {
+    return room._turnTimerState.deadline;
+  }
+
+  const deadline = Date.now() + TURN_TIMEOUT_MS;
+  room._turnTimerState = { key: timerKey, deadline };
 
   turnTimers.start(
     room.code,
     async () => {
-      const current = roomStore.getRoom?.(room.code);
-      if (!current?.game || current.game.phase === 'over') return;
-      // Only act if nothing has changed since we scheduled this timer --
-      // a real action or a disconnect-elimination already rescheduled a
-      // fresh timer for whatever is current now, so this one is stale.
-      if (
-        current.game.currentPlayerId !== expectedPlayerId ||
-        current.game.pendingDefuseId !== expectedPendingDefuseId
-      ) {
-        return;
-      }
+      const runAutoTurn = async () => {
+        const current = roomStore.getRoom?.(room.code);
+        if (!current?.game || current.game.phase === 'over') return;
+        // Only act if nothing has changed since we scheduled this timer --
+        // a real action or a disconnect-elimination already rescheduled a
+        // fresh timer for whatever is current now, so this one is stale.
+        if (
+          current.game.phase === 'nope' ||
+          current.game.version !== expectedVersion ||
+          current.game.currentPlayerId !== expectedPlayerId ||
+          (current.game.pendingDefuseId ?? null) !== expectedPendingDefuseId
+        ) {
+          return;
+        }
 
-      try {
-        if (current.game.phase === 'defuse' && current.game.pendingDefuseId === expectedPlayerId) {
-          const insertAt = Math.floor((current.game.deckCount ?? current.game.deck?.length ?? 0) / 2);
-          current.game = engine.applyAction(current.game, expectedPlayerId, { type: 'defuse', insertAt }, Math.random);
-        } else {
-          current.game = engine.applyAction(current.game, expectedPlayerId, { type: 'draw' }, Math.random);
+        try {
+          if (current.game.phase === 'defuse' && current.game.pendingDefuseId === expectedPlayerId) {
+            const insertAt = Math.floor((current.game.deckCount ?? current.game.deck?.length ?? 0) / 2);
+            current.game = engine.applyAction(current.game, expectedPlayerId, { type: 'defuse', insertAt }, Math.random);
+          } else {
+            current.game = engine.applyAction(current.game, expectedPlayerId, { type: 'draw' }, Math.random);
+          }
+          if (current.game.winnerId !== undefined && current.game.winnerId !== null) {
+            current.status = 'finished';
+          }
+        } catch (err) {
+          console.error('turn timer auto-action error:', err);
         }
-        if (current.game.winnerId !== undefined && current.game.winnerId !== null) {
-          current.status = 'finished';
-        }
-      } catch (err) {
-        console.error('turn timer auto-action error:', err);
+        await broadcastState(current);
+      };
+
+      if (typeof room.enqueue === 'function') {
+        await room.enqueue(runAutoTurn);
+      } else {
+        await runAutoTurn();
       }
-      await broadcastState(current);
     },
     TURN_TIMEOUT_MS
   );

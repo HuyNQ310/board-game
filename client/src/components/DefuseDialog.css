@@ -56,6 +56,26 @@
   gap: 10px;
 }
 
+.defuse-dialog__timer {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  background-color: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  color: #ffffff;
+  font-size: 0.85rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.defuse-dialog__timer--urgent {
+  background-color: #c0392b;
+  border-color: #ff6b6b;
+}
+
 .defuse-dialog__icon {
   font-size: 1.6rem;
 }
@@ -154,11 +174,11 @@
 }
 
 .defuse-dialog__slider-label--top {
-  color: #f39c12;
+  color: #f59f00;
 }
 
 .defuse-dialog__slider-label--bottom {
-  color: #3498db;
+  color: #63b3ed;
 }
 
 .defuse-dialog__indicator {
@@ -200,22 +220,22 @@
   min-width: 44px;
   padding: 12px 20px;
   border-radius: 8px;
-  border: 2px solid #c0392b;
-  background: linear-gradient(135deg, #e74c3c, #c0392b);
+  border: 2px solid #a61e1e;
+  background: linear-gradient(135deg, #c92a2a, #a61e1e);
   color: #ffffff;
   font-family: inherit;
   font-size: 1.05rem;
   font-weight: 700;
   cursor: pointer;
   user-select: none;
-  box-shadow: 0 4px 12px rgba(231, 76, 60, 0.4);
+  box-shadow: 0 4px 12px rgba(201, 42, 42, 0.4);
   transition: background 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
 }
 
 .defuse-dialog__confirm-btn:hover {
-  background: linear-gradient(135deg, #ff5252, #e74c3c);
+  background: linear-gradient(135deg, #e03131, #c92a2a);
   transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(231, 76, 60, 0.5);
+  box-shadow: 0 6px 16px rgba(201, 42, 42, 0.5);
 }
 
 .defuse-dialog__confirm-btn:active {

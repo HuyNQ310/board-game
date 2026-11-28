@@ -9,7 +9,7 @@
 export const ERROR_MESSAGES = Object.freeze({
   NAME_INVALID: 'Tên phải từ 1 đến 16 ký tự',
   ROOM_NOT_FOUND: 'Không tìm thấy phòng',
-  ROOM_FULL: 'Phòng đã đủ 6 người',
+  ROOM_FULL: 'Phòng đã đủ 10 người',
   ROOM_PLAYING: 'Phòng đang chơi, không thể vào lúc này',
   NOT_IN_ROOM: 'Bạn không còn trong phòng này',
   NOT_HOST: 'Chỉ chủ phòng mới làm được việc này',
@@ -25,7 +25,8 @@ export const ERROR_MESSAGES = Object.freeze({
   SERVER_ERROR: 'Có lỗi xảy ra, vui lòng thử lại',
 });
 
-export const PLAYABLE_CARDS = Object.freeze(['skip', 'attack', 'shuffle', 'peek', 'favor']);
+export const PLAYABLE_CARDS = Object.freeze(['skip', 'attack', 'reverse', 'shuffle', 'peek', 'favor']);
+export const CAT_CARDS = Object.freeze(['cat', 'taco', 'potato']);
 
 /**
  * Sliding-window rate limiter keyed by socket id (D12 / 7.2).
@@ -145,6 +146,9 @@ export function validateGameActionPayload(payload) {
   }
 
   if (type === 'play') {
+    if (card === 'nope') {
+      return { ok: true, action: { type: 'nope' } };
+    }
     if (!card || typeof card !== 'string' || !PLAYABLE_CARDS.includes(card)) {
       return { ok: false, code: 'INVALID_ACTION' };
     }
@@ -167,7 +171,21 @@ export function validateGameActionPayload(payload) {
     if (!target || typeof target !== 'string' || !target.trim()) {
       return { ok: false, code: 'INVALID_TARGET' };
     }
+    if (card !== undefined) {
+      if (typeof card !== 'string' || !CAT_CARDS.includes(card)) {
+        return { ok: false, code: 'INVALID_ACTION' };
+      }
+      return { ok: true, action: { type: 'catPair', card, target: target.trim() } };
+    }
     return { ok: true, action: { type: 'catPair', target: target.trim() } };
+  }
+
+  if (type === 'nope') {
+    return { ok: true, action: { type: 'nope' } };
+  }
+
+  if (type === 'passNope') {
+    return { ok: true, action: { type: 'passNope' } };
   }
 
   if (type === 'defuse') {
@@ -465,9 +483,13 @@ export function createHandlers(arg1 = {}, arg2 = {}) {
 
           let gameState = null;
           if (room.game) {
-            gameState = (typeof engine?.viewFor === 'function')
+            const view = (typeof engine?.viewFor === 'function')
               ? engine.viewFor(room.game, playerId)
               : room.game;
+            const turnDeadline = room._turnTimerState?.deadline ?? null;
+            gameState = turnDeadline
+              ? { ...view, turnDeadline, serverNow: Date.now() }
+              : view;
           }
 
           const roomPayload = { ...room };
@@ -510,6 +532,26 @@ export function createHandlers(arg1 = {}, arg2 = {}) {
             [code, playerId],
             { code, playerId }
           );
+
+          if (room && room.status === 'playing' && room.game && typeof engine?.eliminatePlayer === 'function') {
+            room.game = engine.eliminatePlayer(room.game, playerId, 'disconnect', rng);
+            if (
+              room.game?.phase === 'nope' &&
+              typeof engine.hasEligibleNopeHolder === 'function' &&
+              !engine.hasEligibleNopeHolder(room.game)
+            ) {
+              room.game =
+                typeof engine.resolvePendingAction === 'function'
+                  ? engine.resolvePendingAction(room.game, rng)
+                  : engine.applyAction(room.game, room.game.currentPlayerId, { type: 'resolveNope' }, rng);
+            }
+            if (
+              room.game?.phase === 'over' ||
+              (room.game?.winnerId !== undefined && room.game?.winnerId !== null)
+            ) {
+              room.status = 'finished';
+            }
+          }
 
           if (socket) {
             if (typeof socket.leave === 'function') {
@@ -646,6 +688,17 @@ export function createHandlers(arg1 = {}, arg2 = {}) {
           let nextGame;
           try {
             nextGame = await engine.applyAction(room.game, playerId, validation.action, rng);
+            if (
+              nextGame?.phase === 'nope' &&
+              typeof engine.hasEligibleNopeHolder === 'function' &&
+              !engine.hasEligibleNopeHolder(nextGame)
+            ) {
+              if (typeof engine.resolvePendingAction === 'function') {
+                nextGame = await engine.resolvePendingAction(nextGame, rng);
+              } else {
+                nextGame = await engine.applyAction(nextGame, nextGame.currentPlayerId, { type: 'resolveNope' }, rng);
+              }
+            }
           } catch (gameErr) {
             const errorAck = toErrAck(gameErr);
             if (socket && typeof socket.emit === 'function') {

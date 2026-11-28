@@ -222,11 +222,12 @@ describe('store reducer in isolation', () => {
       assert.strictEqual(nextState.screen, 'gameOver');
     });
 
-    it('transitions screen to home when roomState is reset to null', () => {
+    it('transitions screen to home when roomState is reset to null and clears gameState', () => {
       const activeState = {
         ...initialState,
-        roomState: { code: 'K7M2Q', status: 'lobby' },
-        screen: 'lobby',
+        roomState: { code: 'K7M2Q', status: 'playing' },
+        gameState: { version: 12, phase: 'play' },
+        screen: 'game',
       };
       const nextState = reducer(activeState, {
         type: 'room-state-received',
@@ -234,7 +235,30 @@ describe('store reducer in isolation', () => {
       });
 
       assert.strictEqual(nextState.roomState, null);
+      assert.strictEqual(nextState.gameState, null);
       assert.strictEqual(nextState.screen, 'home');
+    });
+
+    it('clears stale gameState on rematch (status lobby) so next game version 0 is accepted', () => {
+      const finishedState = {
+        ...initialState,
+        roomState: { code: 'K7M2Q', status: 'finished' },
+        gameState: { version: 18, phase: 'over', winnerId: 'p1' },
+        screen: 'gameOver',
+      };
+      const lobbyState = reducer(finishedState, {
+        type: ROOM_STATE_RECEIVED,
+        payload: { code: 'K7M2Q', status: 'lobby', players: [] },
+      });
+      assert.strictEqual(lobbyState.screen, 'lobby');
+      assert.strictEqual(lobbyState.gameState, null);
+
+      const newGame = { version: 0, phase: 'play', players: [{ id: 'p1', hand: ['defuse'] }] };
+      const nextGameState = reducer(lobbyState, {
+        type: GAME_STATE_RECEIVED,
+        payload: newGame,
+      });
+      assert.deepEqual(nextGameState.gameState, newGame);
     });
   });
 

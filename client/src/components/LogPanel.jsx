@@ -16,6 +16,8 @@ export function LogPanel({
   defaultCollapsed = true,
   isCollapsed: controlledCollapsed,
   onToggleCollapse,
+  t = {},
+  locale = 'vi',
 }) {
   const [internalCollapsed, setInternalCollapsed] = useState(defaultCollapsed);
   const isCollapsed = controlledCollapsed !== undefined ? controlledCollapsed : internalCollapsed;
@@ -68,22 +70,31 @@ export function LogPanel({
     .filter(Boolean)
     .join(' ');
 
+  const isEn = locale === 'en';
+  const regionAriaLabel =
+    t?.logAriaLabel || (isEn ? 'Game activity log' : 'Nhật ký trò chơi');
+  const titleText = t?.logTitle || (isEn ? 'Game log' : 'Nhật ký');
+  const toggleAriaLabel = isCollapsed
+    ? t?.logExpandAriaLabel || (isEn ? 'Expand game log' : 'Mở rộng nhật ký')
+    : t?.logCollapseAriaLabel || (isEn ? 'Collapse game log' : 'Thu gọn nhật ký');
+  const emptyText = t?.logEmpty || (isEn ? 'No activity yet' : 'Chưa có nhật ký');
+
   return (
     <div
       className={rootClasses}
       data-testid="log-panel"
       role="region"
-      aria-label="Nhật ký trò chơi"
+      aria-label={regionAriaLabel}
     >
       <div className="log-panel__header">
-        <h3 className="log-panel__title">Nhật ký</h3>
+        <h3 className="log-panel__title">{titleText}</h3>
         <button
           type="button"
           className="log-panel__toggle-btn"
           onClick={handleToggle}
           aria-expanded={!isCollapsed}
           aria-controls="log-panel-content"
-          aria-label={isCollapsed ? 'Mở rộng nhật ký' : 'Thu gọn nhật ký'}
+          aria-label={toggleAriaLabel}
         >
           <span className="log-panel__toggle-icon" aria-hidden="true">
             {isCollapsed ? '▲' : '▼'}
@@ -100,7 +111,7 @@ export function LogPanel({
         ref={contentRef}
       >
         {safeEntries.length === 0 ? (
-          <div className="log-panel__empty">Chưa có nhật ký</div>
+          <div className="log-panel__empty">{emptyText}</div>
         ) : (
           safeEntries.map((entry, index) => (
             <div

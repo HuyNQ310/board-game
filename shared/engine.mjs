@@ -1,5 +1,5 @@
 /**
- * Mèo Nổ — Engine luật chơi (Phase 0)
+ * Mèo Nổ — Engine luật chơi (Phase 0 + Reverse/Nope/Taco/Potato)
  * Tuân thủ nghiêm ngặt đặc tả rules.md (Mục 2 và Mục 4).
  * Pure ES module, không I/O, không DOM, không network, không mutation.
  */
@@ -9,11 +9,26 @@ export const CARD = Object.freeze({
   defuse: 'defuse',
   attack: 'attack',
   skip: 'skip',
+  reverse: 'reverse',
   shuffle: 'shuffle',
   favor: 'favor',
   peek: 'peek',
+  nope: 'nope',
   cat: 'cat',
+  taco: 'taco',
+  potato: 'potato',
 });
+
+export const CAT_CARDS = Object.freeze([CARD.cat, CARD.taco, CARD.potato]);
+
+const NOPEABLE_SINGLE_CARDS = Object.freeze([
+  CARD.skip,
+  CARD.attack,
+  CARD.reverse,
+  CARD.shuffle,
+  CARD.peek,
+  CARD.favor,
+]);
 
 export class GameError extends Error {
   constructor(message, code = 'INVALID_ACTION') {
@@ -39,27 +54,29 @@ function shuffle(array, rng) {
 }
 
 /**
- * Số lượng gốc của mỗi loại lá thường, đúng Mục 4.1, tính cho 6 người
- * (tổng 29 lá: 4 attack + 4 skip + 4 shuffle + 4 favor + 5 peek + 8 cat).
+ * Số lượng gốc của mỗi loại lá thường cho <= 6 người (42 lá thường):
+ * 4 attack, 4 skip, 4 reverse, 4 shuffle, 4 favor, 5 peek, 5 nope,
+ * 4 cat, 4 taco, 4 potato.
  */
 const BASE_PLAYER_COUNT = 6;
 const BASE_ORDINARY_COUNTS = Object.freeze({
   [CARD.attack]: 4,
   [CARD.skip]: 4,
+  [CARD.reverse]: 4,
   [CARD.shuffle]: 4,
   [CARD.favor]: 4,
   [CARD.peek]: 5,
-  [CARD.cat]: 8,
+  [CARD.nope]: 5,
+  [CARD.cat]: 4,
+  [CARD.taco]: 4,
+  [CARD.potato]: 4,
 });
 
 /**
  * Tạo bộ lá thường, tỉ lệ theo số người chơi `n`.
- * Với n <= 6 (giá trị gốc của đặc tả), trả về đúng 29 lá như Mục 4.1 quy định
- * (không đổi luật cho trường hợp đã có trong spec). Với n > 6 (mở rộng số
- * người chơi tối đa), số lượng mỗi loại được nhân tỉ lệ theo n/6 (làm tròn
- * lên) để vẫn đủ bài chia (1 defuse + 4 lá thường mỗi người) và còn dư cho
- * bộ rút, đồng thời giữ nguyên tỉ lệ giữa các loại lá như thiết kế gốc.
- * Riêng `cat` luôn làm tròn lên số chẵn vì được đánh theo cặp.
+ * Với n <= 6, trả về đúng 42 lá thường.
+ * Với n > 6 (7..MAX_PLAYERS), nhân tỉ lệ theo n/6 (làm tròn lên).
+ * Các lá trong CAT_CARDS luôn làm tròn lên số chẵn vì được đánh theo cặp.
  *
  * @param {number} n - Số người chơi (2..MAX_PLAYERS)
  */
@@ -68,7 +85,7 @@ function buildOrdinaryDeck(n = BASE_PLAYER_COUNT) {
   const deck = [];
   for (const [type, base] of Object.entries(BASE_ORDINARY_COUNTS)) {
     let count = Math.ceil(base * scale);
-    if (type === CARD.cat && count % 2 !== 0) count += 1;
+    if (CAT_CARDS.includes(type) && count % 2 !== 0) count += 1;
     for (let i = 0; i < count; i++) deck.push(type);
   }
   return deck;
@@ -110,7 +127,19 @@ function cloneState(state) {
     phase: state.phase,
     currentPlayerId: state.currentPlayerId,
     turnsLeft: state.turnsLeft,
+    direction: state.direction ?? 1,
     pendingDefuseId: state.pendingDefuseId,
+    pendingAction: state.pendingAction
+      ? {
+          type: state.pendingAction.type,
+          card: state.pendingAction.card,
+          actor: state.pendingAction.actor,
+          target: state.pendingAction.target ?? null,
+          nopeCount: state.pendingAction.nopeCount,
+          lastActorId: state.pendingAction.lastActorId,
+          passedIds: [...(state.pendingAction.passedIds ?? [])],
+        }
+      : null,
     winnerId: state.winnerId,
     deck: [...state.deck],
     discardPile: [...state.discardPile],
@@ -128,19 +157,180 @@ function cloneState(state) {
 }
 
 /**
- * Tìm người sống kế tiếp theo thứ tự vòng tròn ban đầu.
+ * Tìm người sống kế tiếp theo chiều `direction` (1 = xuôi, -1 = ngược).
  */
-function getNextLivingPlayerId(players, fromPlayerId) {
+export function getNextLivingPlayerId(players, fromPlayerId, direction = 1) {
   const fromIndex = players.findIndex(p => p.id === fromPlayerId);
   if (fromIndex === -1) return null;
   const n = players.length;
   for (let step = 1; step < n; step++) {
-    const candidate = players[(fromIndex + step) % n];
+    const candidate = players[(fromIndex + direction * step + n * step) % n];
     if (candidate.alive) {
       return candidate.id;
     }
   }
   return null;
+}
+
+/**
+ * Kiểm tra mục tiêu hợp lệ (còn sống và không phải chính người đánh).
+ */
+function validateTarget(players, playerId, targetId) {
+  if (!targetId || targetId === playerId) {
+    throw new GameError('Mục tiêu không hợp lệ', 'INVALID_TARGET');
+  }
+  const targetPlayer = players.find(p => p.id === targetId);
+  if (!targetPlayer || !targetPlayer.alive) {
+    throw new GameError('Mục tiêu không hợp lệ', 'INVALID_TARGET');
+  }
+  return targetPlayer;
+}
+
+/**
+ * Cướp ngẫu nhiên 1 lá từ tay targetPlayer sang actorPlayer nếu cả hai còn sống và target có bài.
+ */
+function stealRandomCard(actorPlayer, targetPlayer, rng) {
+  if (
+    actorPlayer &&
+    actorPlayer.alive &&
+    targetPlayer &&
+    targetPlayer.alive &&
+    targetPlayer.hand.length > 0
+  ) {
+    const stealIdx = Math.floor(rng() * targetPlayer.hand.length);
+    const [stolen] = targetPlayer.hand.splice(stealIdx, 1);
+    actorPlayer.hand.push(stolen);
+  }
+}
+
+/**
+ * Giảm turnsLeft và chuyển lượt theo direction nếu turnsLeft về 0.
+ */
+function advanceTurnOrKeep(next, fromPlayerId) {
+  next.turnsLeft -= 1;
+  if (next.turnsLeft <= 0) {
+    next.currentPlayerId = getNextLivingPlayerId(
+      next.players,
+      fromPlayerId,
+      next.direction ?? 1
+    );
+    next.turnsLeft = 1;
+  }
+}
+
+/**
+ * Giải quyết pendingAction trực tiếp trên bản sao `next` (không tự tăng version).
+ */
+function resolvePendingInPlace(next, rng) {
+  const pending = next.pendingAction;
+  next.phase = 'play';
+  next.pendingAction = null;
+
+  if (pending.nopeCount % 2 === 1) {
+    next.log.push({
+      type: 'action_cancelled',
+      actor: pending.actor,
+      card: pending.card,
+    });
+    return;
+  }
+
+  const actorPlayer = next.players.find(p => p.id === pending.actor);
+  const dir = next.direction ?? 1;
+
+  if (pending.type === 'catPair') {
+    next.log.push({
+      type: 'cat',
+      card: pending.card,
+      actor: pending.actor,
+      target: pending.target,
+    });
+    const targetPlayer = next.players.find(p => p.id === pending.target);
+    stealRandomCard(actorPlayer, targetPlayer, rng);
+    return;
+  }
+
+  switch (pending.card) {
+    case CARD.skip: {
+      next.log.push({ type: 'skip', actor: pending.actor });
+      advanceTurnOrKeep(next, pending.actor);
+      break;
+    }
+    case CARD.reverse: {
+      next.direction = dir * -1;
+      next.log.push({
+        type: 'reverse',
+        actor: pending.actor,
+        direction: next.direction,
+      });
+      advanceTurnOrKeep(next, pending.actor);
+      break;
+    }
+    case CARD.attack: {
+      const nextPlayerId = getNextLivingPlayerId(next.players, pending.actor, dir);
+      next.log.push({
+        type: 'attack',
+        actor: pending.actor,
+        target: nextPlayerId,
+      });
+      next.currentPlayerId = nextPlayerId;
+      next.turnsLeft = 2 + (next.turnsLeft - 1);
+      break;
+    }
+    case CARD.shuffle: {
+      next.deck = shuffle(next.deck, rng);
+      next.log.push({ type: 'shuffle', actor: pending.actor });
+      break;
+    }
+    case CARD.peek: {
+      next.peek = {
+        playerId: pending.actor,
+        cards: next.deck.slice(0, 3),
+      };
+      next.log.push({ type: 'peek', actor: pending.actor });
+      break;
+    }
+    case CARD.favor: {
+      next.log.push({
+        type: 'favor',
+        actor: pending.actor,
+        target: pending.target,
+      });
+      const targetPlayer = next.players.find(p => p.id === pending.target);
+      stealRandomCard(actorPlayer, targetPlayer, rng);
+      break;
+    }
+    default:
+      break;
+  }
+}
+
+/**
+ * Kiểm tra xem có người chơi sống nào khác `lastActorId` đang giữ lá `nope` hay không.
+ */
+export function hasEligibleNopeHolder(state) {
+  if (!state || state.phase !== 'nope' || !state.pendingAction) {
+    return false;
+  }
+  const lastActorId = state.pendingAction.lastActorId;
+  return state.players.some(
+    p => p.alive && p.id !== lastActorId && p.hand.includes(CARD.nope)
+  );
+}
+
+/**
+ * Giải quyết hành động đang chờ xác nhận trong pha `nope`.
+ * @param {object} state
+ * @param {() => number} rng
+ */
+export function resolvePendingAction(state, rng = Math.random) {
+  if (!state || state.phase !== 'nope' || !state.pendingAction) {
+    throw new GameError('Không có hành động nào đang chờ xác nhận', 'INVALID_ACTION');
+  }
+  const next = cloneState(state);
+  resolvePendingInPlace(next, rng);
+  next.version += 1;
+  return next;
 }
 
 /**
@@ -179,7 +369,9 @@ export function createGame(playerIds, rng = Math.random) {
     phase: 'play',
     currentPlayerId: players[0].id,
     turnsLeft: 1,
+    direction: 1,
     pendingDefuseId: null,
+    pendingAction: null,
     winnerId: null,
     deck: shuffledDrawPile,
     discardPile: [],
@@ -196,7 +388,7 @@ export function createGame(playerIds, rng = Math.random) {
  * @param {'bomb'|'disconnect'|string} reason
  * @param {() => number} rng
  */
-export function eliminatePlayer(state, playerId, reason = 'disconnect', _rng = Math.random) {
+export function eliminatePlayer(state, playerId, reason = 'disconnect', rng = Math.random) {
   if (state.phase === 'over') {
     return cloneState(state);
   }
@@ -233,6 +425,7 @@ export function eliminatePlayer(state, playerId, reason = 'disconnect', _rng = M
 
   const living = next.players.filter(p => p.alive);
   if (living.length <= 1) {
+    next.pendingAction = null;
     next.phase = 'over';
     next.winnerId = living.length === 1 ? living[0].id : null;
     next.log.push({
@@ -243,14 +436,109 @@ export function eliminatePlayer(state, playerId, reason = 'disconnect', _rng = M
     return next;
   }
 
-  // Nếu người đó đang là người có lượt, chuyển lượt sang người sống kế tiếp và đặt turnsLeft = 1
+  // Xử lý pha nope nếu có pendingAction
+  if (next.phase === 'nope' && next.pendingAction) {
+    if (next.pendingAction.actor === playerId) {
+      next.pendingAction = null;
+      next.phase = 'play';
+    } else {
+      const eligibleIds = living
+        .filter(p => p.id !== next.pendingAction.lastActorId)
+        .map(p => p.id);
+      if (
+        eligibleIds.length === 0 ||
+        eligibleIds.every(id => next.pendingAction.passedIds.includes(id))
+      ) {
+        resolvePendingInPlace(next, rng);
+      }
+    }
+  }
+
+  // Nếu người đó đang là người có lượt, chuyển lượt sang người sống kế tiếp theo chiều hiện tại
   if (next.currentPlayerId === playerId) {
-    next.currentPlayerId = getNextLivingPlayerId(next.players, playerId);
+    next.currentPlayerId = getNextLivingPlayerId(
+      next.players,
+      playerId,
+      next.direction ?? 1
+    );
     next.turnsLeft = 1;
   }
 
   next.version += 1;
   return next;
+}
+
+/**
+ * Xử lý hành động trong pha `nope`.
+ */
+function handleNopePhaseAction(state, playerId, action, rng) {
+  if (!state.pendingAction) {
+    throw new GameError('Hành động không hợp lệ', 'INVALID_ACTION');
+  }
+
+  const isNopePlay =
+    action.type === 'nope' ||
+    (action.type === 'play' && action.card === CARD.nope);
+
+  if (isNopePlay) {
+    if (playerId === state.pendingAction.lastActorId) {
+      throw new GameError(
+        'Không thể tự chặn hành động vừa đánh của mình',
+        'INVALID_ACTION'
+      );
+    }
+
+    const next = cloneState(state);
+    const current = next.players.find(p => p.id === playerId);
+    const nopeIdx = current.hand.indexOf(CARD.nope);
+    if (nopeIdx === -1) {
+      throw new GameError('Không có lá này trong tay', 'NO_CARD');
+    }
+
+    current.hand.splice(nopeIdx, 1);
+    next.discardPile.push(CARD.nope);
+    next.pendingAction.nopeCount += 1;
+    next.pendingAction.lastActorId = playerId;
+    next.pendingAction.passedIds = [];
+    next.log.push({
+      type: 'nope',
+      actor: playerId,
+      card: next.pendingAction.card,
+      count: next.pendingAction.nopeCount,
+    });
+    next.version += 1;
+    return next;
+  }
+
+  if (action.type === 'passNope') {
+    if (playerId === state.pendingAction.lastActorId) {
+      throw new GameError(
+        'Không thể bỏ qua lượt chặn của chính mình',
+        'INVALID_ACTION'
+      );
+    }
+
+    const next = cloneState(state);
+    if (!next.pendingAction.passedIds.includes(playerId)) {
+      next.pendingAction.passedIds.push(playerId);
+    }
+
+    const eligibleIds = next.players
+      .filter(p => p.alive && p.id !== next.pendingAction.lastActorId)
+      .map(p => p.id);
+    if (eligibleIds.every(id => next.pendingAction.passedIds.includes(id))) {
+      resolvePendingInPlace(next, rng);
+    }
+
+    next.version += 1;
+    return next;
+  }
+
+  if (action.type === 'resolveNope') {
+    return resolvePendingAction(state, rng);
+  }
+
+  throw new GameError('Đang trong thời gian chặn bài (Nope)', 'INVALID_ACTION');
 }
 
 /**
@@ -277,6 +565,10 @@ export function applyAction(state, playerId, action, rng = Math.random) {
     throw new GameError('Người chơi đã bị loại', 'INVALID_ACTION');
   }
 
+  if (state.phase === 'nope') {
+    return handleNopePhaseAction(state, playerId, action, rng);
+  }
+
   if (state.phase === 'defuse') {
     if (action.type !== 'defuse') {
       throw new GameError('Bạn đang phải gỡ bom', 'DEFUSE_PENDING');
@@ -285,7 +577,13 @@ export function applyAction(state, playerId, action, rng = Math.random) {
       throw new GameError('Chưa đến lượt bạn', 'NOT_YOUR_TURN');
     }
   } else if (state.phase === 'play') {
-    if (action.type === 'defuse') {
+    if (
+      action.type === 'defuse' ||
+      action.type === 'nope' ||
+      action.type === 'passNope' ||
+      action.type === 'resolveNope' ||
+      (action.type === 'play' && action.card === CARD.nope)
+    ) {
       throw new GameError('Hành động không hợp lệ', 'INVALID_ACTION');
     }
     if (playerId !== state.currentPlayerId) {
@@ -303,18 +601,16 @@ export function applyAction(state, playerId, action, rng = Math.random) {
     next.peek = null;
   }
 
-  // 1. Rút bài (draw)
+  // 1. Rút bài (draw) - không thể bị Nope
   if (action.type === 'draw') {
     if (next.deck.length === 0) {
       if (next.discardPile.length === 0) {
-        // Cả hai đều trống: ván kết thúc không có người thắng
         next.phase = 'over';
         next.winnerId = null;
         next.log.push({ type: 'game_over', winnerId: null });
         next.version += 1;
         return next;
       }
-      // Xáo lại bài đã đánh thành bộ rút mới
       next.deck = shuffle(next.discardPile, rng);
       next.discardPile = [];
       next.log.push({ type: 'deck_reshuffled' });
@@ -327,14 +623,12 @@ export function applyAction(state, playerId, action, rng = Math.random) {
       const defuseIdx = current.hand.indexOf(CARD.defuse);
 
       if (defuseIdx !== -1) {
-        // Có defuse: vào pha defuse
         next.phase = 'defuse';
         next.pendingDefuseId = playerId;
         next.version += 1;
         return next;
       }
 
-      // Không có defuse: bị loại
       current.alive = false;
       next.discardPile.push(...current.hand, CARD.boom);
       current.hand = [];
@@ -356,27 +650,24 @@ export function applyAction(state, playerId, action, rng = Math.random) {
         return next;
       }
 
-      next.currentPlayerId = getNextLivingPlayerId(next.players, playerId);
+      next.currentPlayerId = getNextLivingPlayerId(
+        next.players,
+        playerId,
+        next.direction ?? 1
+      );
       next.turnsLeft = 1;
       next.version += 1;
       return next;
     }
 
-    // Lá thường: vào tay, kết thúc 1 lượt rút
     current.hand.push(drawnCard);
     next.log.push({ type: 'draw', actor: playerId });
-
-    next.turnsLeft -= 1;
-    if (next.turnsLeft <= 0) {
-      next.currentPlayerId = getNextLivingPlayerId(next.players, playerId);
-      next.turnsLeft = 1;
-    }
-
+    advanceTurnOrKeep(next, playerId);
     next.version += 1;
     return next;
   }
 
-  // 2. Gỡ bom (defuse)
+  // 2. Gỡ bom (defuse) - không thể bị Nope
   if (action.type === 'defuse') {
     const defuseIdx = current.hand.indexOf(CARD.defuse);
     if (defuseIdx === -1) {
@@ -399,66 +690,69 @@ export function applyAction(state, playerId, action, rng = Math.random) {
     next.phase = 'play';
     next.pendingDefuseId = null;
 
-    next.turnsLeft -= 1;
-    if (next.turnsLeft <= 0) {
-      next.currentPlayerId = getNextLivingPlayerId(next.players, playerId);
-      next.turnsLeft = 1;
-    }
-
+    advanceTurnOrKeep(next, playerId);
     next.version += 1;
     return next;
   }
 
-  // 3. Chơi cặp mèo (catPair hoặc type 'cat' hoặc type 'play' với card 'cat')
-  const isCatAction =
-    action.type === 'catPair' ||
-    action.type === 'cat' ||
-    (action.type === 'play' && action.card === 'cat');
+  // 3. Chơi cặp mèo cùng loại (catPair)
+  if (action.type === 'catPair') {
+    let catCard = null;
+    if (action.card !== undefined && action.card !== null) {
+      if (!CAT_CARDS.includes(action.card)) {
+        throw new GameError('Loại lá mèo không hợp lệ', 'INVALID_ACTION');
+      }
+      catCard = action.card;
+    } else {
+      for (const breed of CAT_CARDS) {
+        const count = current.hand.filter(c => c === breed).length;
+        if (count >= 2) {
+          catCard = breed;
+          break;
+        }
+      }
+      if (!catCard) {
+        throw new GameError('Không có lá này trong tay', 'NO_CARD');
+      }
+    }
 
-  if (isCatAction) {
     const catIndices = [];
     current.hand.forEach((c, idx) => {
-      if (c === CARD.cat) catIndices.push(idx);
+      if (c === catCard) catIndices.push(idx);
     });
 
     if (catIndices.length < 2) {
       throw new GameError('Không có lá này trong tay', 'NO_CARD');
     }
 
-    const targetId = action.target;
-    if (!targetId || targetId === playerId) {
-      throw new GameError('Mục tiêu không hợp lệ', 'INVALID_TARGET');
-    }
-    const targetPlayer = next.players.find(p => p.id === targetId);
-    if (!targetPlayer || !targetPlayer.alive) {
-      throw new GameError('Mục tiêu không hợp lệ', 'INVALID_TARGET');
-    }
+    validateTarget(next.players, playerId, action.target);
 
-    // Bỏ 2 lá mèo vào bài đã đánh
     current.hand.splice(catIndices[1], 1);
     current.hand.splice(catIndices[0], 1);
-    next.discardPile.push(CARD.cat, CARD.cat);
+    next.discardPile.push(catCard, catCard);
 
-    next.log.push({ type: 'cat', actor: playerId, target: targetId });
-
-    if (targetPlayer.hand.length > 0) {
-      const stealIdx = Math.floor(rng() * targetPlayer.hand.length);
-      const [stolen] = targetPlayer.hand.splice(stealIdx, 1);
-      current.hand.push(stolen);
-    }
-
+    next.phase = 'nope';
+    next.pendingAction = {
+      type: 'catPair',
+      card: catCard,
+      actor: playerId,
+      target: action.target,
+      nopeCount: 0,
+      lastActorId: playerId,
+      passedIds: [],
+    };
     next.version += 1;
     return next;
   }
 
-  // 4. Đánh các lá thường đơn: skip, attack, shuffle, peek, favor
+  // 4. Đánh các lá đơn (skip, attack, reverse, shuffle, peek, favor)
   const card = action.type === 'play' ? action.card : action.type;
 
-  if (card === CARD.boom || card === CARD.defuse) {
+  if (card === CARD.boom || card === CARD.defuse || CAT_CARDS.includes(card)) {
     throw new GameError('Lá này không thể đánh riêng', 'INVALID_CARD');
   }
 
-  if (![CARD.skip, CARD.attack, CARD.shuffle, CARD.peek, CARD.favor].includes(card)) {
+  if (!NOPEABLE_SINGLE_CARDS.includes(card)) {
     throw new GameError('Hành động không hợp lệ', 'INVALID_ACTION');
   }
 
@@ -468,70 +762,24 @@ export function applyAction(state, playerId, action, rng = Math.random) {
   }
 
   if (card === CARD.favor) {
-    const targetId = action.target;
-    if (!targetId || targetId === playerId) {
-      throw new GameError('Mục tiêu không hợp lệ', 'INVALID_TARGET');
-    }
-    const targetPlayer = next.players.find(p => p.id === targetId);
-    if (!targetPlayer || !targetPlayer.alive) {
-      throw new GameError('Mục tiêu không hợp lệ', 'INVALID_TARGET');
-    }
-
-    current.hand.splice(cardIdx, 1);
-    next.discardPile.push(CARD.favor);
-    next.log.push({ type: 'favor', actor: playerId, target: targetId });
-
-    if (targetPlayer.hand.length > 0) {
-      const stealIdx = Math.floor(rng() * targetPlayer.hand.length);
-      const [stolen] = targetPlayer.hand.splice(stealIdx, 1);
-      current.hand.push(stolen);
-    }
-
-    next.version += 1;
-    return next;
+    validateTarget(next.players, playerId, action.target);
   }
 
   current.hand.splice(cardIdx, 1);
   next.discardPile.push(card);
 
-  if (card === CARD.skip) {
-    next.log.push({ type: 'skip', actor: playerId });
-    next.turnsLeft -= 1;
-    if (next.turnsLeft <= 0) {
-      next.currentPlayerId = getNextLivingPlayerId(next.players, playerId);
-      next.turnsLeft = 1;
-    }
-    next.version += 1;
-    return next;
-  }
-
-  if (card === CARD.attack) {
-    const nextPlayerId = getNextLivingPlayerId(next.players, playerId);
-    next.log.push({ type: 'attack', actor: playerId, target: nextPlayerId });
-    next.currentPlayerId = nextPlayerId;
-    next.turnsLeft = 2 + (next.turnsLeft - 1);
-    next.version += 1;
-    return next;
-  }
-
-  if (card === CARD.shuffle) {
-    next.log.push({ type: 'shuffle', actor: playerId });
-    next.deck = shuffle(next.deck, rng);
-    next.version += 1;
-    return next;
-  }
-
-  if (card === CARD.peek) {
-    next.log.push({ type: 'peek', actor: playerId });
-    next.peek = {
-      playerId,
-      cards: next.deck.slice(0, 3),
-    };
-    next.version += 1;
-    return next;
-  }
-
-  throw new GameError('Hành động không hợp lệ', 'INVALID_ACTION');
+  next.phase = 'nope';
+  next.pendingAction = {
+    type: 'play',
+    card,
+    actor: playerId,
+    target: card === CARD.favor ? action.target : null,
+    nopeCount: 0,
+    lastActorId: playerId,
+    passedIds: [],
+  };
+  next.version += 1;
+  return next;
 }
 
 /**
@@ -565,12 +813,26 @@ export function viewFor(state, playerId) {
       ? [...state.peek.cards]
       : null;
 
+  const pendingActionView = state.pendingAction
+    ? {
+        type: state.pendingAction.type,
+        card: state.pendingAction.card,
+        actor: state.pendingAction.actor,
+        target: state.pendingAction.target ?? null,
+        nopeCount: state.pendingAction.nopeCount,
+        lastActorId: state.pendingAction.lastActorId,
+        passedIds: [...(state.pendingAction.passedIds ?? [])],
+      }
+    : null;
+
   return {
     version: state.version,
     phase: state.phase,
     currentPlayerId: state.currentPlayerId,
     turnsLeft: state.turnsLeft,
+    direction: state.direction ?? 1,
     pendingDefuseId: state.pendingDefuseId,
+    pendingAction: pendingActionView,
     winnerId: state.winnerId,
     deckCount: state.deck.length,
     discardCount: state.discardPile.length,

@@ -1,4 +1,27 @@
-/* PeekPanel.css - Vertical top-to-bottom card preview for Peek action */
+/* PeekPanel.css - Modal dialog showing top 3 cards left-to-right (1, 2, 3) for 5s */
+
+.peek-panel-backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(15, 23, 32, 0.68);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  z-index: 1050;
+  animation: peek-backdrop-in 0.2s ease-out;
+}
+
+@keyframes peek-backdrop-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
 
 .peek-panel {
   display: flex;
@@ -6,131 +29,257 @@
   background-color: #2e3a4b;
   color: #f6efe2;
   border: 2px solid #3498db;
-  border-radius: 12px;
-  padding: 14px 16px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), 0 0 12px rgba(52, 152, 219, 0.3);
+  border-radius: 16px;
+  padding: 16px 20px 20px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5), 0 0 18px rgba(52, 152, 219, 0.35);
   box-sizing: border-box;
   width: 100%;
-  max-width: 360px;
-  animation: peek-panel-slide-in 0.25s ease-out;
+  max-width: 580px;
+  max-height: 92dvh;
+  overflow-y: auto;
+  animation: peek-panel-slide-in 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 @keyframes peek-panel-slide-in {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(10px) scale(0.96);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
   }
 }
 
 .peek-panel__header {
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+  padding-bottom: 12px;
+}
+
+.peek-panel__header-left {
+  display: flex;
+  align-items: center;
   gap: 10px;
-  margin-bottom: 12px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
-  padding-bottom: 10px;
+  min-width: 0;
 }
 
 .peek-panel__header-icon {
-  font-size: 1.5rem;
-  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #63b3ed;
+  flex-shrink: 0;
 }
 
 .peek-panel__header-text {
   display: flex;
   flex-direction: column;
   gap: 2px;
+  min-width: 0;
 }
 
 .peek-panel__title {
   margin: 0;
-  font-size: 1.05rem;
+  font-size: 1.08rem;
   font-weight: 700;
   color: #ffffff;
 }
 
 .peek-panel__subtitle {
   margin: 0;
-  font-size: 0.8rem;
-  color: #bdc3c7;
-  line-height: 1.2;
+  font-size: 0.82rem;
+  color: #cbd5e1;
+  line-height: 1.25;
 }
 
+.peek-panel__header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.peek-panel__timer {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 11px;
+  border-radius: 9999px;
+  background-color: rgba(52, 152, 219, 0.22);
+  border: 1px solid rgba(99, 179, 237, 0.55);
+  color: #ffffff;
+  font-size: 0.85rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.peek-panel__close-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background-color: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.peek-panel__close-btn:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.peek-panel__close-btn:focus-visible {
+  outline: 2px solid #fbbf24;
+  outline-offset: 2px;
+}
+
+/* Horizontal Left-to-Right Grid (1, 2, 3) */
 .peek-panel__cards-list {
   list-style: none;
   margin: 0;
   padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  align-items: stretch;
 }
 
 .peek-panel__item {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
 }
 
 .peek-panel__position-badge {
-  display: flex;
+  display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
-  font-size: 0.75rem;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  background-color: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  font-size: 0.76rem;
   font-weight: 700;
-  color: #ecf0f1;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  color: #f8fafc;
+  white-space: nowrap;
+  max-width: 100%;
 }
 
-.peek-panel__position-dot {
-  width: 8px;
-  height: 8px;
+.peek-panel__position-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
-  display: inline-block;
-  box-shadow: 0 0 4px rgba(255, 255, 255, 0.4);
+  background-color: #1d6fa5;
+  color: #ffffff;
+  font-size: 0.75rem;
+  font-weight: 800;
+  flex-shrink: 0;
 }
 
 .peek-panel__position-text {
-  line-height: 1;
+  line-height: 1.1;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .peek-panel__card-content {
+  width: 100%;
+  max-width: 158px;
+  display: flex;
+  justify-content: center;
+}
+
+.peek-panel__card-content .card {
   width: 100%;
 }
 
 /* Fallback card preview styling */
 .peek-panel__fallback-card {
+  width: 100%;
   display: flex;
   align-items: center;
-  gap: 10px;
+  justify-content: center;
+  gap: 8px;
   background-color: #f6efe2;
   color: #2b2326;
   border: 1px solid #d1c5b8;
   border-left-width: 6px;
-  border-radius: 6px;
-  padding: 8px 12px;
-  min-height: 44px;
+  border-radius: 8px;
+  padding: 10px 8px;
+  min-height: 64px;
   box-sizing: border-box;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  text-align: center;
 }
 
 .peek-panel__fallback-icon {
-  font-size: 1.3rem;
+  display: inline-flex;
   line-height: 1;
 }
 
 .peek-panel__fallback-name {
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   font-weight: 700;
+}
+
+@media (max-width: 520px) {
+  .peek-panel {
+    padding: 12px 12px 16px;
+  }
+
+  .peek-panel__cards-list {
+    gap: 8px;
+  }
+
+  .peek-panel__position-badge {
+    padding: 3px 6px;
+    font-size: 0.68rem;
+    gap: 4px;
+  }
+
+  .peek-panel__position-number {
+    width: 18px;
+    height: 18px;
+    font-size: 0.7rem;
+  }
+}
+
+@media (max-height: 500px) and (orientation: landscape) {
+  .peek-panel {
+    padding: 10px 16px 12px;
+    max-width: 500px;
+  }
+
+  .peek-panel__header {
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+  }
+
+  .peek-panel__card-content {
+    max-width: 108px;
+  }
 }
 
 /* Reduced motion preference */
 @media (prefers-reduced-motion: reduce) {
-  .peek-panel {
+  .peek-panel,
+  .peek-panel-backdrop {
     animation: none !important;
   }
 }

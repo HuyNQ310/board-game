@@ -22,6 +22,7 @@
  */
 
 import { useState, useRef, useEffect } from 'react';
+import { MessageCircle, X, User, Send } from 'lucide-react';
 import './Chat.css';
 
 /**
@@ -177,7 +178,9 @@ export function Chat({ messages = [], myPlayerId, onSend, t = {} }) {
         aria-label={getToggleAriaLabel()}
         aria-expanded={false}
       >
-        <span className="chat-toggle-icon" aria-hidden="true">💬</span>
+        <span className="chat-toggle-icon" aria-hidden="true">
+          <MessageCircle size={18} aria-hidden="true" />
+        </span>
         {unreadCount > 0 && (
           <span className="chat-unread-badge" data-testid="chat-unread-badge" aria-hidden="true">
             {unreadCount > 99 ? '99+' : unreadCount}
@@ -196,7 +199,9 @@ export function Chat({ messages = [], myPlayerId, onSend, t = {} }) {
     >
       <div className="chat-panel__header">
         <div className="chat-panel__header-title-group">
-          <span className="chat-panel__header-icon" aria-hidden="true">💬</span>
+          <span className="chat-panel__header-icon" aria-hidden="true">
+            <MessageCircle size={18} aria-hidden="true" />
+          </span>
           <h3 className="chat-panel__title" data-testid="chat-title">{title}</h3>
         </div>
         <button
@@ -207,7 +212,9 @@ export function Chat({ messages = [], myPlayerId, onSend, t = {} }) {
           aria-label={closeButtonAriaLabel}
           title={closeButtonAriaLabel}
         >
-          <span aria-hidden="true">✕</span>
+          <span aria-hidden="true">
+            <X size={18} aria-hidden="true" />
+          </span>
         </button>
       </div>
 
@@ -241,7 +248,7 @@ export function Chat({ messages = [], myPlayerId, onSend, t = {} }) {
                   <span className="chat-message__author">
                     {isSelf && (
                       <span className="chat-message__self-icon" aria-hidden="true">
-                        👤{' '}
+                        <User size={13} aria-hidden="true" />
                       </span>
                     )}
                     {authorName}
@@ -284,7 +291,9 @@ export function Chat({ messages = [], myPlayerId, onSend, t = {} }) {
           disabled={!inputText.trim()}
           aria-label={sendButtonText}
         >
-          <span className="chat-panel__send-icon" aria-hidden="true">➤</span>
+          <span className="chat-panel__send-icon" aria-hidden="true">
+            <Send size={16} aria-hidden="true" />
+          </span>
           <span className="chat-panel__send-label">{sendButtonText}</span>
         </button>
       </form>

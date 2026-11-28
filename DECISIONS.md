@@ -35,3 +35,12 @@
     adds a dedicated test asserting correct hand/deck composition for n=7..10.
   - `rules.md` sections 1, 4.2, and 6.2 updated to reflect the new cap and
     the scaling rule.
+
+## DEC-003: Add `lucide-react` for UI Iconography
+
+- **Date**: 2026-11-28
+- **Status**: Accepted (explicit request from project owner)
+- **Context**: Replacing raw Unicode emojis across buttons, badges, dialogs, and headers with consistent, cross-platform vector icons.
+- **Decision**:
+  - Installed `lucide-react` in `client/` workspace.
+  - Inline SVG flags (`FlagVN` / `FlagUS` in `client/src/components/FlagIcon.jsx`) are used for the `VI` / `EN` language toggle so flags render reliably on Windows as well as macOS/mobile.

@@ -1,3 +1,4 @@
+import { RotateCw, RotateCcw } from 'lucide-react';
 import './SeatRing.css';
 
 /**
@@ -18,7 +19,7 @@ import './SeatRing.css';
  *   evenly by physical distance along the table perimeter, preventing crowded
  *   shoulders or overlapping seats even at maximum capacity (10 players).
  */
-function getArcAngles(count, rx = 39, ry = 34) {
+function getArcAngles(count, rx = 42, ry = 37) {
   if (count <= 0) return [];
   if (count === 1) return [270];
 
@@ -73,18 +74,18 @@ function getArcAngles(count, rx = 39, ry = 34) {
 /**
  * Computes (x%, y%) coordinates on an ellipse for each opponent seat.
  * Center is (cx, cy) and radii are (rx, ry) in container percentages.
- * - If self seat exists: cy=46% (slightly above vertical center), leaving bottom clear for self.
+ * - If self seat exists: cy=47% (slightly above vertical center), leaving bottom clear for self.
  * - If spectator (no self seat): distributes all seats around full 360° oval.
  */
 function computeSeatPositions(opponentsCount, hasSelf = true) {
   const cx = 50;
-  const cy = hasSelf ? 46 : 50;
-  const rx = 39;
-  const ry = hasSelf ? 34 : 39;
+  const cy = hasSelf ? 48 : 50;
+  const rx = 46;
+  const ry = hasSelf ? 43 : 44;
 
   if (!hasSelf) {
     if (opponentsCount <= 0) return [];
-    if (opponentsCount === 1) return [{ x: 50, y: 15, angle: 270 }];
+    if (opponentsCount === 1) return [{ x: 50, y: 8, angle: 270 }];
     const step = 360 / opponentsCount;
     return Array.from({ length: opponentsCount }, (_, i) => {
       const deg = 270 + i * step;
@@ -113,8 +114,22 @@ export function SeatRing({
   myPlayerId,
   currentPlayerId,
   centerContent = null,
+  direction,
+  t = {},
+  tableTheme = 'pastel-green',
+  chatBubbles = {},
 }) {
   const safePlayers = Array.isArray(players) ? players : [];
+  const hasDirection = direction === 1 || direction === -1;
+  const rawDirectionLabel =
+    direction === 1
+      ? t?.directionCw || 'Thuận chiều'
+      : direction === -1
+        ? t?.directionCcw || 'Ngược chiều'
+        : null;
+  const directionLabel = rawDirectionLabel
+    ? rawDirectionLabel.replace(/^[↻↺]\s*/, '')
+    : null;
 
   const selfPlayer = safePlayers.find((p) => p && p.id === myPlayerId);
   const opponents = safePlayers.filter((p) => p && p.id !== myPlayerId);
@@ -123,6 +138,15 @@ export function SeatRing({
   const opponentPositions = computeSeatPositions(opponents.length, hasSelf);
 
   const isDense = safePlayers.length >= 7;
+
+  const youTag = t?.seat?.youTag || t?.youTag || '(Bạn)';
+  const turnLabel = t?.seat?.turn || t?.turn || 'Đến lượt';
+  const eliminatedLabel = t?.seat?.eliminated || t?.eliminated || 'Đã bị loại';
+  const offlineLabel = t?.seat?.offline || t?.offline || 'Offline';
+  const cardsCountFn = t?.seat?.cardsCount || t?.cardsCount;
+  const formatCardsCount = (count) =>
+    typeof cardsCountFn === 'function' ? cardsCountFn(count) : `${count} lá`;
+  const seatRingAriaLabel = t?.seatRingAriaLabel || t?.seat?.ringAriaLabel || 'Ghế người chơi';
 
   const renderSeat = (player, isSelf = false, position = null) => {
     if (!player) return null;
@@ -151,41 +175,53 @@ export function SeatRing({
         }
       : undefined;
 
+    const bubble = chatBubbles?.[player.id];
+
     return (
       <div
         key={player.id}
         className={seatClasses}
         data-player-id={player.id}
         data-testid={`seat-${player.id}`}
-        aria-label={`${player.name}${isSelf ? ' (Bạn)' : ''}`}
+        aria-label={`${player.name}${isSelf ? ` ${youTag}` : ''}`}
         style={seatStyle}
       >
+        {bubble?.text && (
+          <div
+            className="seat-ring__chat-bubble"
+            data-testid={`chat-bubble-${player.id}`}
+            role="status"
+            aria-live="polite"
+          >
+            {bubble.text}
+          </div>
+        )}
         <div className="seat-ring__avatar" aria-hidden="true">
           {initial}
         </div>
         <div className="seat-ring__details">
           <div className="seat-ring__name" title={player.name}>
             {player.name}
-            {isSelf && <span className="seat-ring__self-tag"> (Bạn)</span>}
+            {isSelf && <span className="seat-ring__self-tag"> {youTag}</span>}
           </div>
           <div className="seat-ring__hand-count">
-            {player.handCount ?? 0} lá
+            {formatCardsCount(player.handCount ?? 0)}
           </div>
         </div>
         <div className="seat-ring__badges">
           {isCurrent && (
             <span className="seat-ring__badge seat-ring__badge--current">
-              Đến lượt
+              {turnLabel}
             </span>
           )}
           {!isAlive && (
             <span className="seat-ring__badge seat-ring__badge--eliminated">
-              Đã bị loại
+              {eliminatedLabel}
             </span>
           )}
           {!isConnected && (
             <span className="seat-ring__badge seat-ring__badge--offline">
-              Offline
+              {offlineLabel}
             </span>
           )}
         </div>
@@ -204,14 +240,34 @@ export function SeatRing({
     <div
       className={rootClasses}
       data-testid="seat-ring"
+      data-table-theme={tableTheme}
       role="region"
-      aria-label="Ghế người chơi"
+      aria-label={seatRingAriaLabel}
       style={{ '--seat-count': safePlayers.length }}
     >
       <div className="seat-ring__table">
-        <div className="seat-ring__felt" aria-hidden={centerContent ? undefined : 'true'}>
-          {centerContent && (
+        <div className="seat-ring__felt" aria-hidden={centerContent || hasDirection ? undefined : 'true'}>
+          {(centerContent || hasDirection) && (
             <div className="seat-ring__center" data-testid="seat-ring-center">
+              {hasDirection && (
+                <div
+                  className={`seat-ring__direction-badge ${
+                    direction === -1
+                      ? 'seat-ring__direction-badge--ccw'
+                      : 'seat-ring__direction-badge--cw'
+                  }`}
+                  data-testid="seat-ring-direction"
+                  aria-label={directionLabel}
+                  style={{ gap: '4px' }}
+                >
+                  {direction === -1 ? (
+                    <RotateCcw size={13} aria-hidden="true" />
+                  ) : (
+                    <RotateCw size={13} aria-hidden="true" />
+                  )}
+                  <span>{directionLabel}</span>
+                </div>
+              )}
               {centerContent}
             </div>
           )}

@@ -12,19 +12,21 @@
  * - t.leaveButton: Text for leave room button (fallback: "Rời phòng")
  * - t.waitingForRematchMessage: Notice for non-host players (fallback: "Đang chờ chủ phòng chơi lại")
  */
+import { Crown, Handshake } from 'lucide-react';
 import './GameOver.css';
 
 export default function GameOver({
   t = {},
   winnerName,
   isHost = false,
+  tableTheme = 'pastel-green',
   onRematch,
   onLeave,
 }) {
   const hasWinner = Boolean(winnerName && String(winnerName).trim());
 
   return (
-    <div className="gameover-container">
+    <div className="gameover-container" data-table-theme={tableTheme}>
       <div className="gameover-card">
         <h1 className="gameover-title">
           {t?.gameOverTitle || t?.gameOverMessage || 'Kết thúc ván'}
@@ -34,7 +36,7 @@ export default function GameOver({
           {hasWinner ? (
             <div className="gameover-winner-badge">
               <span className="gameover-winner-icon" aria-hidden="true">
-                👑
+                <Crown size={32} strokeWidth={2.2} aria-hidden="true" />
               </span>
               {t?.winnerMessage ? (
                 <span className="gameover-winner-label">{t.winnerMessage}</span>
@@ -44,7 +46,7 @@ export default function GameOver({
           ) : (
             <div className="gameover-draw-badge">
               <span className="gameover-draw-icon" aria-hidden="true">
-                🤝
+                <Handshake size={32} strokeWidth={2} aria-hidden="true" />
               </span>
               <div className="gameover-draw-message">
                 {t?.noWinnerMessage || 'Không ai thắng'}

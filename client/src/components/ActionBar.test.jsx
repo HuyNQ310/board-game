@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, it, expect, vi, afterEach } from 'vitest';
+import { render, screen, fireEvent, act } from '@testing-library/react';
+import * as soundModule from '../utils/sound.js';
 import ActionBar from './ActionBar.jsx';
 
 describe('ActionBar', () => {
@@ -59,6 +60,8 @@ describe('ActionBar', () => {
       expect(container.querySelector('.action-bar__btn--cat-pair')).toBeNull();
       expect(container.querySelector('.action-bar__btn--peek')).toBeNull();
       expect(container.querySelector('.action-bar__btn--shuffle')).toBeNull();
+      expect(container.querySelector('.action-bar__btn--reverse')).toBeNull();
+      expect(container.querySelector('.action-bar__nope-row')).toBeNull();
     });
 
     it('renders skip button only when canSkip is true and triggers onSkip', () => {
@@ -139,6 +142,20 @@ describe('ActionBar', () => {
       expect(onShuffle).toHaveBeenCalledTimes(1);
     });
 
+    it('renders reverse button only when canReverse is true and triggers onReverse', () => {
+      const onReverse = vi.fn();
+      const { rerender } = render(<ActionBar canReverse={false} onReverse={onReverse} />);
+      expect(screen.queryByRole('button', { name: /đảo chiều/i })).toBeNull();
+
+      rerender(<ActionBar canReverse={true} onReverse={onReverse} />);
+      const reverseButton = screen.getByRole('button', { name: /đảo chiều/i });
+      expect(reverseButton).toBeDefined();
+      expect(reverseButton).toHaveClass('action-bar__btn--reverse');
+
+      fireEvent.click(reverseButton);
+      expect(onReverse).toHaveBeenCalledTimes(1);
+    });
+
     it('renders multiple action buttons simultaneously when their respective flags are true', () => {
       render(
         <ActionBar
@@ -190,6 +207,161 @@ describe('ActionBar', () => {
       expect(screen.getByRole('toolbar', { name: 'Bảng nút lệnh' })).toBeDefined();
       expect(screen.getByRole('button', { name: 'Rút ngay' })).toBeDefined();
       expect(screen.getByRole('button', { name: 'Nhường' })).toBeDefined();
+    });
+  });
+
+  describe('Nope reaction phase', () => {
+    it('does not render nope row when isNopePhase is false', () => {
+      const { container } = render(
+        <ActionBar
+          isNopePhase={false}
+          canNope={true}
+          canPassNope={true}
+          nopePromptText="Có ai muốn KHÔNG không?"
+        />
+      );
+      expect(container.querySelector('.action-bar__nope-row')).toBeNull();
+      expect(screen.queryByRole('button', { name: /không!/i })).toBeNull();
+      expect(screen.queryByRole('button', { name: /cho qua/i })).toBeNull();
+    });
+
+    it('renders nope prompt, nope button, and pass button when isNopePhase is true', () => {
+      const onNope = vi.fn();
+      const onPassNope = vi.fn();
+      const { container } = render(
+        <ActionBar
+          isNopePhase={true}
+          canNope={true}
+          onNope={onNope}
+          canPassNope={true}
+          onPassNope={onPassNope}
+          nopePromptText="Alice vừa đánh Truy Đuổi!"
+        />
+      );
+
+      expect(container.querySelector('.action-bar__nope-row')).not.toBeNull();
+      expect(screen.getByText('Alice vừa đánh Truy Đuổi!')).toBeDefined();
+
+      const nopeBtn = screen.getByRole('button', { name: /không!/i });
+      expect(nopeBtn).toHaveClass('action-bar__btn--nope');
+      expect(nopeBtn.disabled).toBe(false);
+      fireEvent.click(nopeBtn);
+      expect(onNope).toHaveBeenCalledTimes(1);
+
+      const passBtn = screen.getByRole('button', { name: /cho qua/i });
+      expect(passBtn).toHaveClass('action-bar__btn--pass-nope');
+      fireEvent.click(passBtn);
+      expect(onPassNope).toHaveBeenCalledTimes(1);
+    });
+
+    it('disables nope button when canNope is false and hides pass button when canPassNope is false', () => {
+      const onNope = vi.fn();
+      render(
+        <ActionBar
+          isNopePhase={true}
+          canNope={false}
+          onNope={onNope}
+          canPassNope={false}
+        />
+      );
+
+      const nopeBtn = screen.getByRole('button', { name: /không!/i });
+      expect(nopeBtn.disabled).toBe(true);
+      fireEvent.click(nopeBtn);
+      expect(onNope).not.toHaveBeenCalled();
+
+      expect(screen.queryByRole('button', { name: /cho qua/i })).toBeNull();
+    });
+
+    it('uses custom translations for reverse, nope, and passNope', () => {
+      render(
+        <ActionBar
+          canReverse={true}
+          isNopePhase={true}
+          canNope={true}
+          canPassNope={true}
+          t={{
+            reverse: 'Quay xe',
+            nope: 'Chặn ngay',
+            passNope: 'Bỏ qua chặn',
+          }}
+        />
+      );
+
+      expect(screen.getByRole('button', { name: 'Quay xe' })).toBeDefined();
+      expect(screen.getByRole('button', { name: 'Chặn ngay' })).toBeDefined();
+      expect(screen.getByRole('button', { name: 'Bỏ qua chặn' })).toBeDefined();
+    });
+  });
+
+  describe('Countdown 5s sound effect', () => {
+    afterEach(() => {
+      vi.useRealTimers();
+      vi.restoreAllMocks();
+    });
+
+    it('plays a beep once per second from 5s down to 1s, not above 5s', () => {
+      vi.useFakeTimers();
+      const baseNow = new Date('2026-11-28T12:00:00Z').getTime();
+      vi.setSystemTime(baseNow);
+      const beepSpy = vi.spyOn(soundModule, 'playCountdownBeep').mockImplementation(() => {});
+
+      render(<ActionBar canDraw={true} turnDeadline={baseNow + 7000} />);
+      expect(beepSpy).not.toHaveBeenCalled();
+
+      act(() => { vi.advanceTimersByTime(1000); }); // 6s
+      expect(beepSpy).not.toHaveBeenCalled();
+
+      act(() => { vi.advanceTimersByTime(1000); }); // 5s
+      expect(beepSpy).toHaveBeenCalledTimes(1);
+      expect(beepSpy).toHaveBeenLastCalledWith(5);
+
+      act(() => { vi.advanceTimersByTime(1000); }); // 4s
+      act(() => { vi.advanceTimersByTime(1000); }); // 3s
+      act(() => { vi.advanceTimersByTime(1000); }); // 2s
+      act(() => { vi.advanceTimersByTime(1000); }); // 1s
+      expect(beepSpy.mock.calls.map((c) => c[0])).toEqual([5, 4, 3, 2, 1]);
+
+      act(() => { vi.advanceTimersByTime(1000); }); // 0s
+      expect(beepSpy).toHaveBeenCalledTimes(5);
+    });
+
+    it('ticks steadily without skipping seconds even when deadline has sub-second offset', () => {
+      vi.useFakeTimers();
+      const baseNow = new Date('2026-11-28T12:00:00Z').getTime();
+      vi.setSystemTime(baseNow);
+
+      render(<ActionBar canDraw={true} turnDeadline={baseNow + 9995} />);
+      expect(screen.getByTestId('turn-countdown')).toHaveTextContent('Còn 10 giây');
+
+      for (let expected = 9; expected >= 0; expected--) {
+        act(() => {
+          vi.advanceTimersByTime(1000);
+        });
+        expect(screen.getByTestId('turn-countdown')).toHaveTextContent(
+          `Còn ${expected} giây`
+        );
+      }
+    });
+  });
+
+  describe('Contextual Play Selected button', () => {
+    it('renders and triggers onPlaySelected when playSelectedLabel/canPlaySelected are set', () => {
+      const onPlaySelected = vi.fn();
+      render(
+        <ActionBar
+          canDraw={true}
+          canPlaySelected={true}
+          onPlaySelected={onPlaySelected}
+          playSelectedLabel="Đánh Mắt Thần"
+        />
+      );
+
+      const playBtn = screen.getByTestId('play-selected-btn');
+      expect(playBtn).toHaveTextContent('Đánh Mắt Thần');
+      expect(playBtn.disabled).toBe(false);
+      fireEvent.click(playBtn);
+      expect(onPlaySelected).toHaveBeenCalledTimes(1);
     });
   });
 });

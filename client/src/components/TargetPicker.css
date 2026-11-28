@@ -57,7 +57,11 @@
 }
 
 .target-picker-header__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   font-size: 1.3rem;
+  color: #fbbf24;
 }
 
 .target-picker-header__title {
@@ -71,7 +75,7 @@
   margin: 0;
   padding: 0 20px 12px 20px;
   font-size: 0.85rem;
-  color: #c0c6ce;
+  color: #d8dee6;
   line-height: 1.4;
 }
 
@@ -127,7 +131,17 @@
 }
 
 .target-picker-item__avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   font-size: 1.1rem;
+  color: #e2e8f0;
+}
+
+.target-picker-item__btn:disabled {
+  background-color: #344154;
+  color: #cbd5e1;
+  border-color: rgba(255, 255, 255, 0.1);
 }
 
 .target-picker-item__name {
@@ -140,7 +154,7 @@
 .target-picker-empty {
   margin: 16px 0;
   font-size: 0.85rem;
-  color: #a0a8b2;
+  color: #cbd5e1;
   text-align: center;
   font-style: italic;
 }
@@ -149,7 +163,7 @@
   display: flex;
   justify-content: flex-end;
   padding: 12px 20px 16px 20px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
   background-color: rgba(0, 0, 0, 0.15);
 }
 
@@ -162,9 +176,9 @@
   min-height: 44px;
   padding: 8px 16px;
   border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  background-color: transparent;
-  color: #c0c6ce;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  background-color: rgba(255, 255, 255, 0.06);
+  color: #e2e8f0;
   font-family: inherit;
   font-size: 0.9rem;
   font-weight: 600;

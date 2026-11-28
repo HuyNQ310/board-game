@@ -3,6 +3,9 @@ import './DiscardPile.css';
 export function DiscardPile({ discardCount = 0, discardTop = null, renderCard, t }) {
   const count = Number.isFinite(discardCount) ? discardCount : 0;
   const pileLabel = (t && t.discardPile) ? t.discardPile : 'Bài đã đánh';
+  const countText =
+    typeof t?.discardCount === 'function' ? t.discardCount(count) : `${count} lá`;
+  const emptyText = t?.discardEmpty || 'Trống';
 
   const cardLabel = (t && t.cardNames && t.cardNames[discardTop])
     ? t.cardNames[discardTop]
@@ -38,20 +41,20 @@ export function DiscardPile({ discardCount = 0, discardTop = null, renderCard, t
       className="discard-pile"
       data-testid="discard-pile"
       role="region"
-      aria-label={`${pileLabel}: ${count} lá`}
+      aria-label={`${pileLabel}: ${countText}`}
     >
       <div className="discard-pile__slot">
         {topCardNode ? (
           <div className="discard-pile__top-wrapper">{topCardNode}</div>
         ) : (
           <div className="discard-pile__empty">
-            <span className="discard-pile__empty-text">Trống</span>
+            <span className="discard-pile__empty-text">{emptyText}</span>
           </div>
         )}
       </div>
       <div className="discard-pile__info">
         <div className="discard-pile__label">{pileLabel}</div>
-        <div className="discard-pile__count">{count} lá</div>
+        <div className="discard-pile__count">{countText}</div>
       </div>
     </div>
   );

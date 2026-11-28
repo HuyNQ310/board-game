@@ -96,10 +96,18 @@ export function reducer(state = initialState, action) {
       } else if (roomState.status === 'finished') {
         screen = 'gameOver';
       }
+      const roomChanged = Boolean(
+        roomState?.code &&
+          state.roomState?.code &&
+          roomState.code !== state.roomState.code
+      );
+      const shouldResetGame =
+        !roomState || roomState.status === 'lobby' || roomChanged;
       return {
         ...state,
         roomState,
         screen,
+        gameState: shouldResetGame ? null : state.gameState,
       };
     }
 

@@ -1,3 +1,4 @@
+import { Check, X } from 'lucide-react';
 import './Card.css';
 import {
   CARD_COLORS,
@@ -6,6 +7,7 @@ import {
   GROUP_SHAPES,
   CardBackPattern,
 } from '../assets/cards/icons.jsx';
+import { getCardImage, PEEK_ILLUSTRATION } from '../assets/cards/images.js';
 
 /**
  * Card Component
@@ -13,9 +15,11 @@ import {
  * Implements authoritative visual design from card.md & rules.md.
  *
  * Props:
- * @param {'boom'|'defuse'|'attack'|'skip'|'shuffle'|'favor'|'peek'|'cat'} type - Internal card engine type
+ * @param {'boom'|'defuse'|'attack'|'skip'|'reverse'|'shuffle'|'favor'|'peek'|'nope'|'cat'|'taco'|'potato'} type - Internal card engine type
  * @param {string} [label] - Translated card display name (e.g. "Mèo Bùm" or "Boom Cat")
  * @param {string} [ruleText] - Translated short rule text (max ~2 lines)
+ * @param {string} [locale='vi'] - Card art locale ('vi' or 'en')
+ * @param {'deck1'|'deck2'|'deck3'} [cardTheme='deck1'] - Visual card deck theme
  * @param {boolean} [faceDown=false] - Whether card is shown face down (card back)
  * @param {boolean} [selected=false] - Whether card is currently selected
  * @param {boolean} [disabled=false] - Whether card is disabled/unplayable (dims card per rules.md 8.2)
@@ -26,6 +30,8 @@ export function Card({
   type,
   label = '',
   ruleText = '',
+  locale = 'vi',
+  cardTheme = 'deck1',
   faceDown = false,
   selected = false,
   disabled = false,
@@ -34,6 +40,9 @@ export function Card({
   ...rest
 }) {
   const isInteractive = Boolean(onClick) && !disabled;
+  const usePhotoArt = !faceDown && cardTheme === 'deck1';
+  const cardImageSrc = usePhotoArt ? getCardImage(type, locale) : null;
+  const isImageCard = Boolean(cardImageSrc);
 
   const handleClick = (e) => {
     if (disabled) return;
@@ -52,8 +61,10 @@ export function Card({
 
   const cardClasses = [
     'card',
-    type ? `card--${type}` : '',
+    !faceDown && type ? `card--${type}` : '',
     faceDown ? 'card--face-down' : 'card--face-up',
+    !faceDown && cardTheme ? `card--theme-${cardTheme}` : '',
+    isImageCard ? 'card--image' : '',
     selected ? 'card--selected' : '',
     disabled ? 'card--disabled' : '',
     isInteractive ? 'card--interactive' : '',
@@ -65,35 +76,14 @@ export function Card({
   // Selection badge for multi-modal accessibility (conveys selection via icon + border, not color alone)
   const selectedBadge = selected ? (
     <div className="card__selected-badge" aria-hidden="true">
-      <svg
-        viewBox="0 0 16 16"
-        width="12"
-        height="12"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="3"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        <polyline points="3 8.5 6.5 12 13 4" />
-      </svg>
+      <Check size={12} strokeWidth={3} aria-hidden="true" />
     </div>
   ) : null;
 
   // Disabled badge for accessibility (icon indicator)
   const disabledBadge = disabled ? (
     <div className="card__disabled-badge" aria-hidden="true">
-      <svg
-        viewBox="0 0 16 16"
-        width="12"
-        height="12"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2.5"
-        strokeLinecap="round"
-      >
-        <line x1="4" y1="4" x2="12" y2="12" />
-      </svg>
+      <X size={12} strokeWidth={2.5} aria-hidden="true" />
     </div>
   ) : null;
 
@@ -121,18 +111,45 @@ export function Card({
   }
 
   // Face-up mode
+  const accessibleLabel = `${label || type}${ruleText ? `: ${ruleText}` : ''}${
+    selected ? ' (selected)' : ''
+  }${disabled ? ' (disabled)' : ''}`;
+
+  if (cardImageSrc) {
+    return (
+      <div
+        className={cardClasses}
+        data-card-theme={cardTheme}
+        onClick={handleClick}
+        onKeyDown={handleKeyDown}
+        role={onClick ? 'button' : undefined}
+        tabIndex={disabled ? -1 : (onClick ? 0 : undefined)}
+        aria-label={accessibleLabel}
+        aria-selected={selected ? 'true' : undefined}
+        aria-disabled={disabled ? 'true' : undefined}
+        {...rest}
+      >
+        <img
+          src={cardImageSrc}
+          alt=""
+          className="card__art-img"
+          draggable={false}
+        />
+        {selectedBadge}
+        {disabledBadge}
+      </div>
+    );
+  }
+
   const stripColor = CARD_COLORS[type] || '#2B2326';
   const shapeName = GROUP_SHAPES[type] || 'shape';
   const GroupIcon = GROUP_ICONS[type];
   const Illustration = CARD_ILLUSTRATIONS[type];
 
-  const accessibleLabel = `${label || type}${ruleText ? `: ${ruleText}` : ''}${
-    selected ? ' (selected)' : ''
-  }${disabled ? ' (disabled)' : ''}`;
-
   return (
     <div
       className={cardClasses}
+      data-card-theme={cardTheme}
       style={{ '--card-strip-color': stripColor }}
       onClick={handleClick}
       onKeyDown={handleKeyDown}
@@ -167,7 +184,16 @@ export function Card({
       {/* 2. Illustration area: ~55% height, rounded-corner inner frame */}
       <div className="card__illustration-area">
         <div className="card__illustration-frame">
-          {Illustration && <Illustration className="card__illustration-svg" />}
+          {cardTheme === 'deck1' && type === 'peek' && PEEK_ILLUSTRATION ? (
+            <img
+              src={PEEK_ILLUSTRATION}
+              alt=""
+              className="card__illustration-img"
+              draggable={false}
+            />
+          ) : (
+            Illustration && <Illustration className="card__illustration-svg" />
+          )}
         </div>
       </div>
 

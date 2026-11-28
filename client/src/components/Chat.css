@@ -179,7 +179,7 @@
 }
 
 .chat-panel__close-btn:hover {
-  background-color: rgba(0, 0, 0, 0.08);
+  background-color: var(--color-secondary-hover, rgba(0, 0, 0, 0.08));
   color: var(--color-text, #2b2326);
 }
 
@@ -331,12 +331,12 @@
 
 .chat-panel__input:focus-visible {
   border-color: var(--color-focus, #2e3a4b);
-  box-shadow: 0 0 0 2px rgba(46, 58, 75, 0.25);
+  box-shadow: 0 0 0 2px var(--color-focus, #2e3a4b);
 }
 
 .chat-panel__input::placeholder {
   color: var(--color-text-muted, #6b6265);
-  opacity: 0.8;
+  opacity: 1;
 }
 
 .chat-panel__send-btn {
@@ -374,9 +374,19 @@
 }
 
 .chat-panel__send-btn:disabled {
-  opacity: 0.5;
+  background-color: #6b7684;
+  color: #ffffff;
+  border-color: transparent;
+  opacity: 1;
   cursor: not-allowed;
   transform: none;
+}
+
+@media (prefers-color-scheme: dark) {
+  .chat-panel__send-btn:disabled {
+    background-color: #4b4348;
+    color: #d8d0cb;
+  }
 }
 
 .chat-panel__send-icon {

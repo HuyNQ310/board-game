@@ -140,6 +140,87 @@ export function RhombusIcon({ className = '', size = 16, ...props }) {
   );
 }
 
+export function CrossIcon({ className = '', size = 16, ...props }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width={size}
+      height={size}
+      fill="currentColor"
+      className={className}
+      aria-hidden="true"
+      {...props}
+    >
+      <path d="M18.3 5.71a1.2 1.2 0 0 0-1.7 0L12 10.3 7.4 5.71a1.2 1.2 0 1 0-1.7 1.7L10.3 12 5.7 16.6a1.2 1.2 0 1 0 1.7 1.7L12 13.7l4.6 4.6a1.2 1.2 0 0 0 1.7-1.7L13.7 12l4.6-4.6a1.2 1.2 0 0 0 0-1.69z" />
+    </svg>
+  );
+}
+
+export function ReverseIcon({ className = '', size = 16, ...props }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width={size}
+      height={size}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.4"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+      {...props}
+    >
+      <path d="M4 9h13l-3-3" />
+      <path d="M17 9l-3 3" />
+      <path d="M20 15H7l3-3" />
+      <path d="M7 15l3 3" />
+    </svg>
+  );
+}
+
+export function TacoIcon({ className = '', size = 16, ...props }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width={size}
+      height={size}
+      fill="currentColor"
+      className={className}
+      aria-hidden="true"
+      {...props}
+    >
+      <path d="M3 16c0-5 4-9 9-9s9 4 9 9c0 1.2-.8 2-2 2H5c-1.2 0-2-.8-2-2z" />
+      <path
+        d="M5.5 13c1.3-1.2 2.7.8 4 0s2.5-1.5 4-.2 2.7.5 4.2-.6"
+        fill="none"
+        stroke="#FFFFFF"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+export function PotatoIcon({ className = '', size = 16, ...props }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width={size}
+      height={size}
+      fill="currentColor"
+      className={className}
+      aria-hidden="true"
+      {...props}
+    >
+      <path d="M12.4 4.2c4.4.2 7.8 3.2 7.4 7.7-.4 4.6-4.2 7.9-8.8 7.8-4.5-.1-7.4-3-6.9-7.5.5-4.3 3.9-8.2 8.3-8z" />
+      <circle cx="9" cy="10" r="1.1" fill="#FFFFFF" />
+      <circle cx="15" cy="13.5" r="1" fill="#FFFFFF" />
+      <circle cx="11" cy="15.5" r="0.9" fill="#FFFFFF" />
+    </svg>
+  );
+}
+
 /**
  * Hand-drawn style original cat illustrations per card type
  * Consistent stroke: stroke="currentColor" (or var(--card-ink, #2B2326)),
@@ -755,6 +836,149 @@ export function CatIllustration({ className = '' }) {
   );
 }
 
+// 9. NOPE: "Mèo giơ hai chân chéo hình chữ X chặn lại"
+export function NopeIllustration({ className = '' }) {
+  return (
+    <svg
+      viewBox="0 0 160 120"
+      className={className}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      {/* Cat body */}
+      <path
+        d="M 52 98 C 52 72 62 60 80 60 C 98 60 108 72 108 98 Z"
+        fill="currentColor"
+        fillOpacity="0.08"
+      />
+      {/* Head */}
+      <circle cx="80" cy="42" r="20" fill="#FFFFFF" stroke="currentColor" strokeWidth="2.5" />
+      {/* Ears */}
+      <polygon points="64,30 58,14 74,24" fill="currentColor" fillOpacity="0.14" />
+      <polygon points="96,30 102,14 86,24" fill="currentColor" fillOpacity="0.14" />
+      {/* Firm determined eyes */}
+      <line x1="68" y1="36" x2="76" y2="39" strokeWidth="2.4" />
+      <line x1="92" y1="36" x2="84" y2="39" strokeWidth="2.4" />
+      <circle cx="72" cy="42" r="2.2" fill="currentColor" stroke="none" />
+      <circle cx="88" cy="42" r="2.2" fill="currentColor" stroke="none" />
+      <polygon points="78,46 82,46 80,49" fill="currentColor" stroke="none" />
+      {/* Bold red cross X in front */}
+      <line x1="56" y1="62" x2="104" y2="96" stroke="#B71C1C" strokeWidth="5.5" />
+      <line x1="104" y1="62" x2="56" y2="96" stroke="#B71C1C" strokeWidth="5.5" />
+    </svg>
+  );
+}
+
+// 10. REVERSE: "Mèo xoay chiều cùng hai mũi tên đảo ngược"
+export function ReverseIllustration({ className = '' }) {
+  return (
+    <svg
+      viewBox="0 0 160 120"
+      className={className}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      {/* Top curved reverse arrow */}
+      <path d="M 38 38 C 56 18 104 18 122 38" stroke="#1B315E" strokeWidth="3.2" />
+      <polygon points="124,40 112,38 120,28" fill="#1B315E" stroke="none" />
+      {/* Bottom curved reverse arrow */}
+      <path d="M 122 86 C 104 106 56 106 38 86" stroke="#1B315E" strokeWidth="3.2" />
+      <polygon points="36,84 48,86 40,96" fill="#1B315E" stroke="none" />
+      {/* Cat head in center */}
+      <circle cx="80" cy="62" r="20" fill="#FFFFFF" stroke="currentColor" strokeWidth="2.5" />
+      <polygon points="65,48 58,32 74,43" fill="currentColor" fillOpacity="0.14" />
+      <polygon points="95,48 102,32 86,43" fill="currentColor" fillOpacity="0.14" />
+      <circle cx="73" cy="59" r="2.4" fill="currentColor" stroke="none" />
+      <circle cx="87" cy="59" r="2.4" fill="currentColor" stroke="none" />
+      <polygon points="78,64 82,64 80,67" fill="currentColor" stroke="none" />
+      <path d="M 74 70 Q 80 74 86 70" strokeWidth="2" />
+    </svg>
+  );
+}
+
+// 11. TACO: "Mèo kẹp trong vỏ bánh taco giòn"
+export function TacoIllustration({ className = '' }) {
+  return (
+    <svg
+      viewBox="0 0 160 120"
+      className={className}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      {/* Cat peeking out from taco */}
+      <circle cx="80" cy="48" r="18" fill="#FFFFFF" stroke="currentColor" strokeWidth="2.5" />
+      <polygon points="66,36 60,20 75,31" fill="currentColor" fillOpacity="0.14" />
+      <polygon points="94,36 100,20 85,31" fill="currentColor" fillOpacity="0.14" />
+      <circle cx="73" cy="46" r="2.4" fill="currentColor" stroke="none" />
+      <circle cx="87" cy="46" r="2.4" fill="currentColor" stroke="none" />
+      <polygon points="78,51 82,51 80,54" fill="currentColor" stroke="none" />
+      {/* Taco shell */}
+      <path
+        d="M 28 88 C 28 54 52 46 80 46 C 108 46 132 54 132 88 C 132 94 126 96 120 96 L 40 96 C 34 96 28 94 28 88 Z"
+        fill="#F4C16B"
+        fillOpacity="0.45"
+        stroke="#B86522"
+        strokeWidth="2.8"
+      />
+      {/* Taco spots */}
+      <circle cx="52" cy="76" r="2" fill="#B86522" stroke="none" />
+      <circle cx="84" cy="82" r="2.2" fill="#B86522" stroke="none" />
+      <circle cx="108" cy="74" r="1.8" fill="#B86522" stroke="none" />
+    </svg>
+  );
+}
+
+// 12. POTATO: "Mèo khoai tây tròn trĩnh lấm tấm"
+export function PotatoIllustration({ className = '' }) {
+  return (
+    <svg
+      viewBox="0 0 160 120"
+      className={className}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      {/* Cat ears on top of potato */}
+      <polygon points="60,36 52,18 72,30" fill="currentColor" fillOpacity="0.12" />
+      <polygon points="100,36 108,18 88,30" fill="currentColor" fillOpacity="0.12" />
+      {/* Potato body */}
+      <path
+        d="M 42 66 C 42 40 60 28 80 28 C 102 28 120 42 118 68 C 116 92 98 100 78 100 C 56 100 42 88 42 66 Z"
+        fill="#C9BC6D"
+        fillOpacity="0.35"
+        stroke="#7C742B"
+        strokeWidth="2.8"
+      />
+      {/* Cute face */}
+      <circle cx="69" cy="58" r="2.5" fill="currentColor" stroke="none" />
+      <circle cx="91" cy="58" r="2.5" fill="currentColor" stroke="none" />
+      <polygon points="78,63 82,63 80,66" fill="currentColor" stroke="none" />
+      <path d="M 74 69 Q 80 73 86 69" strokeWidth="2" />
+      {/* Whiskers & potato dimples */}
+      <line x1="56" y1="62" x2="44" y2="60" strokeWidth="1.8" />
+      <line x1="104" y1="62" x2="116" y2="60" strokeWidth="1.8" />
+      <circle cx="60" cy="82" r="1.8" fill="#7C742B" stroke="none" />
+      <circle cx="98" cy="78" r="2" fill="#7C742B" stroke="none" />
+      <circle cx="82" cy="88" r="1.6" fill="#7C742B" stroke="none" />
+    </svg>
+  );
+}
+
 /**
  * Card Back Pattern
  * Navy #2E3A4B background with small repeating cat silhouette / paw-print tile pattern.
@@ -861,10 +1085,14 @@ export const CARD_COLORS = Object.freeze({
   defuse: '#1F9E89', // jade/teal green (prominent)
   attack: '#D96B2C', // orange
   skip: '#D4951A',   // yellow / golden amber (high contrast with white text)
+  reverse: '#1B315E',// navy blue
   shuffle: '#5BA648',// green
   favor: '#E07BA0',  // pink
   peek: '#3E7CB1',   // blue
+  nope: '#B71C1C',   // crimson red
   cat: '#7B5EA7',    // purple
+  taco: '#B86522',   // warm taco amber-brown
+  potato: '#7C742B', // earthy olive-brown
 });
 
 export const GROUP_SHAPES = Object.freeze({
@@ -872,10 +1100,14 @@ export const GROUP_SHAPES = Object.freeze({
   defuse: 'triangle',
   attack: 'square',
   skip: 'pentagon',
+  reverse: 'reverse',
   shuffle: 'star',
   favor: 'hexagon',
   peek: 'octagon',
+  nope: 'cross',
   cat: 'rhombus',
+  taco: 'taco',
+  potato: 'potato',
 });
 
 export const GROUP_ICONS = Object.freeze({
@@ -887,18 +1119,23 @@ export const GROUP_ICONS = Object.freeze({
   star: StarIcon,
   hexagon: HexagonIcon,
   octagon: OctagonIcon,
+  cross: CrossIcon,
   rhombus: RhombusIcon,
   diamond: RhombusIcon,
 
-  // By card type
+  // By card type (reverse, taco, potato also serve as shape keys)
   boom: CircleIcon,
   defuse: TriangleIcon,
   attack: SquareIcon,
   skip: PentagonIcon,
+  reverse: ReverseIcon,
   shuffle: StarIcon,
   favor: HexagonIcon,
   peek: OctagonIcon,
+  nope: CrossIcon,
   cat: RhombusIcon,
+  taco: TacoIcon,
+  potato: PotatoIcon,
 });
 
 export const CARD_ILLUSTRATIONS = Object.freeze({
@@ -906,8 +1143,12 @@ export const CARD_ILLUSTRATIONS = Object.freeze({
   defuse: DefuseIllustration,
   attack: AttackIllustration,
   skip: SkipIllustration,
+  reverse: ReverseIllustration,
   shuffle: ShuffleIllustration,
   favor: FavorIllustration,
   peek: PeekIllustration,
+  nope: NopeIllustration,
   cat: CatIllustration,
+  taco: TacoIllustration,
+  potato: PotatoIllustration,
 });

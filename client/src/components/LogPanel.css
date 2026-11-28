@@ -155,6 +155,47 @@
   }
 }
 
+@media (max-height: 780px) {
+  .log-panel {
+    max-height: 130px;
+  }
+
+  .log-panel--collapsed {
+    max-height: 34px;
+  }
+
+  .log-panel__header {
+    padding: 4px 12px;
+  }
+
+  .log-panel__content {
+    max-height: 92px;
+  }
+}
+
+@media (max-height: 500px) and (orientation: landscape) {
+  .log-panel {
+    max-height: 84px;
+  }
+
+  .log-panel--collapsed {
+    max-height: 24px;
+  }
+
+  .log-panel__header {
+    padding: 2px 10px;
+  }
+
+  .log-panel__title {
+    font-size: 10px;
+  }
+
+  .log-panel__toggle-btn {
+    padding: 1px 4px;
+    font-size: 10px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .log-panel {
     transition: none !important;

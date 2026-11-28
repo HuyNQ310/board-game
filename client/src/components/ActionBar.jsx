@@ -11,6 +11,9 @@
  * - t.catPair: "Chơi cặp mèo"
  * - t.peek: "Nhìn trước"
  * - t.shuffle: "Xáo bài"
+ * - t.reverse: "Đảo chiều"
+ * - t.nope: "KHÔNG!"
+ * - t.passNope: "Cho qua"
  * - t.turnsLeftLabel: "Còn {n} lượt" (or template function `(n) => string`, or pre-formatted string)
  * - t.countdownLabel: "Còn {n} giây" (or template function `(seconds) => string`, or pre-formatted string; alias: t.countdown)
  *
@@ -33,13 +36,30 @@
  *   4. Fallback string: `"Còn " + secondsLeft + " giây"`.
  */
 
-import { useState, useEffect } from 'react';
+import {
+  Zap,
+  Timer,
+  Layers,
+  Play,
+  Moon,
+  Swords,
+  HandHeart,
+  Cat,
+  Eye,
+  Shuffle,
+  RefreshCw,
+  Ban,
+} from 'lucide-react';
+import { useCountdown } from '../hooks/useCountdown.js';
 import './ActionBar.css';
 
 export default function ActionBar({
   t = {},
   canDraw = false,
   onDraw,
+  canPlaySelected = false,
+  onPlaySelected,
+  playSelectedLabel = null,
   canSkip = false,
   onSkip,
   canAttack = false,
@@ -52,65 +72,21 @@ export default function ActionBar({
   onPeek,
   canShuffle = false,
   onShuffle,
+  canReverse = false,
+  onReverse,
+  isNopePhase = false,
+  canNope = false,
+  onNope,
+  canPassNope = false,
+  onPassNope,
+  nopePromptText,
   turnsLeft,
   formatTurnsLeft,
   turnDeadline,
   formatCountdown,
+  beepOnCountdown = true,
 }) {
-  const [prevTurnDeadline, setPrevTurnDeadline] = useState(turnDeadline);
-  const [secondsLeft, setSecondsLeft] = useState(() => {
-    if (
-      typeof turnDeadline === 'number' &&
-      !Number.isNaN(turnDeadline) &&
-      turnDeadline > Date.now()
-    ) {
-      return Math.max(0, Math.ceil((turnDeadline - Date.now()) / 1000));
-    }
-    return null;
-  });
-
-  if (turnDeadline !== prevTurnDeadline) {
-    setPrevTurnDeadline(turnDeadline);
-    if (
-      typeof turnDeadline === 'number' &&
-      !Number.isNaN(turnDeadline) &&
-      turnDeadline > Date.now()
-    ) {
-      setSecondsLeft(Math.max(0, Math.ceil((turnDeadline - Date.now()) / 1000)));
-    } else {
-      setSecondsLeft(null);
-    }
-  }
-
-  useEffect(() => {
-    if (
-      typeof turnDeadline !== 'number' ||
-      Number.isNaN(turnDeadline) ||
-      turnDeadline <= Date.now()
-    ) {
-      setSecondsLeft(null);
-      return;
-    }
-
-    const computeRemaining = () => {
-      const diff = turnDeadline - Date.now();
-      return Math.max(0, Math.ceil(diff / 1000));
-    };
-
-    setSecondsLeft(computeRemaining());
-
-    const intervalId = setInterval(() => {
-      const remaining = computeRemaining();
-      setSecondsLeft(remaining);
-      if (remaining <= 0) {
-        clearInterval(intervalId);
-      }
-    }, 1000);
-
-    return () => {
-      clearInterval(intervalId);
-    };
-  }, [turnDeadline]);
+  const secondsLeft = useCountdown(turnDeadline, { beepUnderFive: beepOnCountdown });
 
   const getTurnsLeftLabel = (n) => {
     if (typeof formatTurnsLeft === 'function') {
@@ -163,7 +139,9 @@ export default function ActionBar({
         <div className="action-bar__status-row">
           {showTurnsBadge && (
             <div className="action-bar__turns-badge" role="status" aria-live="polite">
-              <span className="action-bar__turns-icon" aria-hidden="true">⚡</span>
+              <span className="action-bar__turns-icon" aria-hidden="true">
+                <Zap size={14} aria-hidden="true" />
+              </span>
               <span className="action-bar__turns-text">{getTurnsLeftLabel(turnsLeft)}</span>
             </div>
           )}
@@ -177,7 +155,9 @@ export default function ActionBar({
               aria-live="polite"
               data-testid="turn-countdown"
             >
-              <span className="action-bar__timer-icon action-bar__countdown-icon" aria-hidden="true">⏱️</span>
+              <span className="action-bar__timer-icon action-bar__countdown-icon" aria-hidden="true">
+                <Timer size={14} aria-hidden="true" />
+              </span>
               <span className="action-bar__timer-text action-bar__countdown-text">
                 {getCountdownLabel(secondsLeft)}
               </span>
@@ -195,9 +175,30 @@ export default function ActionBar({
           onClick={onDraw}
           aria-label={t.draw || 'Rút bài'}
         >
-          <span className="action-bar__btn-icon" aria-hidden="true">🃏</span>
+          <span className="action-bar__btn-icon" aria-hidden="true">
+            <Layers size={16} aria-hidden="true" />
+          </span>
           <span className="action-bar__btn-label">{t.draw || 'Rút bài'}</span>
         </button>
+
+        {/* Contextual "Đánh bài" button mapped to currently selected hand card(s) */}
+        {(canPlaySelected || Boolean(playSelectedLabel)) && (
+          <button
+            type="button"
+            className="action-bar__btn action-bar__btn--play-selected"
+            disabled={!canPlaySelected}
+            onClick={onPlaySelected}
+            aria-label={playSelectedLabel || t.playSelected || 'Đánh bài'}
+            data-testid="play-selected-btn"
+          >
+            <span className="action-bar__btn-icon" aria-hidden="true">
+              <Play size={16} aria-hidden="true" />
+            </span>
+            <span className="action-bar__btn-label">
+              {playSelectedLabel || t.playSelected || 'Đánh bài'}
+            </span>
+          </button>
+        )}
 
         {/* Skip card action */}
         {canSkip && (
@@ -207,7 +208,9 @@ export default function ActionBar({
             onClick={onSkip}
             aria-label={t.skip || 'Bỏ qua'}
           >
-            <span className="action-bar__btn-icon" aria-hidden="true">💤</span>
+            <span className="action-bar__btn-icon" aria-hidden="true">
+              <Moon size={16} aria-hidden="true" />
+            </span>
             <span className="action-bar__btn-label">{t.skip || 'Bỏ qua'}</span>
           </button>
         )}
@@ -220,7 +223,9 @@ export default function ActionBar({
             onClick={onAttack}
             aria-label={t.attack || 'Tấn công'}
           >
-            <span className="action-bar__btn-icon" aria-hidden="true">⚔️</span>
+            <span className="action-bar__btn-icon" aria-hidden="true">
+              <Swords size={16} aria-hidden="true" />
+            </span>
             <span className="action-bar__btn-label">{t.attack || 'Tấn công'}</span>
           </button>
         )}
@@ -233,7 +238,9 @@ export default function ActionBar({
             onClick={onFavor}
             aria-label={t.favor || 'Nhờ vả'}
           >
-            <span className="action-bar__btn-icon" aria-hidden="true">🤲</span>
+            <span className="action-bar__btn-icon" aria-hidden="true">
+              <HandHeart size={16} aria-hidden="true" />
+            </span>
             <span className="action-bar__btn-label">{t.favor || 'Nhờ vả'}</span>
           </button>
         )}
@@ -246,7 +253,9 @@ export default function ActionBar({
             onClick={onCatPair}
             aria-label={t.catPair || 'Chơi cặp mèo'}
           >
-            <span className="action-bar__btn-icon" aria-hidden="true">🐱🐱</span>
+            <span className="action-bar__btn-icon" aria-hidden="true">
+              <Cat size={16} aria-hidden="true" />
+            </span>
             <span className="action-bar__btn-label">{t.catPair || 'Chơi cặp mèo'}</span>
           </button>
         )}
@@ -259,7 +268,9 @@ export default function ActionBar({
             onClick={onPeek}
             aria-label={t.peek || 'Nhìn trước'}
           >
-            <span className="action-bar__btn-icon" aria-hidden="true">👁️</span>
+            <span className="action-bar__btn-icon" aria-hidden="true">
+              <Eye size={16} aria-hidden="true" />
+            </span>
             <span className="action-bar__btn-label">{t.peek || 'Nhìn trước'}</span>
           </button>
         )}
@@ -272,11 +283,60 @@ export default function ActionBar({
             onClick={onShuffle}
             aria-label={t.shuffle || 'Xáo bài'}
           >
-            <span className="action-bar__btn-icon" aria-hidden="true">🔀</span>
+            <span className="action-bar__btn-icon" aria-hidden="true">
+              <Shuffle size={16} aria-hidden="true" />
+            </span>
             <span className="action-bar__btn-label">{t.shuffle || 'Xáo bài'}</span>
           </button>
         )}
+
+        {/* Reverse card action */}
+        {canReverse && (
+          <button
+            type="button"
+            className="action-bar__btn action-bar__btn--reverse"
+            onClick={onReverse}
+            aria-label={t.reverse || 'Đảo chiều'}
+          >
+            <span className="action-bar__btn-icon" aria-hidden="true">
+              <RefreshCw size={16} aria-hidden="true" />
+            </span>
+            <span className="action-bar__btn-label">{t.reverse || 'Đảo chiều'}</span>
+          </button>
+        )}
       </div>
+
+      {isNopePhase && (
+        <div className="action-bar__nope-row" role="group" aria-label={t.nope || 'KHÔNG!'}>
+          {nopePromptText && (
+            <span className="action-bar__nope-prompt">{nopePromptText}</span>
+          )}
+          <div className="action-bar__nope-actions">
+            <button
+              type="button"
+              className="action-bar__btn action-bar__btn--nope"
+              disabled={!canNope}
+              onClick={onNope}
+              aria-label={t.nope || 'KHÔNG!'}
+            >
+              <span className="action-bar__btn-icon" aria-hidden="true">
+                <Ban size={16} aria-hidden="true" />
+              </span>
+              <span className="action-bar__btn-label">{t.nope || 'KHÔNG!'}</span>
+            </button>
+            {canPassNope && (
+              <button
+                type="button"
+                className="action-bar__btn action-bar__btn--pass-nope"
+                onClick={onPassNope}
+                aria-label={t.passNope || 'Cho qua'}
+              >
+                <span className="action-bar__btn-label">{t.passNope || 'Cho qua'}</span>
+              </button>
+            )}
+          </div>
+        </div>
+      )}
     </nav>
   );
 }

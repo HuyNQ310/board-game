@@ -17,6 +17,11 @@ export default {
     GAME_OVER: 'Game is over',
     RATE_LIMIT: 'Too many actions, please slow down',
     SERVER_ERROR: 'An error occurred, please try again',
+    SESSION_REPLACED: 'Your session was opened in another tab or device',
+    CREATE_ROOM_FAILED: 'Unable to create room',
+    JOIN_ROOM_FAILED: 'Unable to join room',
+    START_GAME_FAILED: 'Unable to start game',
+    REMATCH_FAILED: 'Unable to start rematch',
   },
 
   // Screen strings: Home (section 8.2)
@@ -36,10 +41,16 @@ export default {
     roomCode: 'Room code',
     copy: 'Copy',
     copied: 'Copied!',
+    copyAriaLabel: 'Copy room code',
     share: 'Share',
+    shareAriaLabel: 'Share room code',
+    shareTitle: 'Exploding Kittens',
+    shareText: (code) => `Exploding Kittens room code: ${code}`,
     players: 'Player list',
+    seatLabel: 'Seat',
     host: 'Host',
     offline: 'Offline',
+    onlineBadge: 'Ready',
     start: 'Start',
     needTwoPlayers: 'At least 2 connected players are needed to start',
     leave: 'Leave room',
@@ -49,40 +60,85 @@ export default {
   // Game screen strings (section 8.2)
   game: {
     seat: {
-      turn: 'Your turn',
+      turn: 'Current turn',
       eliminated: 'Eliminated',
       offline: 'Offline',
+      youTag: '(You)',
       cardsCount: (count) => `${count} ${count === 1 ? 'card' : 'cards'}`,
     },
+    seatRingAriaLabel: 'Player seats',
     deck: 'Draw pile',
     discard: 'Discard pile',
     deckCount: (count) => `${count} ${count === 1 ? 'card' : 'cards'}`,
     discardCount: (count) => `${count} ${count === 1 ? 'card' : 'cards'}`,
     turnsLeft: (n) => `${n} ${n === 1 ? 'turn' : 'turns'} left`,
     yourHand: 'Your hand',
+    directionCw: 'Clockwise',
+    directionCcw: 'Counter-clockwise',
+    playAreaAriaLabel: 'Cards and action area',
+    themeLabel: 'Themes',
+    themeAriaLabel: 'Customize card and table theme',
+    helpAriaLabel: 'View game rules',
+    leaveLabel: 'Leave room',
+    confirmLeaveLabel: 'Leave?',
+    cancelLabel: 'Cancel',
+    logTitle: 'Game log',
+    logAriaLabel: 'Game activity log',
+    logExpandAriaLabel: 'Expand game log',
+    logCollapseAriaLabel: 'Collapse game log',
+    logEmpty: 'No activity yet',
+    handAriaLabel: 'Your hand area',
+    emptyHand: 'No cards in hand',
+    selected: 'Selected',
+    unselected: 'Unselected',
+    cardDisabled: 'Cannot play',
   },
 
   // Action bar button labels (section 8.2)
   actions: {
+    actionBarAriaLabel: 'Action bar',
     draw: 'Draw',
+    playSelected: 'Play selected',
     skip: 'Skip',
+    reverse: 'Reverse',
     attack: 'Attack',
     favor: 'Favor',
     catPair: 'Play cat pair',
     peek: 'Peek',
     shuffle: 'Shuffle',
+    nope: 'Nope',
+    passNope: 'Allow',
+    countdown: (seconds) => `${seconds}s left`,
+  },
+
+  // Nope reaction banner
+  nopeBanner: {
+    title: (actor, cardName) => `${actor} played ${cardName}`,
+    noped: (actor, count) => `${actor} played NOPE! (×${count})`,
+    promptAllow: 'Play NOPE! to cancel or wait',
+    pass: 'Allow',
   },
 
   // Dialog strings (section 8.2)
   dialog: {
     targetPicker: {
       title: 'Choose a target',
+      prompt: 'Choose a living player to target:',
+      ariaLabel: 'Choose target dialog',
       cancel: 'Cancel',
+      noCandidates: 'No eligible players to target',
     },
     defuse: {
       title: 'Defuse Bomb',
+      prompt: 'Choose where to place the Exploding Kitten back into the draw pile:',
+      ariaLabel: 'Defuse bomb dialog',
+      sliderAriaLabel: 'Bomb insertion position in draw pile',
       top: 'Top',
       deepest: 'Deepest',
+      insertPosition: (n, total) => `Position: ${n} / ${total}`,
+      insertPositionTopDesc: 'Next card to be drawn (top)',
+      insertPositionBottomDesc: 'Bottom of the draw pile',
+      insertPositionDesc: (n) => `Card #${n} from the top`,
       placeBomb: 'Place bomb',
       defusing: (name) => `${name} is defusing…`,
     },
@@ -91,6 +147,26 @@ export default {
   // PeekPanel label (section 8.2)
   peekPanel: {
     title: 'See the future (top 3 cards)',
+    subtitle: 'Left to right (1 = top card → 3):',
+    cardTop: '1. Top',
+    cardMiddle: '2. Second',
+    cardBottom: '3. Third',
+    close: 'Close',
+  },
+
+  // Chat panel strings
+  chat: {
+    title: 'Chat',
+    placeholder: 'Type a message...',
+    sendButton: 'Send',
+    empty: 'No messages yet',
+    you: 'You',
+    inputAriaLabel: 'Message input',
+    regionAriaLabel: 'Chat panel',
+    listAriaLabel: 'Chat messages',
+    openButtonAriaLabel: 'Open chat',
+    closeButton: 'Close chat',
+    unreadButtonAriaLabel: (n) => `Chat (${n} unread ${n === 1 ? 'message' : 'messages'})`,
   },
 
   // Banners: eliminated-player, disconnect (section 8.2)
@@ -102,6 +178,7 @@ export default {
   // Game-over screen strings (section 8.2)
   gameOver: {
     title: 'Game Over',
+    winnerLabel: 'Winner',
     winner: (name) => `${name} won the game!`,
     noWinner: 'No winner',
     playAgain: 'Play again',
@@ -120,24 +197,34 @@ export default {
       return `${actor} was eliminated`;
     },
     skip: (actor) => `${actor} played Skip`,
+    reverse: (actor) => `${actor} played Reverse`,
     attack: (actor, target) => (target ? `${actor} played Attack targeting ${target}` : `${actor} played Attack`),
     shuffle: (actor) => `${actor} played Shuffle`,
     peek: (actor) => `${actor} played Peek`,
     favor: (actor, target) => (target ? `${actor} played Favor targeting ${target}` : `${actor} played Favor`),
-    cat: (actor, target) => (target ? `${actor} played a cat pair targeting ${target}` : `${actor} played a cat pair`),
+    cat: (actor, target, cardName) => {
+      const label = cardName ? `a ${cardName} pair` : 'a cat pair';
+      return target ? `${actor} played ${label} targeting ${target}` : `${actor} played ${label}`;
+    },
+    nope: (actor, target, count) => `${actor} played Nope${count > 1 ? ` (×${count})` : ''}`,
+    action_cancelled: (actor, cardName) => `${actor}'s ${cardName || 'action'} was noped!`,
     deck_reshuffled: () => 'Discard pile was reshuffled into the draw pile',
     game_over: (winner) => (winner ? `${winner} won the game!` : 'Game over, no winner'),
   },
 
-  // Card names (section 4.1)
+  // Card names (12 cards)
   cards: {
-    boom: 'Bomb',
+    boom: 'Exploding Kitten',
     defuse: 'Defuse',
     attack: 'Attack',
     skip: 'Skip',
+    reverse: 'Reverse',
     shuffle: 'Shuffle',
     favor: 'Favor',
-    peek: 'Peek',
-    cat: 'Cat',
+    peek: 'See the Future',
+    nope: 'Nope',
+    cat: 'Striped Cat',
+    taco: 'Taco Cat',
+    potato: 'Hairy Potato Cat',
   },
 };

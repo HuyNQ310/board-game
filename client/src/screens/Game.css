@@ -5,21 +5,158 @@
   min-height: 100vh;
   min-height: 100dvh;
   width: 100%;
-  max-width: 600px;
-  margin: 0 auto;
-  padding: 8px 12px;
+  max-width: none;
+  margin: 0;
+  padding: clamp(6px, 1.2dvh, 14px) clamp(10px, 2vw, 28px);
   box-sizing: border-box;
-  background-color: #ece5d8;
+  background: radial-gradient(ellipse at center, #e6f6eb 0%, #d3eedb 55%, #bde3c8 100%);
+  background-color: #d3eedb;
   color: #2b2326;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   position: relative;
+  gap: clamp(4px, 0.9dvh, 10px);
+  overflow-x: hidden;
+}
+
+/* --------------------------------------------------------------------------
+   Pastel Tabletop Themes (Full-viewport edge-to-edge backdrops)
+   -------------------------------------------------------------------------- */
+.game-screen[data-table-theme='pastel-green'] {
+  background: radial-gradient(ellipse at center, #e6f6eb 0%, #d3eedb 55%, #bde3c8 100%);
+  background-color: #d3eedb;
+  color: #2b2326;
+}
+
+.game-screen[data-table-theme='pastel-yellow'] {
+  background: radial-gradient(ellipse at center, #fff9de 0%, #fef0bd 55%, #f9e091 100%);
+  background-color: #fef0bd;
+  color: #2b2326;
+}
+
+.game-screen[data-table-theme='pastel-pink'] {
+  background: radial-gradient(ellipse at center, #fff0f5 0%, #fde0ea 55%, #f8c8d8 100%);
+  background-color: #fde0ea;
+  color: #2b2326;
+}
+
+.game-screen[data-table-theme='pastel-blue'] {
+  background: radial-gradient(ellipse at center, #ecf6ff 0%, #d8ecfe 55%, #bddcf9 100%);
+  background-color: #d8ecfe;
+  color: #2b2326;
+}
+
+/* --------------------------------------------------------------------------
+   Top-left & Top-right Utility Controls Bars (Leave, Lang, Theme & Help)
+   -------------------------------------------------------------------------- */
+.game-screen__left-controls {
+  position: absolute;
+  top: 12px;
+  left: 16px;
+  z-index: 40;
+  display: flex;
+  align-items: center;
   gap: 8px;
 }
 
-.game-screen__header {
-  width: 100%;
+.game-screen__leave-confirm {
   display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.game-screen__top-controls {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.game-screen__utility-btn,
+.game-screen__top-controls > button,
+.game-screen__left-controls button {
+  display: inline-flex;
+  align-items: center;
   justify-content: center;
+  gap: 6px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1.5px solid rgba(246, 239, 226, 0.45);
+  background-color: rgba(246, 239, 226, 0.92);
+  color: #2b2326;
+  font-size: 0.9rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: transform 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.game-screen__utility-btn--icon {
+  width: 44px;
+  padding: 0;
+  font-size: 1.05rem;
+}
+
+.game-screen__utility-btn--lang {
+  padding: 0 12px;
+  white-space: nowrap;
+  letter-spacing: 0.02em;
+}
+
+.game-screen__utility-btn--danger {
+  background-color: #c92a2a !important;
+  border-color: #ef4444 !important;
+  color: #ffffff !important;
+}
+
+.game-screen__utility-btn--danger:hover {
+  background-color: #a61e1e !important;
+}
+
+.game-screen__utility-btn:hover,
+.game-screen__top-controls > button:hover {
+  background-color: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.32);
+}
+
+.game-screen__utility-btn:focus-visible,
+.game-screen__top-controls > button:focus-visible {
+  outline: 2px solid #fbbf24;
+  outline-offset: 2px;
+}
+
+.game-screen__utility-label {
+  display: none;
+}
+
+/* --------------------------------------------------------------------------
+   Centered Ergonomic Content Columns (max-width: 1200px)
+   -------------------------------------------------------------------------- */
+.game-screen__header,
+.game-screen__action-hand-placeholder,
+.game-screen__footer {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+.game-screen__header {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-top: 46px;
+  overflow: visible;
+  min-height: 0;
 }
 
 .game-screen__center {
@@ -61,46 +198,81 @@
   }
 }
 
+/* Clean borderless container so ActionBar + Hand sit directly on the pastel tabletop */
 .game-screen__action-hand-placeholder {
-  width: 100%;
   min-height: 60px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  border: 1px dashed #b5ada3;
-  border-radius: 8px;
-  background-color: rgba(255, 255, 255, 0.4);
-  box-sizing: border-box;
-  padding: 4px;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  padding: 4px 8px;
+  gap: 8px;
+  color: #2b2326;
 }
 
-.game-screen__footer {
-  width: 100%;
+/* Ensure LogPanel remains high-contrast against all pastel tabletops */
+.game-screen .log-panel {
+  background-color: rgba(255, 255, 255, 0.88);
+  border-color: rgba(43, 35, 38, 0.16);
+  box-shadow: 0 4px 14px rgba(43, 35, 38, 0.1);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
 @media (min-width: 768px) {
   .game-screen {
-    max-width: 800px;
-    padding: 12px 20px;
-    gap: 10px;
+    padding: clamp(8px, 1.3dvh, 14px) clamp(16px, 2.2vw, 28px);
+    gap: clamp(4px, 0.9dvh, 10px);
+  }
+
+  .game-screen__header {
+    padding-top: clamp(6px, 2.2dvh, 28px);
+  }
+
+  .game-screen__utility-label {
+    display: inline;
   }
 
   .game-screen__center {
-    gap: 14px;
+    gap: clamp(24px, 4vw, 60px);
   }
 }
 
 /* Desktop screen layout (1024px+) */
 @media (min-width: 1024px) {
   .game-screen {
-    max-width: min(95vw, 1600px);
-    padding: 12px 24px;
-    gap: 10px;
+    padding: clamp(8px, 1.4dvh, 16px) clamp(20px, 2.5vw, 32px);
+    gap: clamp(4px, 1dvh, 10px);
+  }
+
+  .game-screen__header {
+    padding-top: clamp(4px, 1.5dvh, 20px);
+  }
+
+  .game-screen__header,
+  .game-screen__action-hand-placeholder,
+  .game-screen__footer {
+    max-width: min(96vw, 1400px);
+  }
+
+  .game-screen__left-controls {
+    top: clamp(8px, 1.4dvh, 16px);
+    left: 24px;
+  }
+
+  .game-screen__top-controls {
+    top: clamp(8px, 1.4dvh, 16px);
+    right: 24px;
   }
 
   .game-screen__center {
-    gap: 18px;
+    gap: clamp(32px, 5vw, 72px);
   }
 
   .game-screen__turns-left {
@@ -110,19 +282,157 @@
   }
 
   .game-screen__action-hand-placeholder {
-    padding: 8px 12px;
-    border-radius: 12px;
+    padding: 2px 8px;
+    gap: clamp(4px, 0.8dvh, 8px);
+  }
+}
+
+/* Compact short laptop & mobile landscape viewports */
+@media (max-height: 780px) {
+  .game-screen__utility-btn,
+  .game-screen__top-controls > button,
+  .game-screen__left-controls button {
+    min-height: 38px;
+    min-width: 38px;
+    padding: 0 11px;
+    font-size: 0.82rem;
+  }
+
+  .game-screen__utility-btn--icon {
+    width: 38px;
+    padding: 0;
+  }
+
+  .game-screen__action-hand-placeholder {
+    min-height: 0;
+    padding: 0 6px;
+    gap: 4px;
+  }
+}
+
+@media (min-width: 768px) and (min-height: 501px) and (max-height: 660px) {
+  .game-screen {
+    padding: 6px 16px;
+    gap: 4px;
+  }
+
+  .game-screen__header {
+    padding-top: 34px;
+  }
+
+  .game-screen__left-controls {
+    top: 6px;
+    left: 16px;
+  }
+
+  .game-screen__top-controls {
+    top: 6px;
+    right: 16px;
+  }
+
+  .game-screen__center .draw-pile__card,
+  .game-screen__center .discard-pile__slot {
+    width: 58px;
+    height: 82px;
+  }
+
+  .game-screen__center .draw-pile__label,
+  .game-screen__center .discard-pile__label {
+    font-size: 11px;
+  }
+
+  .game-screen__center .draw-pile__count,
+  .game-screen__center .discard-pile__count {
+    font-size: 10px;
+  }
+}
+
+@media (max-width: 767px) and (min-height: 501px) {
+  .game-screen__left-controls {
+    top: 8px;
+    left: 10px;
+  }
+
+  .game-screen__top-controls {
+    top: 8px;
+    right: 10px;
+    gap: 6px;
+  }
+
+  .game-screen__header {
+    padding-top: 56px;
+  }
+}
+
+@media (max-height: 500px) and (orientation: landscape) {
+  .game-screen {
+    padding: 3px 10px;
+    gap: 2px;
+  }
+
+  .game-screen__header {
+    padding-top: 26px;
+  }
+
+  .game-screen__left-controls {
+    top: 4px;
+    left: 8px;
+  }
+
+  .game-screen__top-controls {
+    top: 4px;
+    right: 8px;
+    gap: 5px;
+  }
+
+  .game-screen__utility-btn,
+  .game-screen__top-controls > button,
+  .game-screen__left-controls button {
+    min-height: 32px;
+    min-width: 32px;
+    padding: 0 8px;
+    font-size: 0.78rem;
+  }
+
+  .game-screen__utility-btn--icon {
+    width: 32px;
+    padding: 0;
+  }
+
+  .game-screen__utility-label {
+    display: none;
+  }
+
+  .game-screen__center {
     gap: 8px;
   }
 
-  .game-screen__footer {
-    max-width: min(90vw, 1400px);
-    margin: 0 auto;
+  .game-screen__turns-left {
+    font-size: 10px;
+    padding: 1px 5px;
+  }
+
+  .game-screen__action-hand-placeholder {
+    padding: 0 4px;
+    gap: 2px;
+  }
+}
+
+/* Large Desktop screen layout (1280px+) */
+@media (min-width: 1280px) {
+  .game-screen__center {
+    gap: clamp(44px, 6vw, 88px);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .game-screen__turns-left {
     animation: none !important;
+  }
+
+  .game-screen__utility-btn,
+  .game-screen__top-controls > button {
+    transition: none !important;
+    transform: none !important;
   }
 }

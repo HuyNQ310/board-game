@@ -66,7 +66,11 @@
 }
 
 .help-modal-header__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   font-size: 1.25rem;
+  color: #fbbf24;
 }
 
 .help-modal-header__title {
@@ -85,10 +89,10 @@
   min-width: 44px;
   min-height: 44px;
   padding: 0;
-  border: none;
+  border: 1px solid rgba(255, 255, 255, 0.18);
   border-radius: 8px;
-  background-color: transparent;
-  color: #c0c6ce;
+  background-color: rgba(255, 255, 255, 0.06);
+  color: #e2e8f0;
   font-size: 1.2rem;
   font-family: inherit;
   cursor: pointer;
@@ -203,6 +207,10 @@
   border-left-color: #f1c40f;
 }
 
+.help-modal-card-row--reverse {
+  border-left-color: #00bcd4;
+}
+
 .help-modal-card-row--shuffle {
   border-left-color: #2ecc71;
 }
@@ -215,15 +223,44 @@
   border-left-color: #3498db;
 }
 
+.help-modal-card-row--nope {
+  border-left-color: #e74c3c;
+}
+
 .help-modal-card-row--cat {
   border-left-color: #9b59b6;
 }
 
+.help-modal-card-row--taco {
+  border-left-color: #f39c12;
+}
+
+.help-modal-card-row--potato {
+  border-left-color: #a0785a;
+}
+
 .help-modal-card-row__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   font-size: 1.25rem;
   flex-shrink: 0;
   margin-top: 1px;
+  color: #f6efe2;
 }
+
+.help-modal-card-row--boom .help-modal-card-row__icon { color: #ff8787; }
+.help-modal-card-row--defuse .help-modal-card-row__icon { color: #63e6be; }
+.help-modal-card-row--attack .help-modal-card-row__icon { color: #ffa94d; }
+.help-modal-card-row--skip .help-modal-card-row__icon { color: #ffd43b; }
+.help-modal-card-row--reverse .help-modal-card-row__icon { color: #66d9e8; }
+.help-modal-card-row--shuffle .help-modal-card-row__icon { color: #69db7c; }
+.help-modal-card-row--favor .help-modal-card-row__icon { color: #f783ac; }
+.help-modal-card-row--peek .help-modal-card-row__icon { color: #74c0fc; }
+.help-modal-card-row--nope .help-modal-card-row__icon { color: #ff8787; }
+.help-modal-card-row--cat .help-modal-card-row__icon { color: #d0bfff; }
+.help-modal-card-row--taco .help-modal-card-row__icon { color: #ffc078; }
+.help-modal-card-row--potato .help-modal-card-row__icon { color: #e9d8a6; }
 
 .help-modal-card-row__content {
   display: flex;
@@ -240,7 +277,7 @@
 .help-modal-card-row__rule {
   font-size: 0.78rem;
   line-height: 1.35;
-  color: #d1d8e0;
+  color: #e2e8f0;
 }
 
 .help-modal-footer {

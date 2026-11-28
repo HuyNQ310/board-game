@@ -59,3 +59,17 @@
 
 - **Phase 4 (Ổn định / Stability)**: Partially implemented in application code (reconnect banners, spectator mode for eliminated players, rematch flow, room sweep, and client-side pending action guards are wired in `client/src/App.jsx` and server handlers), but formal standalone Phase 4 stability integration tests across all reconnection and timeout scenarios specified in rules.md section 11 remain pending.
 - **Phase 5 (Mobile và E2E)**: Not yet done. Playwright is not yet installed or configured in the repository; multi-client E2E automated test scripts (4-player full game playthrough, mid-game disconnect/reconnect) and physical mobile device validation required by rules.md section 11 have not yet been executed.
+
+## 12-Card Expansion, Cropped Card Art UI, and Nope/Reverse/Cat Breeds - 2026-11-28
+
+- **Expanded `CARD` set to 12 card types**: Added `nope` (**KHÔNG!**), `reverse` (**Đảo Chiều**), `taco` (**Mèo Taco**), and `potato` (**Mèo Khoai Tây**) alongside the original 8 cards (`boom`, `defuse`, `attack`, `skip`, `shuffle`, `favor`, `peek`, `cat`).
+- **Recalculated deck composition & scaling**:
+  - Updated base ordinary deck for `n <= 6` players to **42 cards** (`4 attack`, `4 skip`, `4 reverse`, `4 shuffle`, `4 favor`, `5 peek`, `5 nope`, `4 cat`, `4 taco`, `4 potato`), yielding `43 + 2n` total cards in play with `n - 1` `boom` and `2 + n` `defuse` cards.
+  - Updated 7–10 player scaling to `Math.ceil(base * n / 6)`, rounding each cat breed (`cat`, `taco`, `potato`) up to an even count for pair play.
+- **New gameplay rules & protocol updates**:
+  - **Reverse (`reverse`)**: Flips turn `direction` (`1` ↔ `-1`) and ends 1 turn without drawing.
+  - **Nope (`nope` / `passNope`)**: Added a 5-second `phase: 'nope'` reaction window when any eligible living player holds `nope`, cancelling any action except `draw`/`boom` and `defuse`. Counter-Nopes toggle cancellation (`nopeCount` odd cancels, even restores), with `pendingAction` exposed in `viewFor` and `reverse`, `nope`, `action_cancelled` logged in `state.log`.
+  - **Matching cat pairs (`catPair`)**: Playing a pair now requires 2 identical cards of the same cat breed (`cat`, `taco`, or `potato`) specified via `action.card`.
+- **Card visual & UI updates**:
+  - Updated `card.md` visual specs and switched card rendering across all 12 cards to cropped localized card illustrations under `client/src/assets/cards/vi/` and `client/src/assets/cards/en/`.
+  - Added UI controls and localized strings for turn direction indicators, `reverse` action, matching cat pair selection, and the `nope` / `passNope` reaction banner and buttons.
