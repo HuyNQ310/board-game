@@ -239,3 +239,46 @@ test('template functions work as expected', () => {
   assert.strictEqual(enStrings.chat.unreadButtonAriaLabel(1), 'Chat (1 unread message)');
   assert.strictEqual(enStrings.chat.unreadButtonAriaLabel(3), 'Chat (3 unread messages)');
 });
+
+test('voice chat localization strings and mic errors exist in vi and en', () => {
+  const micErrorCodes = [
+    'MIC_PERMISSION_DENIED',
+    'MIC_NOT_FOUND',
+    'MIC_UNSUPPORTED',
+    'MIC_ERROR',
+  ];
+  const stringVoiceKeys = [
+    'micOn',
+    'micOff',
+    'turnMicOn',
+    'turnMicOff',
+    'speaking',
+    'micLive',
+    'voiceMutedShort',
+    'voiceUnmutedShort',
+    'chatMutedShort',
+    'chatUnmutedShort',
+    'playerControlsTitle',
+    'playerControlsAriaLabel',
+    'noOtherPlayers',
+  ];
+  const fnVoiceKeys = ['muteVoice', 'unmuteVoice', 'muteChat', 'unmuteChat'];
+
+  for (const locale of ['vi', 'en']) {
+    const strings = getStrings(locale);
+    for (const code of micErrorCodes) {
+      assert.strictEqual(typeof strings.errors[code], 'string', `Missing errors.${code} in ${locale}`);
+      assert.ok(strings.errors[code].length > 0, `Empty errors.${code} in ${locale}`);
+    }
+    assert.ok(strings.voice, `Missing voice object in ${locale}`);
+    for (const key of stringVoiceKeys) {
+      assert.strictEqual(typeof strings.voice[key], 'string', `Missing voice.${key} in ${locale}`);
+      assert.ok(strings.voice[key].length > 0, `Empty voice.${key} in ${locale}`);
+    }
+    for (const key of fnVoiceKeys) {
+      assert.strictEqual(typeof strings.voice[key], 'function', `Missing voice.${key}() in ${locale}`);
+      const rendered = strings.voice[key]('Alice');
+      assert.ok(typeof rendered === 'string' && rendered.includes('Alice'));
+    }
+  }
+});

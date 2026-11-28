@@ -22,6 +22,10 @@ export default {
     JOIN_ROOM_FAILED: 'Không thể vào phòng',
     START_GAME_FAILED: 'Không thể bắt đầu ván',
     REMATCH_FAILED: 'Không thể chơi lại',
+    MIC_PERMISSION_DENIED: 'Trình duyệt đã chặn quyền truy cập micro',
+    MIC_NOT_FOUND: 'Không tìm thấy thiết bị micro',
+    MIC_UNSUPPORTED: 'Trình duyệt không hỗ trợ trò chuyện thoại',
+    MIC_ERROR: 'Không thể bật micro, vui lòng thử lại',
   },
 
   // Screen strings: Home (section 8.2)
@@ -169,10 +173,37 @@ export default {
     unreadButtonAriaLabel: (n) => `Trò chuyện (${n} tin nhắn mới)`,
   },
 
+  // Voice chat & per-player audio/chat controls
+  voice: {
+    micOn: 'Mic bật',
+    micOff: 'Bật mic',
+    turnMicOn: 'Bật micro để nói',
+    turnMicOff: 'Tắt micro',
+    speaking: 'Đang nói',
+    micLive: 'Micro đang bật',
+    muteVoice: (name) => `Tắt tiếng của ${name}`,
+    unmuteVoice: (name) => `Bật tiếng của ${name}`,
+    voiceMutedShort: 'Đã tắt tiếng',
+    voiceUnmutedShort: 'Đang nghe',
+    muteChat: (name) => `Ẩn chat của ${name}`,
+    unmuteChat: (name) => `Hiện chat của ${name}`,
+    chatMutedShort: 'Đã ẩn chat',
+    chatUnmutedShort: 'Xem chat',
+    playerControlsTitle: 'Âm thanh & Chat',
+    playerControlsAriaLabel: 'Tùy chỉnh nghe và xem chat từng người chơi',
+    noOtherPlayers: 'Chưa có người chơi khác',
+  },
+
   // Banners: eliminated-player, disconnect (section 8.2)
   banners: {
     eliminated: 'Bạn đã bị loại. Bạn đang xem',
     reconnecting: 'Đang kết nối lại…',
+  },
+
+  // Toast notifications
+  toast: {
+    closeAriaLabel: 'Đóng thông báo',
+    copiedCode: (code) => `Đã sao chép mã phòng ${code}`,
   },
 
   // Game-over screen strings (section 8.2)

@@ -22,6 +22,10 @@ export default {
     JOIN_ROOM_FAILED: 'Unable to join room',
     START_GAME_FAILED: 'Unable to start game',
     REMATCH_FAILED: 'Unable to start rematch',
+    MIC_PERMISSION_DENIED: 'Microphone permission was denied',
+    MIC_NOT_FOUND: 'No microphone device found',
+    MIC_UNSUPPORTED: 'Voice chat is not supported in this browser',
+    MIC_ERROR: 'Unable to access microphone, please try again',
   },
 
   // Screen strings: Home (section 8.2)
@@ -169,10 +173,37 @@ export default {
     unreadButtonAriaLabel: (n) => `Chat (${n} unread ${n === 1 ? 'message' : 'messages'})`,
   },
 
+  // Voice chat & per-player audio/chat controls
+  voice: {
+    micOn: 'Mic on',
+    micOff: 'Mic off',
+    turnMicOn: 'Turn microphone on',
+    turnMicOff: 'Turn microphone off',
+    speaking: 'Speaking',
+    micLive: 'Mic active',
+    muteVoice: (name) => `Mute ${name}'s voice`,
+    unmuteVoice: (name) => `Unmute ${name}'s voice`,
+    voiceMutedShort: 'Muted',
+    voiceUnmutedShort: 'Audio on',
+    muteChat: (name) => `Hide ${name}'s chat`,
+    unmuteChat: (name) => `Show ${name}'s chat`,
+    chatMutedShort: 'Chat hidden',
+    chatUnmutedShort: 'Chat shown',
+    playerControlsTitle: 'Voice & Chat',
+    playerControlsAriaLabel: 'Per-player voice and chat settings',
+    noOtherPlayers: 'No other players',
+  },
+
   // Banners: eliminated-player, disconnect (section 8.2)
   banners: {
     eliminated: 'You have been eliminated. You are spectating',
     reconnecting: 'Reconnecting…',
+  },
+
+  // Toast notifications
+  toast: {
+    closeAriaLabel: 'Dismiss notification',
+    copiedCode: (code) => `Copied room code ${code}`,
   },
 
   // Game-over screen strings (section 8.2)
