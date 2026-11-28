@@ -1,3 +1,6 @@
 .agy-sessions/
 node_modules/
 dist/
+data/
+*.sqlite*
+playwright-report/
