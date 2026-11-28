@@ -319,6 +319,18 @@ export function hasEligibleNopeHolder(state) {
 }
 
 /**
+ * Kiểm tra xem có người chơi sống nào khác `lastActorId` trong pha `nope` hay không.
+ * Không kiểm tra bài trên tay (.hand) để tránh lộ thông tin lá `nope` của đối thủ.
+ */
+export function hasOtherLivingPlayer(state) {
+  if (!state || state.phase !== 'nope' || !state.pendingAction || !Array.isArray(state.players)) {
+    return false;
+  }
+  const lastActorId = state.pendingAction.lastActorId;
+  return state.players.some(p => p.alive && p.id !== lastActorId);
+}
+
+/**
  * Giải quyết hành động đang chờ xác nhận trong pha `nope`.
  * @param {object} state
  * @param {() => number} rng

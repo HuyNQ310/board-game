@@ -149,7 +149,7 @@ test('Integration 1: 4 players create/join and start game -> 51 cards, 5 per han
   assert.equal(latestBroadcast.views.p2.players.find(p => p.id === 'p1').hand, undefined);
 });
 
-test('Integration 2: reverse card auto-resolves when no opponent holds nope, flips direction to -1, moves turn p1 -> p3', async () => {
+test('Integration 2: reverse card stays in nope phase even when no opponent holds nope (zero hand leak), resolves on passNope', async () => {
   const { roomStore, handlers, broadcasts } = createTestHarness(202);
   const sockets = {
     p1: createSocketStub('sock-1'),
@@ -166,7 +166,7 @@ test('Integration 2: reverse card auto-resolves when no opponent holds nope, fli
   await emitWithAck(handlers['game:start'], sockets.p1, {});
 
   const room = roomStore.getRoom(code);
-  // Deterministic hands: p1 has reverse, opponents have no nope
+  // Deterministic hands: p1 has reverse, opponents have 0 nope cards
   room.game.players[0].hand = [CARD.reverse, CARD.defuse];
   room.game.players[1].hand = [CARD.skip, CARD.defuse];
   room.game.players[2].hand = [CARD.attack, CARD.defuse];
@@ -177,7 +177,26 @@ test('Integration 2: reverse card auto-resolves when no opponent holds nope, fli
   });
   assert.equal(actionRes.ok, true);
 
-  // Auto-resolved immediately because no opponent holds nope
+  // Zero hand leak: stays in nope phase even though neither p2 nor p3 holds nope
+  assert.equal(room.game.phase, 'nope');
+  assert.equal(room.game.pendingAction?.card, CARD.reverse);
+  assert.equal(room.game.pendingAction?.lastActorId, 'p1');
+  assert.equal(room.game.direction, 1);
+  assert.equal(room.game.currentPlayerId, 'p1');
+
+  // Verify actor's view is indistinguishable from when an opponent holds nope
+  const viewWithoutNope = broadcasts[broadcasts.length - 1].views.p1;
+  assert.equal(viewWithoutNope.phase, 'nope');
+  assert.equal(viewWithoutNope.pendingAction.card, CARD.reverse);
+
+  // p2 passes -> still waiting on p3
+  const pass2 = await emitWithAck(handlers['game:action'], sockets.p2, { type: 'passNope' });
+  assert.equal(pass2.ok, true);
+  assert.equal(room.game.phase, 'nope');
+
+  // p3 passes -> resolves, flips direction to -1, moves turn p1 -> p3
+  const pass3 = await emitWithAck(handlers['game:action'], sockets.p3, { type: 'passNope' });
+  assert.equal(pass3.ok, true);
   assert.equal(room.game.phase, 'play');
   assert.equal(room.game.pendingAction, null);
   assert.equal(room.game.direction, -1);
@@ -189,7 +208,7 @@ test('Integration 2: reverse card auto-resolves when no opponent holds nope, fli
   assert.equal(latestBroadcast.views.p3.currentPlayerId, 'p3');
 });
 
-test('Integration 3: nope + counter-Nope ("Yup") flow auto-resolves when no eligible nope holders remain', async () => {
+test('Integration 3: nope + counter-Nope ("Yup") flow stays in nope phase with zero hand leak until passNope or timer expiry', async () => {
   const { roomStore, handlers } = createTestHarness(303);
   const sockets = {
     p1: createSocketStub('sock-1'),
@@ -207,7 +226,7 @@ test('Integration 3: nope + counter-Nope ("Yup") flow auto-resolves when no elig
   room.game.players[0].hand = [CARD.attack, CARD.nope, CARD.defuse];
   room.game.players[1].hand = [CARD.nope, CARD.skip, CARD.defuse];
 
-  // 1. p1 plays attack -> p2 holds nope so game stays in phase === 'nope'
+  // 1. p1 plays attack -> enters nope phase (p2 has nope)
   const res1 = await emitWithAck(handlers['game:action'], sockets.p1, {
     type: 'play',
     card: 'attack',
@@ -218,7 +237,7 @@ test('Integration 3: nope + counter-Nope ("Yup") flow auto-resolves when no elig
   assert.equal(room.game.pendingAction.nopeCount, 0);
   assert.equal(room.game.pendingAction.lastActorId, 'p1');
 
-  // 2. p2 plays nope -> nopeCount === 1; p1 still holds nope so phase remains 'nope'
+  // 2. p2 plays nope -> nopeCount === 1; phase remains 'nope'
   const res2 = await emitWithAck(handlers['game:action'], sockets.p2, {
     type: 'nope',
   });
@@ -227,18 +246,28 @@ test('Integration 3: nope + counter-Nope ("Yup") flow auto-resolves when no elig
   assert.equal(room.game.pendingAction.nopeCount, 1);
   assert.equal(room.game.pendingAction.lastActorId, 'p2');
 
-  // 3. p1 counter-Nopes -> nopeCount === 2; p2 has no more nope -> auto-resolves & attack executes!
+  // 3. p1 counter-Nopes -> nopeCount === 2; even though p2 has 0 nope left,
+  // phase MUST stay 'nope' so p1 cannot tell p2 is out of nope cards!
   const res3 = await emitWithAck(handlers['game:action'], sockets.p1, {
     type: 'nope',
   });
   assert.equal(res3.ok, true);
+  assert.equal(room.game.phase, 'nope');
+  assert.equal(room.game.pendingAction.nopeCount, 2);
+  assert.equal(room.game.pendingAction.lastActorId, 'p1');
+
+  // 4. p2 passes (or 5s timer resolves) -> attack executes!
+  const res4 = await emitWithAck(handlers['game:action'], sockets.p2, {
+    type: 'passNope',
+  });
+  assert.equal(res4.ok, true);
   assert.equal(room.game.phase, 'play');
   assert.equal(room.game.pendingAction, null);
   assert.equal(room.game.currentPlayerId, 'p2');
   assert.equal(room.game.turnsLeft, 2);
 });
 
-test('Integration 4: taco and potato pair plays steal cards cleanly via game:action', async () => {
+test('Integration 4: taco and potato pair plays steal cards cleanly via game:action after nope window passes', async () => {
   const { roomStore, handlers } = createTestHarness(404);
   const sockets = {
     p1: createSocketStub('sock-1'),
@@ -256,26 +285,32 @@ test('Integration 4: taco and potato pair plays steal cards cleanly via game:act
   room.game.players[0].hand = [CARD.taco, CARD.taco, CARD.potato, CARD.potato, CARD.defuse];
   room.game.players[1].hand = [CARD.skip, CARD.attack, CARD.peek];
 
-  // 1. Play taco pair
+  // 1. Play taco pair -> enters nope window, then p2 passes
   const tacoRes = await emitWithAck(handlers['game:action'], sockets.p1, {
     type: 'catPair',
     card: 'taco',
     target: 'p2',
   });
   assert.equal(tacoRes.ok, true);
+  assert.equal(room.game.phase, 'nope');
+  const tacoPass = await emitWithAck(handlers['game:action'], sockets.p2, { type: 'passNope' });
+  assert.equal(tacoPass.ok, true);
   assert.equal(room.game.phase, 'play');
   assert.equal(room.game.players[0].hand.filter(c => c === CARD.taco).length, 0);
   assert.equal(room.game.players[0].hand.length, 4); // 5 - 2 + 1 stolen
   assert.equal(room.game.players[1].hand.length, 2);
   assert.deepEqual(room.game.discardPile.slice(-2), [CARD.taco, CARD.taco]);
 
-  // 2. Play potato pair
+  // 2. Play potato pair -> enters nope window, then p2 passes
   const potatoRes = await emitWithAck(handlers['game:action'], sockets.p1, {
     type: 'catPair',
     card: 'potato',
     target: 'p2',
   });
   assert.equal(potatoRes.ok, true);
+  assert.equal(room.game.phase, 'nope');
+  const potatoPass = await emitWithAck(handlers['game:action'], sockets.p2, { type: 'passNope' });
+  assert.equal(potatoPass.ok, true);
   assert.equal(room.game.phase, 'play');
   assert.equal(room.game.players[0].hand.filter(c => c === CARD.potato).length, 0);
   assert.equal(room.game.players[0].hand.length, 3); // 4 - 2 + 1 stolen

@@ -10,6 +10,7 @@ import {
   eliminatePlayer,
   resolvePendingAction,
   hasEligibleNopeHolder,
+  hasOtherLivingPlayer,
   getNextLivingPlayerId,
   viewFor,
 } from './engine.mjs';
@@ -631,6 +632,27 @@ test('hasEligibleNopeHolder returns true iff another alive player holds nope', (
   // If p3 is eliminated, only p1 (lastActorId) holds nope -> false
   const s2 = eliminatePlayer(s1, 'p3', 'disconnect');
   assert.equal(hasEligibleNopeHolder(s2), false);
+});
+
+test('hasOtherLivingPlayer checks only alive players != lastActorId without inspecting hands', () => {
+  const s0 = createGame(['p1', 'p2']);
+  s0.players[0].hand = [CARD.skip];
+  s0.players[1].hand = [CARD.cat]; // no nope in opponent hand
+
+  // Not in nope phase -> false
+  assert.equal(hasOtherLivingPlayer(s0), false);
+
+  // Enter nope phase: p2 has 0 nope cards, yet hasOtherLivingPlayer is still true (zero hand leak)
+  const s1 = applyAction(s0, 'p1', { type: 'play', card: 'skip' });
+  assert.equal(hasEligibleNopeHolder(s1), false);
+  assert.equal(hasOtherLivingPlayer(s1), true);
+
+  // If no other living player exists beside lastActorId -> false
+  const noOtherAlive = {
+    ...s1,
+    players: s1.players.map(p => (p.id === 'p1' ? p : { ...p, alive: false })),
+  };
+  assert.equal(hasOtherLivingPlayer(noOtherAlive), false);
 });
 
 // =============================================================================

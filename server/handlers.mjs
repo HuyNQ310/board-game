@@ -198,6 +198,29 @@ export function validateGameActionPayload(payload) {
   return { ok: false, code: 'INVALID_ACTION' };
 }
 
+function hasPossibleNopeRespondent(engine, game) {
+  if (typeof engine?.hasOtherLivingPlayer === 'function') {
+    return engine.hasOtherLivingPlayer(game);
+  }
+  if (typeof engine?.hasEligibleNopeHolder === 'function') {
+    return engine.hasEligibleNopeHolder(game);
+  }
+  return true;
+}
+
+async function resolveNopeIfNoRespondent(engine, game, rng) {
+  if (game?.phase !== 'nope' || hasPossibleNopeRespondent(engine, game)) {
+    return game;
+  }
+  if (typeof engine?.resolvePendingAction === 'function') {
+    return await engine.resolvePendingAction(game, rng);
+  }
+  if (typeof engine?.applyAction === 'function') {
+    return await engine.applyAction(game, game.currentPlayerId, { type: 'resolveNope' }, rng);
+  }
+  return game;
+}
+
 function isValidName(name) {
   return typeof name === 'string' && name.trim().length >= 1 && name.trim().length <= 16;
 }
@@ -535,16 +558,7 @@ export function createHandlers(arg1 = {}, arg2 = {}) {
 
           if (room && room.status === 'playing' && room.game && typeof engine?.eliminatePlayer === 'function') {
             room.game = engine.eliminatePlayer(room.game, playerId, 'disconnect', rng);
-            if (
-              room.game?.phase === 'nope' &&
-              typeof engine.hasEligibleNopeHolder === 'function' &&
-              !engine.hasEligibleNopeHolder(room.game)
-            ) {
-              room.game =
-                typeof engine.resolvePendingAction === 'function'
-                  ? engine.resolvePendingAction(room.game, rng)
-                  : engine.applyAction(room.game, room.game.currentPlayerId, { type: 'resolveNope' }, rng);
-            }
+            room.game = await resolveNopeIfNoRespondent(engine, room.game, rng);
             if (
               room.game?.phase === 'over' ||
               (room.game?.winnerId !== undefined && room.game?.winnerId !== null)
@@ -688,17 +702,7 @@ export function createHandlers(arg1 = {}, arg2 = {}) {
           let nextGame;
           try {
             nextGame = await engine.applyAction(room.game, playerId, validation.action, rng);
-            if (
-              nextGame?.phase === 'nope' &&
-              typeof engine.hasEligibleNopeHolder === 'function' &&
-              !engine.hasEligibleNopeHolder(nextGame)
-            ) {
-              if (typeof engine.resolvePendingAction === 'function') {
-                nextGame = await engine.resolvePendingAction(nextGame, rng);
-              } else {
-                nextGame = await engine.applyAction(nextGame, nextGame.currentPlayerId, { type: 'resolveNope' }, rng);
-              }
-            }
+            nextGame = await resolveNopeIfNoRespondent(engine, nextGame, rng);
           } catch (gameErr) {
             const errorAck = toErrAck(gameErr);
             if (socket && typeof socket.emit === 'function') {

@@ -44,3 +44,12 @@
 - **Decision**:
   - Installed `lucide-react` in `client/` workspace.
   - Inline SVG flags (`FlagVN` / `FlagUS` in `client/src/components/FlagIcon.jsx`) are used for the `VI` / `EN` language toggle so flags render reliably on Windows as well as macOS/mobile.
+
+## DEC-004: Zero-Hand-Leak 5-Second `nope` Reaction Window
+
+- **Date**: 2026-11-28
+- **Status**: Accepted
+- **Context**: Previously, `server/handlers.mjs` and `server/index.mjs` checked `engine.hasEligibleNopeHolder(state)` (which inspected `p.hand.includes('nope')`) to decide whether to hold in `phase: 'nope'` or auto-resolve immediately. That leaked to the active player whether any opponent held a `nope` card.
+- **Decision**:
+  - Added `hasOtherLivingPlayer(state)` in `shared/engine.mjs`, checking only `p.alive && p.id !== state.pendingAction.lastActorId` without inspecting any player's `.hand` (keeping `hasEligibleNopeHolder` exported for backward compatibility).
+  - Updated `server/handlers.mjs` (`game:action`, `room:leave`) and `server/index.mjs` (`handlePlayerDisconnect`) to prefer `engine.hasOtherLivingPlayer`, so the 5-second `nope` reaction window always opens whenever at least one other living player exists, resolving early only when all other living players `passNope` or disconnect/are eliminated.

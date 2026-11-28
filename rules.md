@@ -156,11 +156,11 @@ Tổng gỡ bom = 1 mỗi người (trên tay) + 2 (trong bộ rút). Số bom t
   - `attack`: không rút, lượt kết thúc ngay, người kế tiếp (theo `direction`) chơi `2 + (số lượt còn lại của người đánh − 1)` lượt.
 - `shuffle`, `peek`, `favor`, cặp mèo (`cat`/`taco`/`potato`) không kết thúc lượt.
 - **Cửa sổ phản ứng `nope` (`phase: 'nope'`):**
-  - Khi một người chơi đánh lá hành động (`skip`, `reverse`, `attack`, `shuffle`, `peek`, `favor`, hoặc cặp `cat`/`taco`/`potato`), lá bài được bỏ vào bài đã đánh và nếu có ít nhất một người chơi khác còn sống đang cầm lá `nope` trên tay, ván chuyển sang pha `nope` với cửa sổ phản ứng tối đa **5 giây** (nếu không có ai đủ điều kiện cầm `nope`, hiệu ứng hành động được thực thi ngay).
+  - Khi một người chơi đánh lá hành động (`skip`, `reverse`, `attack`, `shuffle`, `peek`, `favor`, hoặc cặp `cat`/`taco`/`potato`), lá bài được bỏ vào bài đã đánh và nếu còn ít nhất một người chơi khác còn sống (bất kể có cầm lá `nope` trên tay hay không, để không làm lộ thông tin bài đối thủ), ván chuyển sang pha `nope` với cửa sổ phản ứng tối đa **5 giây** (chỉ thực thi ngay nếu không còn người chơi sống nào khác).
   - Bất kỳ hành động nào ngoại trừ rút bài (`draw` / rút phải `boom`) và gỡ bom (`defuse`) đều có thể bị chặn bởi `nope`.
   - Trong pha `nope`, người chơi đủ điều kiện (còn sống, không phải người vừa tạo hành động/vừa đánh `nope` gần nhất và chưa bấm `passNope` ở đợt hiện tại) có thể gửi `nope` để đặt/đảo trạng thái chặn, hoặc `passNope` ("Cho qua").
   - **Phản-chặn (Counter-Nope):** mỗi lá `nope` đánh ra tăng bộ đếm `nopeCount` và khởi động lại cửa sổ 5 giây; số lẻ (`nopeCount` lẻ) làm hành động bị hủy, số chẵn (`nopeCount` chẵn) hủy việc chặn để hành động có hiệu lực trở lại.
-  - Khi cửa sổ 5 giây kết thúc hoặc tất cả người đủ điều kiện đều đã chọn `passNope` (hoặc không còn ai cầm `nope`): nếu `nopeCount` lẻ, hành động bị hủy và ghi `action_cancelled` (lá đã đánh không trả lại tay); nếu `nopeCount` chẵn, hiệu ứng của hành động đang chờ mới được áp dụng (ví dụ: lúc này `reverse` mới đảo hướng và trừ lượt, `attack` mới chuyển lượt, `favor`/`catPair` mới lấy bài).
+  - Khi cửa sổ 5 giây kết thúc hoặc tất cả người chơi sống khác (`!== lastActorId`) đều đã chọn `passNope` (hoặc không còn người chơi sống nào khác): nếu `nopeCount` lẻ, hành động bị hủy và ghi `action_cancelled` (lá đã đánh không trả lại tay); nếu `nopeCount` chẵn, hiệu ứng của hành động đang chờ mới được áp dụng (ví dụ: lúc này `reverse` mới đảo hướng và trừ lượt, `attack` mới chuyển lượt, `favor`/`catPair` mới lấy bài).
 
 ### 4.4 Rút phải bom
 

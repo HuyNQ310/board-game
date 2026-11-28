@@ -1125,6 +1125,98 @@ describe('Handler: game:action', () => {
     assert.equal(fakeRoom.game, nopeGame);
     assert.equal(broadcastedGame, nopeGame);
   });
+
+  it('prefers engine.hasOtherLivingPlayer over hasEligibleNopeHolder and stays in nope phase even if no one holds nope', async () => {
+    const nopeGame = {
+      version: 2,
+      phase: 'nope',
+      currentPlayerId: 'p1',
+      pendingAction: { type: 'play', card: 'skip', actor: 'p1', lastActorId: 'p1', nopeCount: 0, passedIds: [] },
+      players: [
+        { id: 'p1', alive: true, hand: ['defuse'] },
+        { id: 'p2', alive: true, hand: ['cat'] },
+      ],
+    };
+    const fakeRoom = {
+      code: 'NOPE4',
+      status: 'playing',
+      players: [{ id: 'p1', connected: true }, { id: 'p2', connected: true }],
+      game: { version: 1, phase: 'play', currentPlayerId: 'p1' },
+    };
+
+    let resolveCalled = false;
+    let eligibleCalled = false;
+
+    const fakeEngine = {
+      applyAction: async () => nopeGame,
+      hasOtherLivingPlayer: (state) => {
+        assert.equal(state, nopeGame);
+        return true;
+      },
+      hasEligibleNopeHolder: () => {
+        eligibleCalled = true;
+        return false;
+      },
+      resolvePendingAction: async () => {
+        resolveCalled = true;
+        return {};
+      },
+    };
+
+    const handlers = createHandlers({
+      roomStore: { getRoom: async () => fakeRoom },
+      engine: fakeEngine,
+      broadcastState: () => {},
+    });
+
+    const socket = { id: 's1', playerId: 'p1', roomCode: 'NOPE4' };
+    const { ack, getCallCount, getResponse } = createTestAck();
+
+    await handlers['game:action'](socket, { type: 'play', card: 'skip' }, ack);
+
+    assert.equal(getCallCount(), 1);
+    assert.deepEqual(getResponse(), { ok: true });
+    assert.equal(eligibleCalled, false);
+    assert.equal(resolveCalled, false);
+    assert.equal(fakeRoom.game, nopeGame);
+  });
+
+  it('auto-resolves nope phase immediately when engine.hasOtherLivingPlayer returns false', async () => {
+    const nopeGame = { version: 2, phase: 'nope', currentPlayerId: 'p1', pendingAction: { type: 'skip' } };
+    const resolvedGame = { version: 3, phase: 'play', currentPlayerId: 'p2' };
+    const fakeRoom = {
+      code: 'NOPE5',
+      status: 'playing',
+      players: [{ id: 'p1', connected: true }, { id: 'p2', connected: true }],
+      game: { version: 1, phase: 'play', currentPlayerId: 'p1' },
+    };
+
+    let resolveCalledWith = null;
+    const fakeEngine = {
+      applyAction: async () => nopeGame,
+      hasOtherLivingPlayer: () => false,
+      hasEligibleNopeHolder: () => true,
+      resolvePendingAction: async (state) => {
+        resolveCalledWith = state;
+        return resolvedGame;
+      },
+    };
+
+    const handlers = createHandlers({
+      roomStore: { getRoom: async () => fakeRoom },
+      engine: fakeEngine,
+      broadcastState: () => {},
+    });
+
+    const socket = { id: 's1', playerId: 'p1', roomCode: 'NOPE5' };
+    const { ack, getResponse } = createTestAck();
+
+    await handlers['game:action'](socket, { type: 'play', card: 'skip' }, ack);
+
+    assert.deepEqual(getResponse(), { ok: true });
+    assert.equal(resolveCalledWith, nopeGame);
+    assert.equal(fakeRoom.game, resolvedGame);
+  });
 });
 
 describe('Handler: room:rematch', () => {
