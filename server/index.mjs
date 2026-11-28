@@ -17,6 +17,14 @@ import {
   clearPlayerVoiceState,
   validateVoiceSignal,
 } from './voice.mjs';
+import { createDatabase } from './db.mjs';
+import { createAuthRouter, parseCookies, SESSION_COOKIE_NAME } from './authRoutes.mjs';
+import { createSeoRouter } from './seo.mjs';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const DEFAULT_DB_PATH = path.resolve(__dirname, '../data/meo-no.sqlite');
+const db = createDatabase(process.env.DB_PATH || DEFAULT_DB_PATH);
 
 // ============================================================================
 // RoomStore Defensive Adapter
@@ -155,6 +163,33 @@ async function broadcastState(room) {
   }
 
   if (room.game && typeof engine.viewFor === 'function') {
+    if (
+      (room.status === 'finished' || room.game.phase === 'over') &&
+      room._recordedMatchVersion !== room.game.version
+    ) {
+      room._recordedMatchVersion = room.game.version;
+      try {
+        const bindings = room.userBindings instanceof Map ? room.userBindings : new Map();
+        const participantUserIds = (room.players || [])
+          .map((p) => (p?.id ? bindings.get(p.id) : null))
+          .filter(Boolean);
+        const winnerId = room.game.winnerId ?? null;
+        const winnerPlayer = winnerId
+          ? (room.players || []).find((p) => p?.id === winnerId)
+          : null;
+        const winnerUserId = winnerId ? bindings.get(winnerId) || null : null;
+        db.recordMatchResult({
+          roomCode: room.code,
+          participantUserIds,
+          winnerUserId,
+          winnerName: winnerPlayer?.name || '',
+          playerCount: (room.players || []).length,
+        });
+      } catch (err) {
+        console.error('recordMatchResult error:', err);
+      }
+    }
+
     const turnDeadline = scheduleTurnTimer(room);
     const serverNow = Date.now();
     for (const player of room.players || []) {
@@ -424,6 +459,43 @@ function scheduleTurnTimer(room) {
 
 // Wire Socket.IO event handlers on connection
 io.on('connection', (socket) => {
+  const resolveSocketUserId = (explicitToken) => {
+    try {
+      const cookies = parseCookies(socket.handshake?.headers?.cookie);
+      const token =
+        explicitToken ||
+        socket.handshake?.auth?.token ||
+        cookies[SESSION_COOKIE_NAME] ||
+        null;
+      const user = token ? db.getUserByToken(token) : null;
+      return user?.id || null;
+    } catch {
+      return null;
+    }
+  };
+
+  socket.data.userId = resolveSocketUserId();
+
+  const bindPlayerToUserIfLoggedIn = () => {
+    const userId = socket.data?.userId;
+    const playerId = socket.data?.playerId ?? socket.playerId;
+    const code = socket.data?.roomCode ?? socket.roomCode;
+    if (!userId || !playerId || !code) return;
+    const room = roomStore.getRoom?.(code);
+    if (!room) return;
+    if (!(room.userBindings instanceof Map)) {
+      room.userBindings = new Map();
+    }
+    room.userBindings.set(playerId, userId);
+  };
+
+  socket.on('auth:sync', (payload, ack) => {
+    const safeAck = typeof ack === 'function' ? ack : () => {};
+    socket.data.userId = resolveSocketUserId(payload?.token || null);
+    bindPlayerToUserIfLoggedIn();
+    safeAck({ ok: true, userId: socket.data.userId });
+  });
+
   if (handlers && typeof handlers === 'object') {
     for (const [eventName, handler] of Object.entries(handlers)) {
       if (typeof handler !== 'function') continue;
@@ -436,6 +508,17 @@ io.on('connection', (socket) => {
               const playerId = payload?.playerId;
               const code = typeof payload?.code === 'string' ? payload.code.trim().toUpperCase() : null;
               if (playerId && code) disconnectTimers.cancel(disconnectKey(code, playerId));
+              bindPlayerToUserIfLoggedIn();
+            }
+            if (typeof ack === 'function') ack(res);
+          };
+          handler(socket, payload, wrappedAck);
+        });
+      } else if (eventName === 'room:create' || eventName === 'room:join') {
+        socket.on(eventName, (payload, ack) => {
+          const wrappedAck = (res) => {
+            if (res && res.ok) {
+              bindPlayerToUserIfLoggedIn();
             }
             if (typeof ack === 'function') ack(res);
           };
@@ -595,19 +678,22 @@ if (typeof roomStore.cleanupStaleRooms === 'function') {
 
 // Health check endpoint (rules.md section 7.5)
 app.get('/healthz', (req, res) => {
-  res.json({ ok: true, rooms: getRoomCount(roomStore) });
+  res.json({ ok: true, rooms: getRoomCount(roomStore), db: 'ok' });
 });
 
-// Static assets from client/dist and SPA fallback
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// Auth, profile preferences, leaderboard API & SEO/GEO routes
 const CLIENT_DIST = path.resolve(__dirname, '../client/dist');
+const CLIENT_PUBLIC = path.resolve(__dirname, '../client/public');
 const INDEX_HTML = path.join(CLIENT_DIST, 'index.html');
 
+app.use(createAuthRouter({ db }));
+app.use(createSeoRouter({ clientDistDir: CLIENT_DIST, clientPublicDir: CLIENT_PUBLIC }));
+
+// Static assets from client/dist and SPA fallback
 app.use(express.static(CLIENT_DIST));
 
 app.get('*', (req, res, next) => {
-  if (req.path.startsWith('/socket.io')) {
+  if (req.path.startsWith('/socket.io') || req.path.startsWith('/api')) {
     return next();
   }
   res.sendFile(INDEX_HTML, (err) => {
@@ -631,5 +717,5 @@ process.on('unhandledRejection', (reason, promise) => {
   console.error('Unhandled Rejection at:', promise, 'reason:', reason);
 });
 
-export { app, server, io, roomStore };
+export { app, server, io, roomStore, db };
 export default server;
