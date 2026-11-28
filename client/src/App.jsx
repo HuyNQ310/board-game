@@ -33,14 +33,21 @@ import Toast from './components/Toast.jsx';
 import Chat from './components/Chat.jsx';
 import HelpModal from './components/HelpModal.jsx';
 import ThemePicker from './components/ThemePicker.jsx';
+import CardFlightLayer from './components/CardFlightLayer.jsx';
 import {
   getStoredCardTheme,
   setStoredCardTheme,
   getStoredTableTheme,
   setStoredTableTheme,
 } from './state/themes.js';
-import { ensureAudioUnlocked } from './utils/sound.js';
+import {
+  ensureAudioUnlocked,
+  playCardDealSound,
+  playCardDrawSound,
+  playCardPlaySound,
+} from './utils/sound.js';
 import { isMobileTouchDevice, tryAutoLandscape } from './utils/orientation.js';
+import { useVoiceChat } from './hooks/useVoiceChat.js';
 
 function normalizeGameStateDeadline(payload) {
   if (
@@ -161,10 +168,102 @@ function AppContent() {
   const [chatMessages, setChatMessages] = useState([]);
   const [chatBubbles, setChatBubbles] = useState({});
   const chatBubbleTimersRef = useRef(new Map());
+  const [mutedVoiceIds, setMutedVoiceIds] = useState(() => new Set());
+  const [mutedChatIds, setMutedChatIds] = useState(() => new Set());
+  const toastCounterRef = useRef(0);
+  const mutedChatIdsRef = useRef(mutedChatIds);
+  useEffect(() => {
+    mutedChatIdsRef.current = mutedChatIds;
+  }, [mutedChatIds]);
+
+  const showToast = useCallback((payload, variant = 'error') => {
+    const id = ++toastCounterRef.current;
+    const base =
+      typeof payload === 'string'
+        ? { code: null, message: payload }
+        : payload || {};
+    dispatch({
+      type: ACTION_TYPES.ERROR_RECEIVED,
+      payload: {
+        ...base,
+        variant: base.variant || variant,
+        id,
+      },
+    });
+  }, [dispatch]);
+
+  const handleToggleMuteVoice = useCallback((targetId) => {
+    if (!targetId) return;
+    setMutedVoiceIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(targetId)) next.delete(targetId);
+      else next.add(targetId);
+      return next;
+    });
+  }, []);
+
+  const handleToggleMuteChat = useCallback((targetId) => {
+    if (!targetId) return;
+    setMutedChatIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(targetId)) next.delete(targetId);
+      else next.add(targetId);
+      return next;
+    });
+  }, []);
+
+  const handleVoiceError = useCallback(
+    (code) => {
+      const msg = strings.errors?.[code] || code;
+      showToast({ code, message: msg }, 'error');
+    },
+    [strings, showToast]
+  );
+
+  const voiceSocket = useMemo(() => {
+    try {
+      return getSocket();
+    } catch {
+      return null;
+    }
+  }, []);
+
+  const voicePlayers = useMemo(() => {
+    return Array.isArray(roomState?.players) ? roomState.players : [];
+  }, [roomState?.players]);
+
+  const { micOn, micBusy, voicePeers, toggleMic, stopMic } = useVoiceChat({
+    socket: voiceSocket,
+    roomCode: roomState?.code || null,
+    myPlayerId,
+    players: voicePlayers,
+    mutedVoiceIds,
+    onError: handleVoiceError,
+  });
+
+  const visibleChatMessages = useMemo(() => {
+    if (!mutedChatIds || mutedChatIds.size === 0) return chatMessages;
+    return chatMessages.filter((msg) => !mutedChatIds.has(msg?.playerId));
+  }, [chatMessages, mutedChatIds]);
+
+  const visibleChatBubbles = useMemo(() => {
+    if (!mutedChatIds || mutedChatIds.size === 0) return chatBubbles;
+    const filtered = {};
+    for (const [pid, bubble] of Object.entries(chatBubbles)) {
+      if (!mutedChatIds.has(pid)) {
+        filtered[pid] = bubble;
+      }
+    }
+    return filtered;
+  }, [chatBubbles, mutedChatIds]);
   const [helpOpen, setHelpOpen] = useState(false);
   const [themePickerOpen, setThemePickerOpen] = useState(false);
   const [cardTheme, setCardTheme] = useState(() => getStoredCardTheme());
   const [tableTheme, setTableTheme] = useState(() => getStoredTableTheme());
+  const [cardFlights, setCardFlights] = useState([]);
+  const flightIdRef = useRef(0);
+  const lastSelectedCardRectRef = useRef(null);
+  const prevAnimSnapshotRef = useRef(null);
 
   const handleSelectCardTheme = useCallback((nextTheme) => {
     setCardTheme(nextTheme);
@@ -260,10 +359,7 @@ function AppContent() {
             dispatch({ type: ACTION_TYPES.ROOM_STATE_RECEIVED, payload: null });
             if (ack?.code) {
               const msg = strings.errors?.[ack.code] || ack.message || ack.code;
-              dispatch({
-                type: ACTION_TYPES.ERROR_RECEIVED,
-                payload: { code: ack.code, message: msg },
-              });
+              showToast({ code: ack.code, message: msg }, 'error');
             }
           }
         })
@@ -277,7 +373,7 @@ function AppContent() {
     } else {
       dispatch({ type: ACTION_TYPES.ROOM_STATE_RECEIVED, payload: null });
     }
-  }, [dispatch, strings]);
+  }, [dispatch, strings, showToast]);
 
   // 2. Subscribe to server -> client socket events
   useEffect(() => {
@@ -296,22 +392,18 @@ function AppContent() {
 
     const handleGameError = (error) => {
       const message =
-        error?.message ||
         (error?.code ? strings.errors?.[error.code] : null) ||
+        error?.message ||
         strings.errors?.SERVER_ERROR ||
         (locale === 'en' ? 'An error occurred' : 'Có lỗi xảy ra');
-      dispatch({
-        type: ACTION_TYPES.ERROR_RECEIVED,
-        payload: { code: error?.code, message },
-      });
+      showToast({ code: error?.code, message }, 'error');
     };
 
     const handleSessionReplaced = () => {
       clearStoredRoomCode();
       dispatch({ type: ACTION_TYPES.ROOM_STATE_RECEIVED, payload: null });
-      dispatch({
-        type: ACTION_TYPES.ERROR_RECEIVED,
-        payload: {
+      showToast(
+        {
           code: 'SESSION_REPLACED',
           message:
             strings.errors?.SESSION_REPLACED ||
@@ -319,7 +411,8 @@ function AppContent() {
               ? 'Your session was opened in another tab or device'
               : 'Phiên kết nối đã được mở ở một tab hoặc thiết bị khác'),
         },
-      });
+        'error'
+      );
     };
 
     const handleConnect = () => {
@@ -356,7 +449,7 @@ function AppContent() {
 
     const handleChatMessage = (msg) => {
       setChatMessages((prev) => [...prev, msg]);
-      if (msg?.playerId && msg?.text) {
+      if (msg?.playerId && msg?.text && !mutedChatIdsRef.current.has(msg.playerId)) {
         const bubbleId = `${msg.playerId}-${Date.now()}-${Math.random()}`;
         setChatBubbles((prev) => ({
           ...prev,
@@ -402,7 +495,7 @@ function AppContent() {
       socket.off('disconnect', handleDisconnect);
       socket.off('chat:message', handleChatMessage);
     };
-  }, [dispatch, strings, locale]);
+  }, [dispatch, strings, locale, showToast]);
 
   useEffect(() => {
     const timers = chatBubbleTimersRef.current;
@@ -466,14 +559,22 @@ function AppContent() {
     if (!toast) return null;
     if (typeof toast === 'string') return toast;
     if (typeof toast === 'object') {
-      if (toast.message) return toast.message;
       if (toast.code && strings.errors?.[toast.code]) {
         return strings.errors[toast.code];
       }
+      if (toast.message) return toast.message;
       if (toast.code) return toast.code;
     }
     return String(toast);
   }, [toast, strings]);
+
+  const toastVariant =
+    toast && typeof toast === 'object' && toast.variant ? toast.variant : 'error';
+  const toastKey =
+    toast && typeof toast === 'object' && toast.id !== undefined ? toast.id : toastText;
+  const toastCloseLabel =
+    strings.toast?.closeAriaLabel ||
+    (locale === 'en' ? 'Dismiss notification' : 'Đóng thông báo');
 
   const handleDismissToast = useCallback(() => {
     dispatch({ type: ACTION_TYPES.TOAST_CLEARED });
@@ -527,16 +628,13 @@ function AppContent() {
       setStoredRoomCode(ack.code);
     } else if (!ack?.ok) {
       const msg =
-        ack?.message ||
         (ack?.code ? strings.errors?.[ack.code] : null) ||
+        ack?.message ||
         strings.errors?.CREATE_ROOM_FAILED ||
         (locale === 'en' ? 'Unable to create room' : 'Không thể tạo phòng');
-      dispatch({
-        type: ACTION_TYPES.ERROR_RECEIVED,
-        payload: { code: ack?.code, message: msg },
-      });
+      showToast({ code: ack?.code, message: msg }, 'error');
     }
-  }, [name, strings, locale, dispatch]);
+  }, [name, strings, locale, showToast]);
 
   const handleJoinRoom = useCallback(async () => {
     const trimmed = name.trim();
@@ -552,16 +650,13 @@ function AppContent() {
       setStoredRoomCode(ack.code);
     } else if (!ack?.ok) {
       const msg =
-        ack?.message ||
         (ack?.code ? strings.errors?.[ack.code] : null) ||
+        ack?.message ||
         strings.errors?.JOIN_ROOM_FAILED ||
         (locale === 'en' ? 'Unable to join room' : 'Không thể vào phòng');
-      dispatch({
-        type: ACTION_TYPES.ERROR_RECEIVED,
-        payload: { code: ack?.code, message: msg },
-      });
+      showToast({ code: ack?.code, message: msg }, 'error');
     }
-  }, [name, joinCode, strings, locale, dispatch]);
+  }, [name, joinCode, strings, locale, showToast]);
 
   // ==========================================================================
   // LOBBY SCREEN HANDLERS & STATE
@@ -595,37 +690,44 @@ function AppContent() {
     const ack = await emitWithAck('game:start', {});
     if (!ack?.ok) {
       const msg =
-        ack?.message ||
         (ack?.code ? strings.errors?.[ack.code] : null) ||
+        ack?.message ||
         strings.errors?.START_GAME_FAILED ||
         (locale === 'en' ? 'Unable to start game' : 'Không thể bắt đầu ván');
-      dispatch({
-        type: ACTION_TYPES.ERROR_RECEIVED,
-        payload: { code: ack?.code, message: msg },
-      });
+      showToast({ code: ack?.code, message: msg }, 'error');
     }
-  }, [strings, locale, dispatch]);
+  }, [strings, locale, showToast]);
 
   const handleLeaveRoom = useCallback(async () => {
+    stopMic();
     try {
       await emitWithAck('room:leave', {});
     } catch {}
     clearStoredRoomCode();
     setChatMessages([]);
+    setMutedVoiceIds(new Set());
+    setMutedChatIds(new Set());
     for (const timerId of chatBubbleTimersRef.current.values()) {
       clearTimeout(timerId);
     }
     chatBubbleTimersRef.current.clear();
     setChatBubbles({});
     dispatch({ type: ACTION_TYPES.ROOM_STATE_RECEIVED, payload: null });
-  }, [dispatch]);
+  }, [dispatch, stopMic]);
 
   const handleCopyCode = useCallback(async () => {
     if (!roomState?.code) return;
     try {
       await navigator.clipboard.writeText(roomState.code);
+      const copiedMsg =
+        typeof strings.toast?.copiedCode === 'function'
+          ? strings.toast.copiedCode(roomState.code)
+          : locale === 'en'
+            ? `Copied room code ${roomState.code}`
+            : `Đã sao chép mã phòng ${roomState.code}`;
+      showToast({ code: null, message: copiedMsg }, 'success');
     } catch {}
-  }, [roomState?.code]);
+  }, [roomState?.code, strings, locale, showToast]);
 
   const handleShareCode = useCallback(async () => {
     if (!roomState?.code) return;
@@ -643,9 +745,16 @@ function AppContent() {
         });
       } else if (typeof navigator !== 'undefined' && navigator.clipboard) {
         await navigator.clipboard.writeText(roomState.code);
+        const copiedMsg =
+          typeof strings.toast?.copiedCode === 'function'
+            ? strings.toast.copiedCode(roomState.code)
+            : locale === 'en'
+              ? `Copied room code ${roomState.code}`
+              : `Đã sao chép mã phòng ${roomState.code}`;
+        showToast({ code: null, message: copiedMsg }, 'success');
       }
     } catch {}
-  }, [roomState?.code, strings, locale]);
+  }, [roomState?.code, strings, locale, showToast]);
 
   // ==========================================================================
   // GAME SCREEN COMPOSITION & STATE
@@ -733,11 +842,11 @@ function AppContent() {
             : `${actorName} vừa chơi cặp ${catName} nhắm vào bạn — họ đã lấy ngẫu nhiên 1 lá từ tay bạn.`;
       }
       if (message) {
-        dispatch({ type: ACTION_TYPES.ERROR_RECEIVED, payload: { code: null, message } });
+        showToast({ code: null, message }, 'warning');
         break; // one toast at a time; if several targeted us in one update, the log panel has the rest
       }
     }
-  }, [gameState?.log, myPlayerId, mergedGamePlayers, locale, strings.cards, dispatch]);
+  }, [gameState?.log, myPlayerId, mergedGamePlayers, locale, strings.cards, showToast]);
 
   const isMyTurn =
     gameState?.phase === 'play' &&
@@ -797,9 +906,270 @@ function AppContent() {
       setTargetPickerAction(null);
       setInsertAt(0);
       setDismissedPeekVersion(null);
+      setCardFlights([]);
+      lastSelectedCardRectRef.current = null;
+      prevAnimSnapshotRef.current = null;
       lastSeenLogLengthRef.current = 0;
     }
   }, [gameState]);
+
+  // Card flight animations (deal, draw-to-hand, play-to-table) + sound effects
+  useEffect(() => {
+    if (screen !== 'game' || !gameState) {
+      prevAnimSnapshotRef.current = null;
+      return undefined;
+    }
+
+    const log = Array.isArray(gameState.log) ? gameState.log : [];
+    const discardCount = gameState.discardCount ?? 0;
+    const discardTop = gameState.discardTop ?? null;
+    const prev = prevAnimSnapshotRef.current;
+
+    const nextSnapshot = {
+      version: gameState.version,
+      discardCount,
+      discardTop,
+      logLen: log.length,
+      currentPlayerId: gameState.currentPlayerId,
+    };
+
+    const reducedMotion =
+      typeof window !== 'undefined' &&
+      typeof window.matchMedia === 'function' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    const scheduleFlights = (newFlights) => {
+      if (!newFlights.length || reducedMotion) return;
+      setCardFlights((current) => [...current, ...newFlights]);
+      const maxEnd = newFlights.reduce(
+        (acc, f) => Math.max(acc, (f.delayMs || 0) + (f.durationMs || 380)),
+        0
+      );
+      const ids = new Set(newFlights.map((f) => f.id));
+      setTimeout(() => {
+        setCardFlights((current) => current.filter((f) => !ids.has(f.id)));
+      }, maxEnd + 100);
+    };
+
+    const makeFlight = (fromRect, toRect, opts = {}) => {
+      if (!fromRect || !toRect || fromRect.width <= 0 || toRect.width <= 0) return null;
+      const fromCenterX = fromRect.left + fromRect.width / 2;
+      const fromCenterY = fromRect.top + fromRect.height / 2;
+      const toCenterX = toRect.left + toRect.width / 2;
+      const toCenterY = toRect.top + toRect.height / 2;
+      const id = ++flightIdRef.current;
+      return {
+        id,
+        fromX: fromRect.left,
+        fromY: fromRect.top,
+        fromW: fromRect.width,
+        fromH: fromRect.height,
+        dx: toCenterX - fromCenterX,
+        dy: toCenterY - fromCenterY,
+        scaleEnd: Number((toRect.width / fromRect.width).toFixed(3)) || 1,
+        ...opts,
+      };
+    };
+
+    // 1. Fresh game start: deal cards flying from DrawPile into hand & opponent seats
+    if (!prev && (gameState.version === 0 || log.length === 0)) {
+      const rafId = window.requestAnimationFrame(() => {
+        prevAnimSnapshotRef.current = nextSnapshot;
+        if (typeof document === 'undefined') return;
+        const drawRect = document
+          .querySelector('[data-testid="draw-pile"] .draw-pile__card')
+          ?.getBoundingClientRect();
+        const handSlots = Array.from(document.querySelectorAll('.hand-card-slot'));
+        playCardDealSound(handSlots.length || 5);
+
+        if (!drawRect || drawRect.width <= 0) return;
+        const created = [];
+        handSlots.forEach((slotEl, idx) => {
+          const toRect = slotEl.getBoundingClientRect();
+          const flight = makeFlight(drawRect, toRect, {
+            variant: 'deal',
+            faceDown: true,
+            delayMs: idx * 85,
+            durationMs: 360,
+            rotateStart: -8 + idx * 2,
+            rotateEnd: 0,
+          });
+          if (flight) created.push(flight);
+        });
+
+        const opponents = (gameState.players || []).filter((p) => p?.id && p.id !== myPlayerId);
+        opponents.forEach((opp, idx) => {
+          const seatRect = document
+            .querySelector(`[data-testid="seat-${opp.id}"]`)
+            ?.getBoundingClientRect();
+          if (!seatRect || seatRect.width <= 0) return;
+          const targetBox = {
+            left: seatRect.left + seatRect.width / 2 - 22,
+            top: seatRect.top + seatRect.height / 2 - 31,
+            width: 44,
+            height: 62,
+          };
+          const flight = makeFlight(drawRect, targetBox, {
+            variant: 'deal',
+            faceDown: true,
+            delayMs: 100 + idx * 90,
+            durationMs: 340,
+            rotateStart: 6,
+            rotateEnd: 0,
+          });
+          if (flight) created.push(flight);
+        });
+
+        scheduleFlights(created);
+      });
+      return () => window.cancelAnimationFrame(rafId);
+    }
+
+    if (!prev) {
+      prevAnimSnapshotRef.current = nextSnapshot;
+      return undefined;
+    }
+
+    if (gameState.version <= prev.version) {
+      return undefined;
+    }
+
+    const startIdx = log.length >= prev.logLen ? prev.logLen : 0;
+    const newEntries = log.slice(startIdx);
+    const drawEntry = [...newEntries].reverse().find((e) => e?.type === 'draw' || e?.type === 'bomb_drawn');
+    const playedToDiscard = discardCount > prev.discardCount && Boolean(discardTop);
+
+    const rafId = window.requestAnimationFrame(() => {
+      prevAnimSnapshotRef.current = nextSnapshot;
+      if (typeof document === 'undefined') return;
+      const created = [];
+
+      // 2. Card drawn -> flies from DrawPile into hand (or opponent seat)
+      if (drawEntry) {
+        playCardDrawSound();
+        const drawRect = document
+          .querySelector('[data-testid="draw-pile"] .draw-pile__card')
+          ?.getBoundingClientRect();
+        if (drawRect && drawRect.width > 0) {
+          let targetRect = null;
+          if (drawEntry.actor === myPlayerId) {
+            const slots = document.querySelectorAll('.hand-card-slot');
+            if (slots.length > 0) {
+              targetRect = slots[slots.length - 1].getBoundingClientRect();
+            } else {
+              const strip = document.querySelector('.hand-scroll-strip')?.getBoundingClientRect();
+              if (strip && strip.width > 0) {
+                targetRect = {
+                  left: strip.left + strip.width / 2 - drawRect.width / 2,
+                  top: strip.top + 12,
+                  width: drawRect.width,
+                  height: drawRect.height,
+                };
+              }
+            }
+          } else if (drawEntry.actor) {
+            const seatRect = document
+              .querySelector(`[data-testid="seat-${drawEntry.actor}"]`)
+              ?.getBoundingClientRect();
+            if (seatRect && seatRect.width > 0) {
+              targetRect = {
+                left: seatRect.left + seatRect.width / 2 - 22,
+                top: seatRect.top + seatRect.height / 2 - 31,
+                width: 44,
+                height: 62,
+              };
+            }
+          }
+          const flight = makeFlight(drawRect, targetRect, {
+            variant: 'draw',
+            faceDown: true,
+            delayMs: 0,
+            durationMs: 360,
+            rotateStart: -6,
+            rotateEnd: 0,
+          });
+          if (flight) created.push(flight);
+        }
+      }
+
+      // 3. Card played -> flies face-up onto DiscardPile with tabletop slap sound
+      if (playedToDiscard) {
+        playCardPlaySound();
+        const discardRect = document
+          .querySelector('[data-testid="discard-pile"] .discard-pile__slot')
+          ?.getBoundingClientRect();
+        if (discardRect && discardRect.width > 0) {
+          const playLogTypes = new Set([
+            'nope',
+            'defused',
+            'skip',
+            'attack',
+            'reverse',
+            'shuffle',
+            'peek',
+            'favor',
+            'cat',
+          ]);
+          const playEntry = [...newEntries].reverse().find((e) => playLogTypes.has(e?.type));
+          const throwerId =
+            gameState.phase === 'nope' && gameState.pendingAction?.lastActorId
+              ? gameState.pendingAction.lastActorId
+              : playEntry?.actor || prev.currentPlayerId;
+
+          let fromRect = null;
+          if (throwerId === myPlayerId) {
+            fromRect = lastSelectedCardRectRef.current;
+            lastSelectedCardRectRef.current = null;
+            if (!fromRect) {
+              const strip = document.querySelector('.hand-scroll-strip')?.getBoundingClientRect();
+              if (strip && strip.width > 0) {
+                fromRect = {
+                  left: strip.left + strip.width / 2 - discardRect.width / 2,
+                  top: strip.top + 8,
+                  width: discardRect.width,
+                  height: discardRect.height,
+                };
+              }
+            }
+          } else if (throwerId) {
+            const seatRect = document
+              .querySelector(`[data-testid="seat-${throwerId}"]`)
+              ?.getBoundingClientRect();
+            if (seatRect && seatRect.width > 0) {
+              fromRect = {
+                left: seatRect.left + seatRect.width / 2 - 26,
+                top: seatRect.top + seatRect.height / 2 - 36,
+                width: 52,
+                height: 73,
+              };
+            }
+          }
+
+          const cardLabel =
+            strings.cards?.[discardTop] || fallbackCardLabels[discardTop] || discardTop;
+          const cardRuleText =
+            (locale === 'en' ? CARD_RULES_EN[discardTop] : CARD_RULES_VI[discardTop]) || '';
+
+          const flight = makeFlight(fromRect, discardRect, {
+            variant: 'play',
+            faceDown: false,
+            cardType: discardTop,
+            cardLabel,
+            cardRuleText,
+            delayMs: 0,
+            durationMs: 340,
+            rotateStart: throwerId === myPlayerId ? -6 : 6,
+            rotateEnd: 0,
+          });
+          if (flight) created.push(flight);
+        }
+      }
+
+      scheduleFlights(created);
+    });
+
+    return () => window.cancelAnimationFrame(rafId);
+  }, [screen, gameState, myPlayerId, strings.cards, fallbackCardLabels, locale]);
 
   // Build hand cards array with stable unique IDs, automatically grouped/sorted by card type
   const myHandCards = useMemo(() => {
@@ -981,18 +1351,15 @@ function AppContent() {
       const ack = await emitWithAck('game:action', payload);
       if (!ack?.ok) {
         const msg =
-          ack?.message ||
           (ack?.code ? strings.errors?.[ack.code] : null) ||
+          ack?.message ||
           strings.errors?.INVALID_ACTION ||
           (locale === 'en' ? 'Invalid action' : 'Hành động không hợp lệ');
-        dispatch({
-          type: ACTION_TYPES.ERROR_RECEIVED,
-          payload: { code: ack?.code, message: msg },
-        });
+        showToast({ code: ack?.code, message: msg }, 'error');
       }
       return ack;
     },
-    [strings, locale, dispatch]
+    [strings, locale, showToast]
   );
 
   const canDraw = isMyTurn && socketConnected;
@@ -1110,6 +1477,20 @@ function AppContent() {
 
   const handleToggleSelectCard = useCallback(
     (cardId) => {
+      if (typeof document !== 'undefined') {
+        const el = document.querySelector(`[data-card-id="${cardId}"]`);
+        if (el) {
+          const r = el.getBoundingClientRect();
+          if (r.width > 0 && r.height > 0) {
+            lastSelectedCardRectRef.current = {
+              left: r.left,
+              top: r.top,
+              width: r.width,
+              height: r.height,
+            };
+          }
+        }
+      }
       const clickedCard = myHandCards.find((c) => c.id === cardId);
       if (isNopePhase && clickedCard?.type === 'nope') {
         handleNopeAction();
@@ -1418,16 +1799,13 @@ function AppContent() {
     const ack = await emitWithAck('room:rematch', {});
     if (!ack?.ok) {
       const msg =
-        ack?.message ||
         (ack?.code ? strings.errors?.[ack.code] : null) ||
+        ack?.message ||
         strings.errors?.REMATCH_FAILED ||
         (locale === 'en' ? 'Unable to start rematch' : 'Không thể chơi lại');
-      dispatch({
-        type: ACTION_TYPES.ERROR_RECEIVED,
-        payload: { code: ack?.code, message: msg },
-      });
+      showToast({ code: ack?.code, message: msg }, 'error');
     }
-  }, [strings, locale, dispatch]);
+  }, [strings, locale, showToast]);
 
   // ==========================================================================
   // SCREEN TRANSLATION SHAPES
@@ -1500,6 +1878,12 @@ function AppContent() {
         ...strings.cards,
       },
       cardRules: isEn ? CARD_RULES_EN : CARD_RULES_VI,
+      micOn: strings.voice?.micOn || (isEn ? 'Mic on' : 'Mic bật'),
+      micOff: strings.voice?.micOff || (isEn ? 'Turn on mic' : 'Bật mic'),
+      muteVoiceFor: strings.voice?.muteVoice,
+      unmuteVoiceFor: strings.voice?.unmuteVoice,
+      muteChatFor: strings.voice?.muteChat,
+      unmuteChatFor: strings.voice?.unmuteChat,
     };
   }, [strings, fallbackCardLabels, locale]);
 
@@ -1630,6 +2014,17 @@ function AppContent() {
       chatCloseButton:
         strings.chat?.closeButton || (isEn ? 'Close chat' : 'Đóng trò chuyện'),
       chatUnreadButtonAriaLabel: strings.chat?.unreadButtonAriaLabel,
+      voiceMicOn: strings.voice?.turnMicOff || (isEn ? 'Turn microphone off' : 'Tắt micro'),
+      voiceMicOff: strings.voice?.turnMicOn || (isEn ? 'Turn microphone on' : 'Bật micro để nói'),
+      voicePlayerControls:
+        strings.voice?.playerControlsAriaLabel ||
+        (isEn ? 'Per-player voice and chat settings' : 'Tùy chỉnh nghe và xem chat từng người chơi'),
+      voiceNoOtherPlayers:
+        strings.voice?.noOtherPlayers || (isEn ? 'No other players' : 'Chưa có người chơi khác'),
+      voiceMutedShort: strings.voice?.voiceMutedShort || (isEn ? 'Muted' : 'Đã tắt tiếng'),
+      voiceUnmutedShort: strings.voice?.voiceUnmutedShort || (isEn ? 'Audio on' : 'Đang nghe'),
+      chatMutedShort: strings.voice?.chatMutedShort || (isEn ? 'Chat hidden' : 'Đã ẩn chat'),
+      chatUnmutedShort: strings.voice?.chatUnmutedShort || (isEn ? 'Chat shown' : 'Xem chat'),
     };
   }, [strings, locale]);
 
@@ -1666,19 +2061,31 @@ function AppContent() {
             currentPlayerId={gameState?.currentPlayerId}
             turnsLeft={gameState?.turnsLeft}
             direction={gameState?.direction}
-            chatBubbles={chatBubbles}
+            chatBubbles={visibleChatBubbles}
+            cardTheme={cardTheme}
             tableTheme={tableTheme}
             locale={locale}
             onToggleLocale={handleToggleLocale}
             onOpenThemePicker={() => setThemePickerOpen(true)}
             onOpenHelp={() => setHelpOpen(true)}
             onLeave={handleLeaveRoom}
+            micOn={micOn}
+            micBusy={micBusy}
+            onToggleMic={toggleMic}
+            voicePeers={voicePeers}
+            mutedVoiceIds={mutedVoiceIds}
+            mutedChatIds={mutedChatIds}
+            onToggleMuteVoice={handleToggleMuteVoice}
+            onToggleMuteChat={handleToggleMuteChat}
             deckCount={gameState?.deckCount ?? 0}
             discardCount={gameState?.discardCount ?? 0}
             discardTop={gameState?.discardTop ?? null}
             players={mergedGamePlayers}
             log={gameState?.log || []}
             toastMessage={toastText}
+            toastVariant={toastVariant}
+            toastKey={toastKey}
+            toastCloseLabel={toastCloseLabel}
             onDismissToast={handleDismissToast}
             renderCard={renderCard}
             renderLogLine={renderLogLine}
@@ -1737,18 +2144,9 @@ function AppContent() {
             {/* Status banners */}
             {isReconnecting && (
               <div
-                style={{
-                  width: '100%',
-                  padding: '8px 12px',
-                  backgroundColor: '#e74c3c',
-                  color: '#ffffff',
-                  borderRadius: '6px',
-                  textAlign: 'center',
-                  fontWeight: 'bold',
-                  fontSize: '0.9rem',
-                  marginBottom: '8px',
-                }}
-                role="alert"
+                className="game-status-banner game-status-banner--reconnect"
+                role="status"
+                aria-live="polite"
               >
                 {strings.banners?.reconnecting ||
                   (locale === 'en' ? 'Reconnecting…' : 'Đang kết nối lại…')}
@@ -1756,17 +2154,7 @@ function AppContent() {
             )}
             {myPlayer?.alive === false && (
               <div
-                style={{
-                  width: '100%',
-                  padding: '8px 12px',
-                  backgroundColor: '#7f8c8d',
-                  color: '#ffffff',
-                  borderRadius: '6px',
-                  textAlign: 'center',
-                  fontWeight: 'bold',
-                  fontSize: '0.9rem',
-                  marginBottom: '8px',
-                }}
+                className="game-status-banner game-status-banner--eliminated"
                 role="status"
               >
                 {strings.banners?.eliminated ||
@@ -1777,17 +2165,7 @@ function AppContent() {
             )}
             {otherDefusingName && (
               <div
-                style={{
-                  width: '100%',
-                  padding: '8px 12px',
-                  backgroundColor: '#f39c12',
-                  color: '#ffffff',
-                  borderRadius: '6px',
-                  textAlign: 'center',
-                  fontWeight: 'bold',
-                  fontSize: '0.9rem',
-                  marginBottom: '8px',
-                }}
+                className="game-status-banner game-status-banner--defusing"
                 role="status"
               >
                 {strings.dialog?.defuse?.defusing
@@ -1834,11 +2212,23 @@ function AppContent() {
 
             {/* Real-time chat */}
             <Chat
-              messages={chatMessages}
+              messages={visibleChatMessages}
               myPlayerId={myPlayerId}
+              players={mergedGamePlayers}
+              voicePeers={voicePeers}
+              mutedVoiceIds={mutedVoiceIds}
+              mutedChatIds={mutedChatIds}
+              onToggleMuteVoice={handleToggleMuteVoice}
+              onToggleMuteChat={handleToggleMuteChat}
+              micOn={micOn}
+              micBusy={micBusy}
+              onToggleMic={toggleMic}
               onSend={handleSendChat}
               t={chatT}
             />
+
+            {/* Card flight animation overlay */}
+            <CardFlightLayer flights={cardFlights} renderCard={renderCard} />
           </Game>
         );
 
@@ -1879,7 +2269,13 @@ function AppContent() {
   return (
     <>
       {screen !== 'game' && toastText && (
-        <Toast message={toastText} onDismiss={handleDismissToast} />
+        <Toast
+          message={toastText}
+          variant={toastVariant}
+          toastKey={toastKey}
+          closeLabel={toastCloseLabel}
+          onDismiss={handleDismissToast}
+        />
       )}
       {renderCurrentScreen()}
       <ThemePicker

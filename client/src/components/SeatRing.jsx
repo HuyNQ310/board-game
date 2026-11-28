@@ -1,5 +1,36 @@
-import { RotateCw, RotateCcw } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import {
+  RotateCw,
+  RotateCcw,
+  Mic,
+  Volume2,
+  VolumeX,
+  MessageSquare,
+  MessageSquareOff,
+} from 'lucide-react';
 import './SeatRing.css';
+
+const TIMER_RING_RADIUS = 18;
+const TIMER_RING_CIRCUMFERENCE = 2 * Math.PI * TIMER_RING_RADIUS;
+
+function hasPlayerId(collection, id) {
+  if (!collection || id === undefined || id === null) return false;
+  if (collection instanceof Set || typeof collection.has === 'function') {
+    return collection.has(id);
+  }
+  if (Array.isArray(collection)) {
+    return collection.includes(id);
+  }
+  return false;
+}
+
+function isValidFutureDeadline(turnDeadline, now = Date.now()) {
+  return (
+    typeof turnDeadline === 'number' &&
+    !Number.isNaN(turnDeadline) &&
+    turnDeadline > now
+  );
+}
 
 /**
  * Computes angular distribution (in degrees) for opponent seats along an ellipse arc.
@@ -113,12 +144,93 @@ export function SeatRing({
   players = [],
   myPlayerId,
   currentPlayerId,
+  turnDeadline = null,
+  phase = null,
+  pendingDefuseId = null,
   centerContent = null,
   direction,
   t = {},
   tableTheme = 'pastel-green',
   chatBubbles = {},
+  voicePeers = {},
+  mutedVoiceIds,
+  mutedChatIds,
+  onToggleMuteVoice,
+  onToggleMuteChat,
 }) {
+  const [prevDeadline, setPrevDeadline] = useState(turnDeadline);
+  const [timerSnapshot, setTimerSnapshot] = useState(() => {
+    const now = Date.now();
+    if (!isValidFutureDeadline(turnDeadline, now)) {
+      return null;
+    }
+    const remainingMs = Math.max(0, turnDeadline - now);
+    return {
+      totalDurationMs: Math.max(1000, remainingMs),
+      remainingMs,
+    };
+  });
+
+  if (turnDeadline !== prevDeadline) {
+    setPrevDeadline(turnDeadline);
+    const now = Date.now();
+    if (isValidFutureDeadline(turnDeadline, now)) {
+      const remainingMs = Math.max(0, turnDeadline - now);
+      setTimerSnapshot({
+        totalDurationMs: Math.max(1000, remainingMs),
+        remainingMs,
+      });
+    } else {
+      setTimerSnapshot(null);
+    }
+  }
+
+  useEffect(() => {
+    const now = Date.now();
+    if (!isValidFutureDeadline(turnDeadline, now)) {
+      setTimerSnapshot(null);
+      return undefined;
+    }
+
+    const initialRemaining = Math.max(0, turnDeadline - now);
+    const fallbackTotalMs = Math.max(1000, initialRemaining);
+
+    setTimerSnapshot((prev) => ({
+      totalDurationMs: prev?.totalDurationMs ?? fallbackTotalMs,
+      remainingMs: initialRemaining,
+    }));
+
+    const intervalId = setInterval(() => {
+      const remainingMs = Math.max(0, turnDeadline - Date.now());
+      setTimerSnapshot((prev) => {
+        if (!prev || remainingMs <= 0) return null;
+        return {
+          totalDurationMs: prev.totalDurationMs,
+          remainingMs,
+        };
+      });
+      if (remainingMs <= 0) {
+        clearInterval(intervalId);
+      }
+    }, 100);
+
+    return () => clearInterval(intervalId);
+  }, [turnDeadline]);
+
+  const activeTimerPlayerId =
+    phase === 'defuse' && pendingDefuseId ? pendingDefuseId : currentPlayerId;
+  const hasActiveTimer = Boolean(timerSnapshot && timerSnapshot.remainingMs > 0);
+  const progress = hasActiveTimer
+    ? Math.max(0, Math.min(1, timerSnapshot.remainingMs / timerSnapshot.totalDurationMs))
+    : 0;
+  const secondsLeft = hasActiveTimer
+    ? Math.max(0, Math.ceil(timerSnapshot.remainingMs / 1000))
+    : null;
+  const isUrgent = hasActiveTimer && secondsLeft !== null && secondsLeft <= 5;
+  const isWarning = hasActiveTimer && !isUrgent && secondsLeft !== null && secondsLeft <= 10;
+  const strokeDashoffset =
+    progress >= 1 ? 0 : -TIMER_RING_CIRCUMFERENCE * (1 - progress);
+
   const safePlayers = Array.isArray(players) ? players : [];
   const hasDirection = direction === 1 || direction === -1;
   const rawDirectionLabel =
@@ -176,6 +288,47 @@ export function SeatRing({
       : undefined;
 
     const bubble = chatBubbles?.[player.id];
+    const peerVoice = voicePeers?.[player.id];
+    const isVoiceMuted = !isSelf && hasPlayerId(mutedVoiceIds, player.id);
+    const isChatMuted = !isSelf && hasPlayerId(mutedChatIds, player.id);
+    const isSpeaking = Boolean(peerVoice?.speaking) && !isVoiceMuted;
+    const isMicLive = Boolean(peerVoice?.micOn);
+    const showCommControls =
+      !isSelf &&
+      (typeof onToggleMuteVoice === 'function' ||
+        typeof onToggleMuteChat === 'function');
+
+    const voiceMuteLabel = isVoiceMuted
+      ? typeof t?.unmuteVoiceFor === 'function'
+        ? t.unmuteVoiceFor(player.name)
+        : `Bật tiếng ${player.name}`
+      : typeof t?.muteVoiceFor === 'function'
+        ? t.muteVoiceFor(player.name)
+        : `Tắt tiếng ${player.name}`;
+    const chatMuteLabel = isChatMuted
+      ? typeof t?.unmuteChatFor === 'function'
+        ? t.unmuteChatFor(player.name)
+        : `Hiện chat của ${player.name}`
+      : typeof t?.muteChatFor === 'function'
+        ? t.muteChatFor(player.name)
+        : `Ẩn chat của ${player.name}`;
+
+    const avatarWrapClasses = [
+      'seat-ring__avatar-wrap',
+      isSpeaking ? 'seat-ring__avatar-wrap--speaking' : '',
+    ]
+      .filter(Boolean)
+      .join(' ');
+
+    const showTimerRing =
+      hasActiveTimer && isAlive && player.id === activeTimerPlayerId;
+    const timerRingClasses = [
+      'seat-ring__timer-ring',
+      isUrgent ? 'seat-ring__timer-ring--urgent' : '',
+      isWarning ? 'seat-ring__timer-ring--warning' : '',
+    ]
+      .filter(Boolean)
+      .join(' ');
 
     return (
       <div
@@ -196,8 +349,49 @@ export function SeatRing({
             {bubble.text}
           </div>
         )}
-        <div className="seat-ring__avatar" aria-hidden="true">
-          {initial}
+        <div className={avatarWrapClasses}>
+          {showTimerRing && (
+            <svg
+              className={timerRingClasses}
+              viewBox="0 0 40 40"
+              aria-hidden="true"
+              data-testid={`timer-ring-${player.id}`}
+            >
+              <circle
+                className="seat-ring__timer-track"
+                cx="20"
+                cy="20"
+                r={TIMER_RING_RADIUS}
+                fill="none"
+                strokeWidth="3"
+              />
+              <circle
+                className="seat-ring__timer-progress"
+                cx="20"
+                cy="20"
+                r={TIMER_RING_RADIUS}
+                fill="none"
+                strokeWidth="3"
+                strokeLinecap="round"
+                strokeDasharray={TIMER_RING_CIRCUMFERENCE}
+                strokeDashoffset={strokeDashoffset}
+              />
+            </svg>
+          )}
+          <div className="seat-ring__avatar" aria-hidden="true">
+            {initial}
+          </div>
+          {isMicLive && (
+            <span
+              className={`seat-ring__mic-badge${
+                isVoiceMuted ? ' seat-ring__mic-badge--muted' : ''
+              }`}
+              aria-hidden="true"
+              data-testid={`seat-mic-badge-${player.id}`}
+            >
+              {isVoiceMuted ? <VolumeX size={10} /> : <Mic size={10} />}
+            </span>
+          )}
         </div>
         <div className="seat-ring__details">
           <div className="seat-ring__name" title={player.name}>
@@ -225,6 +419,48 @@ export function SeatRing({
             </span>
           )}
         </div>
+        {showCommControls && (
+          <div className="seat-ring__comm-controls">
+            {typeof onToggleMuteVoice === 'function' && (
+              <button
+                type="button"
+                className={`seat-ring__comm-btn${
+                  isVoiceMuted ? ' seat-ring__comm-btn--muted' : ''
+                }`}
+                data-testid={`seat-mute-voice-${player.id}`}
+                aria-pressed={isVoiceMuted}
+                aria-label={voiceMuteLabel}
+                title={voiceMuteLabel}
+                onClick={() => onToggleMuteVoice(player.id)}
+              >
+                {isVoiceMuted ? (
+                  <VolumeX size={12} aria-hidden="true" />
+                ) : (
+                  <Volume2 size={12} aria-hidden="true" />
+                )}
+              </button>
+            )}
+            {typeof onToggleMuteChat === 'function' && (
+              <button
+                type="button"
+                className={`seat-ring__comm-btn${
+                  isChatMuted ? ' seat-ring__comm-btn--muted' : ''
+                }`}
+                data-testid={`seat-mute-chat-${player.id}`}
+                aria-pressed={isChatMuted}
+                aria-label={chatMuteLabel}
+                title={chatMuteLabel}
+                onClick={() => onToggleMuteChat(player.id)}
+              >
+                {isChatMuted ? (
+                  <MessageSquareOff size={12} aria-hidden="true" />
+                ) : (
+                  <MessageSquare size={12} aria-hidden="true" />
+                )}
+              </button>
+            )}
+          </div>
+        )}
       </div>
     );
   };

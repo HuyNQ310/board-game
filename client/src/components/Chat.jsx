@@ -4,7 +4,21 @@
  * Pure props-driven presentational component (no socket or store imports).
  *
  * Component API:
- *   Chat({ messages, myPlayerId, onSend, t })
+ *   Chat({
+ *     messages,
+ *     myPlayerId,
+ *     onSend,
+ *     t,
+ *     players,
+ *     voicePeers,
+ *     mutedVoiceIds,
+ *     mutedChatIds,
+ *     onToggleMuteVoice,
+ *     onToggleMuteChat,
+ *     micOn,
+ *     micBusy,
+ *     onToggleMic,
+ *   })
  *
  * Expected `t` prop keys:
  * - t.chatTitle: "Trò chuyện" (Header title)
@@ -19,11 +33,80 @@
  * - t.chatOpenButtonAriaLabel: "Mở hộp trò chuyện" (Accessibility label for toggle button when collapsed with 0 unread)
  * - t.chatCloseButton: "Đóng trò chuyện" (Accessibility label & title for the close/collapse button)
  * - t.chatUnreadButtonAriaLabel: "Trò chuyện ({n} tin nhắn mới)" (Accessibility label template or function for toggle button with unread count)
+ * - t.voiceMicOn, t.voiceMicOff, t.voicePlayerControls, t.voiceNoOtherPlayers,
+ *   t.voiceMutedShort, t.voiceUnmutedShort, t.chatMutedShort, t.chatUnmutedShort
  */
 
-import { useState, useRef, useEffect } from 'react';
-import { MessageCircle, X, User, Send } from 'lucide-react';
+import { useState, useRef, useEffect, useMemo } from 'react';
+import {
+  MessageCircle,
+  X,
+  User,
+  Send,
+  Mic,
+  MicOff,
+  Users,
+  Volume2,
+  VolumeX,
+  MessageSquare,
+  MessageSquareOff,
+} from 'lucide-react';
 import './Chat.css';
+
+const INTERACTIVE_TAGS = new Set(['INPUT', 'TEXTAREA', 'SELECT', 'BUTTON', 'A']);
+const MODAL_SELECTOR =
+  '[role="dialog"], [role="alertdialog"], .peek-panel-backdrop, .theme-picker-backdrop, .help-modal-backdrop, .target-picker-backdrop, .defuse-dialog-backdrop';
+
+/**
+ * Check whether an ID exists in a Set or Array collection.
+ *
+ * @param {Set<string>|string[]|undefined|null} collection
+ * @param {string|undefined|null} id
+ * @returns {boolean}
+ */
+function hasId(collection, id) {
+  if (id == null) return false;
+  if (collection instanceof Set) return collection.has(id);
+  if (Array.isArray(collection)) return collection.includes(id);
+  return false;
+}
+
+/**
+ * Normalize a Set or Array collection of IDs to an array.
+ *
+ * @param {Set<string>|string[]|undefined|null} collection
+ * @returns {string[]}
+ */
+function toIdArray(collection) {
+  if (collection instanceof Set) return Array.from(collection);
+  if (Array.isArray(collection)) return collection;
+  return [];
+}
+
+/**
+ * Check whether an element is an interactive control or nested inside a modal/editable region.
+ *
+ * @param {EventTarget|Element|null} el
+ * @returns {boolean}
+ */
+function isInteractiveOrInModal(el) {
+  if (!el || typeof el !== 'object') return false;
+  if (typeof el.tagName === 'string' && INTERACTIVE_TAGS.has(el.tagName.toUpperCase())) {
+    return true;
+  }
+  if (el.isContentEditable === true) {
+    return true;
+  }
+  if (typeof el.getAttribute === 'function' && el.getAttribute('contenteditable') === 'true') {
+    return true;
+  }
+  if (typeof el.closest === 'function') {
+    if (el.closest('[contenteditable="true"]') || el.closest(MODAL_SELECTOR)) {
+      return true;
+    }
+  }
+  return false;
+}
 
 /**
  * Format an epoch millisecond timestamp to HH:MM.
@@ -42,25 +125,67 @@ function formatTime(epochMs) {
   }
 }
 
-export function Chat({ messages = [], myPlayerId, onSend, t = {} }) {
+export function Chat({
+  messages = [],
+  myPlayerId,
+  onSend,
+  t = {},
+  players = [],
+  voicePeers = {},
+  mutedVoiceIds,
+  mutedChatIds,
+  onToggleMuteVoice,
+  onToggleMuteChat,
+  micOn = false,
+  micBusy = false,
+  onToggleMic,
+}) {
   const [isOpen, setIsOpen] = useState(false);
+  const [showPlayerControls, setShowPlayerControls] = useState(false);
   const [inputText, setInputText] = useState('');
-  const safeMessages = Array.isArray(messages) ? messages : [];
   const [lastSeenCount, setLastSeenCount] = useState(0);
+
+  const visibleMessages = useMemo(() => {
+    const safeMessages = Array.isArray(messages) ? messages : [];
+    return safeMessages.filter((msg) => !hasId(mutedChatIds, msg?.playerId));
+  }, [messages, mutedChatIds]);
+
+  const otherPlayers = useMemo(() => {
+    if (!Array.isArray(players)) return [];
+    return players.filter((p) => p && p.id !== myPlayerId);
+  }, [players, myPlayerId]);
+
+  const hasMicControl = typeof onToggleMic === 'function';
+  const hasVoiceMuteControl = typeof onToggleMuteVoice === 'function';
+  const hasChatMuteControl = typeof onToggleMuteChat === 'function';
+  const hasPlayerControls = hasVoiceMuteControl || hasChatMuteControl;
+
+  const mutedPlayersCount = useMemo(() => {
+    if (otherPlayers.length > 0) {
+      return otherPlayers.filter(
+        (p) => hasId(mutedVoiceIds, p.id) || hasId(mutedChatIds, p.id)
+      ).length;
+    }
+    const ids = new Set([...toIdArray(mutedVoiceIds), ...toIdArray(mutedChatIds)]);
+    if (myPlayerId != null) {
+      ids.delete(myPlayerId);
+    }
+    return ids.size;
+  }, [otherPlayers, mutedVoiceIds, mutedChatIds, myPlayerId]);
 
   const messagesContainerRef = useRef(null);
   const inputRef = useRef(null);
   const toggleBtnRef = useRef(null);
   const wasOpenRef = useRef(false);
 
-  // Sync lastSeenCount when open or when message list shrinks
+  // Sync lastSeenCount when open or when visible message list shrinks
   useEffect(() => {
     if (isOpen) {
-      setLastSeenCount(safeMessages.length);
-    } else if (lastSeenCount > safeMessages.length) {
-      setLastSeenCount(safeMessages.length);
+      setLastSeenCount(visibleMessages.length);
+    } else if (lastSeenCount > visibleMessages.length) {
+      setLastSeenCount(visibleMessages.length);
     }
-  }, [isOpen, safeMessages.length, lastSeenCount]);
+  }, [isOpen, visibleMessages.length, lastSeenCount]);
 
   // Focus management: focus input when opening, return focus to toggle button when closing
   useEffect(() => {
@@ -76,20 +201,47 @@ export function Chat({ messages = [], myPlayerId, onSend, t = {} }) {
     }
   }, [isOpen]);
 
-  // Listen for Escape key to close the chat panel
+  // Listen for Enter key to open chat when closed, or Escape key to close when open
   useEffect(() => {
-    if (!isOpen) return;
+    if (isOpen) {
+      const handleKeyDown = (e) => {
+        if (e.key === 'Escape') {
+          e.stopPropagation();
+          setIsOpen(false);
+        }
+      };
 
-    const handleKeyDown = (e) => {
-      if (e.key === 'Escape') {
-        e.stopPropagation();
-        setIsOpen(false);
+      window.addEventListener('keydown', handleKeyDown);
+      return () => window.removeEventListener('keydown', handleKeyDown);
+    }
+
+    const handleOpenKeyDown = (e) => {
+      if (e.defaultPrevented) return;
+      if (
+        e.key !== 'Enter' ||
+        e.shiftKey ||
+        e.ctrlKey ||
+        e.metaKey ||
+        e.altKey ||
+        e.repeat
+      ) {
+        return;
       }
+
+      const activeEl = document.activeElement;
+      const targetEl = e.target;
+      if (isInteractiveOrInModal(activeEl) || isInteractiveOrInModal(targetEl)) {
+        return;
+      }
+
+      e.preventDefault();
+      setLastSeenCount(visibleMessages.length);
+      setIsOpen(true);
     };
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen]);
+    window.addEventListener('keydown', handleOpenKeyDown);
+    return () => window.removeEventListener('keydown', handleOpenKeyDown);
+  }, [isOpen, visibleMessages.length]);
 
   // Auto-scroll directly inside this component's own scroll container.
   // NEVER use scrollIntoView() which scrolls the ancestor document/page.
@@ -111,7 +263,7 @@ export function Chat({ messages = [], myPlayerId, onSend, t = {} }) {
     } else {
       container.scrollTop = container.scrollHeight;
     }
-  }, [safeMessages, isOpen]);
+  }, [visibleMessages, isOpen]);
 
   const handleSubmit = (e) => {
     if (e && typeof e.preventDefault === 'function') {
@@ -143,7 +295,15 @@ export function Chat({ messages = [], myPlayerId, onSend, t = {} }) {
   const listAriaLabel = t.chatListAriaLabel || 'Danh sách tin nhắn';
   const closeButtonAriaLabel = t.chatCloseButton || t.chatCloseAriaLabel || 'Đóng trò chuyện';
 
-  const unreadCount = isOpen ? 0 : Math.max(0, safeMessages.length - lastSeenCount);
+  const micLabel = micOn ? (t.voiceMicOn || 'Tắt micro') : (t.voiceMicOff || 'Bật micro');
+  const playerControlsLabel = t.voicePlayerControls || 'Tùy chỉnh nghe & chat';
+  const noOtherPlayersText = t.voiceNoOtherPlayers || 'Chưa có người chơi khác';
+  const voiceMutedShort = t.voiceMutedShort || 'Đã tắt tiếng';
+  const voiceUnmutedShort = t.voiceUnmutedShort || 'Đang nghe';
+  const chatMutedShort = t.chatMutedShort || 'Đã ẩn chat';
+  const chatUnmutedShort = t.chatUnmutedShort || 'Xem chat';
+
+  const unreadCount = isOpen ? 0 : Math.max(0, visibleMessages.length - lastSeenCount);
 
   const getToggleAriaLabel = () => {
     if (unreadCount > 0) {
@@ -172,7 +332,7 @@ export function Chat({ messages = [], myPlayerId, onSend, t = {} }) {
         className="chat-toggle-btn"
         data-testid="chat-toggle-btn"
         onClick={() => {
-          setLastSeenCount(safeMessages.length);
+          setLastSeenCount(visibleMessages.length);
           setIsOpen(true);
         }}
         aria-label={getToggleAriaLabel()}
@@ -204,19 +364,167 @@ export function Chat({ messages = [], myPlayerId, onSend, t = {} }) {
           </span>
           <h3 className="chat-panel__title" data-testid="chat-title">{title}</h3>
         </div>
-        <button
-          type="button"
-          className="chat-panel__close-btn"
-          data-testid="chat-close-btn"
-          onClick={() => setIsOpen(false)}
-          aria-label={closeButtonAriaLabel}
-          title={closeButtonAriaLabel}
-        >
-          <span aria-hidden="true">
-            <X size={18} aria-hidden="true" />
-          </span>
-        </button>
+        <div className="chat-panel__header-actions">
+          {hasMicControl && (
+            <button
+              type="button"
+              className={`chat-panel__header-btn chat-panel__mic-btn${micOn ? ' is-active' : ''}`}
+              data-testid="chat-mic-toggle-btn"
+              onClick={onToggleMic}
+              aria-pressed={Boolean(micOn)}
+              disabled={Boolean(micBusy)}
+              aria-label={micLabel}
+              title={micLabel}
+            >
+              <span aria-hidden="true">
+                {micOn ? <Mic size={18} aria-hidden="true" /> : <MicOff size={18} aria-hidden="true" />}
+              </span>
+            </button>
+          )}
+          {hasPlayerControls && (
+            <button
+              type="button"
+              className={`chat-panel__header-btn chat-panel__filters-btn${showPlayerControls ? ' is-active' : ''}`}
+              data-testid="chat-player-filters-btn"
+              onClick={() => setShowPlayerControls((prev) => !prev)}
+              aria-expanded={showPlayerControls}
+              aria-controls="chat-player-filters-drawer"
+              aria-label={
+                mutedPlayersCount > 0
+                  ? `${playerControlsLabel} (${mutedPlayersCount})`
+                  : playerControlsLabel
+              }
+              title={playerControlsLabel}
+            >
+              <span aria-hidden="true">
+                <Users size={18} aria-hidden="true" />
+              </span>
+              {mutedPlayersCount > 0 && (
+                <span
+                  className="chat-panel__filter-badge"
+                  data-testid="chat-player-filters-badge"
+                  aria-hidden="true"
+                >
+                  {mutedPlayersCount > 99 ? '99+' : mutedPlayersCount}
+                </span>
+              )}
+            </button>
+          )}
+          <button
+            type="button"
+            className="chat-panel__close-btn"
+            data-testid="chat-close-btn"
+            onClick={() => setIsOpen(false)}
+            aria-label={closeButtonAriaLabel}
+            title={closeButtonAriaLabel}
+          >
+            <span aria-hidden="true">
+              <X size={18} aria-hidden="true" />
+            </span>
+          </button>
+        </div>
       </div>
+
+      {hasPlayerControls && showPlayerControls && (
+        <div
+          id="chat-player-filters-drawer"
+          className="chat-player-filters"
+          data-testid="chat-player-filters"
+          role="region"
+          aria-label={playerControlsLabel}
+        >
+          <div className="chat-player-filters__heading">{playerControlsLabel}</div>
+          {otherPlayers.length === 0 ? (
+            <div className="chat-player-filters__empty" data-testid="chat-player-filters-empty">
+              {noOtherPlayersText}
+            </div>
+          ) : (
+            <ul className="chat-player-filters__list">
+              {otherPlayers.map((player) => {
+                const isVoiceMuted = hasId(mutedVoiceIds, player.id);
+                const isChatMuted = hasId(mutedChatIds, player.id);
+                const peerState = voicePeers && player.id != null ? voicePeers[player.id] : undefined;
+                const isSpeaking = Boolean(peerState?.speaking && !isVoiceMuted);
+                const isPeerMicOn = Boolean(peerState?.micOn);
+                const playerName = player.name || 'Người chơi';
+                const voiceText = isVoiceMuted ? voiceMutedShort : voiceUnmutedShort;
+                const chatText = isChatMuted ? chatMutedShort : chatUnmutedShort;
+
+                return (
+                  <li
+                    key={player.id}
+                    className={`chat-player-row${player.connected === false ? ' is-offline' : ''}`}
+                    data-testid={`chat-player-row-${player.id}`}
+                  >
+                    <div className="chat-player-row__identity">
+                      {isSpeaking && (
+                        <span
+                          className="chat-player-row__speaking"
+                          data-testid={`chat-player-speaking-${player.id}`}
+                          aria-hidden="true"
+                        />
+                      )}
+                      <span
+                        className={`chat-player-row__mic-icon${isPeerMicOn ? ' is-mic-on' : ''}`}
+                        aria-hidden="true"
+                      >
+                        {isPeerMicOn ? (
+                          <Mic size={13} aria-hidden="true" />
+                        ) : (
+                          <MicOff size={13} aria-hidden="true" />
+                        )}
+                      </span>
+                      <span className="chat-player-row__name" title={playerName}>
+                        {playerName}
+                      </span>
+                    </div>
+                    <div className="chat-player-row__actions">
+                      {hasVoiceMuteControl && (
+                        <button
+                          type="button"
+                          className={`chat-player-row__btn${isVoiceMuted ? ' is-muted' : ''}`}
+                          data-testid={`chat-filter-voice-${player.id}`}
+                          aria-pressed={isVoiceMuted}
+                          aria-label={`${playerName}: ${voiceText}`}
+                          onClick={() => onToggleMuteVoice(player.id)}
+                        >
+                          <span aria-hidden="true">
+                            {isVoiceMuted ? (
+                              <VolumeX size={14} aria-hidden="true" />
+                            ) : (
+                              <Volume2 size={14} aria-hidden="true" />
+                            )}
+                          </span>
+                          <span>{voiceText}</span>
+                        </button>
+                      )}
+                      {hasChatMuteControl && (
+                        <button
+                          type="button"
+                          className={`chat-player-row__btn${isChatMuted ? ' is-muted' : ''}`}
+                          data-testid={`chat-filter-chat-${player.id}`}
+                          aria-pressed={isChatMuted}
+                          aria-label={`${playerName}: ${chatText}`}
+                          onClick={() => onToggleMuteChat(player.id)}
+                        >
+                          <span aria-hidden="true">
+                            {isChatMuted ? (
+                              <MessageSquareOff size={14} aria-hidden="true" />
+                            ) : (
+                              <MessageSquare size={14} aria-hidden="true" />
+                            )}
+                          </span>
+                          <span>{chatText}</span>
+                        </button>
+                      )}
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
+      )}
 
       <div
         className="chat-panel__messages"
@@ -227,12 +535,12 @@ export function Chat({ messages = [], myPlayerId, onSend, t = {} }) {
         tabIndex={0}
         ref={messagesContainerRef}
       >
-        {safeMessages.length === 0 ? (
+        {visibleMessages.length === 0 ? (
           <div className="chat-panel__empty" data-testid="chat-empty">
             {emptyText}
           </div>
         ) : (
-          safeMessages.map((msg, index) => {
+          visibleMessages.map((msg, index) => {
             const isSelf = myPlayerId != null && msg.playerId === myPlayerId;
             const authorName = isSelf ? youText : (msg.name || 'Người chơi');
             const timeFormatted = formatTime(msg.at);

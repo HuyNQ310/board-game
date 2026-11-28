@@ -258,7 +258,7 @@
   z-index: 4;
 }
 
-.seat-ring__seat--self .seat-ring__avatar {
+.seat-ring__seat--self .seat-ring__avatar-wrap {
   margin-bottom: 0;
   flex-shrink: 0;
 }
@@ -267,6 +267,8 @@
   align-items: flex-start;
   text-align: left;
   width: auto;
+  min-width: 0;
+  flex: 1 1 auto;
 }
 
 .seat-ring__seat--self .seat-ring__badges {
@@ -286,7 +288,11 @@
   padding: 5px 11px;
 }
 
-.seat-ring:not(.seat-ring--dense) .seat-ring__seat--opponent .seat-ring__avatar {
+.seat-ring:not(.seat-ring--dense) .seat-ring__seat--opponent:has(.seat-ring__comm-controls) {
+  max-width: 228px;
+}
+
+.seat-ring:not(.seat-ring--dense) .seat-ring__seat--opponent .seat-ring__avatar-wrap {
   margin-bottom: 0;
   flex-shrink: 0;
 }
@@ -295,6 +301,8 @@
   align-items: flex-start;
   text-align: left;
   width: auto;
+  min-width: 0;
+  flex: 1 1 auto;
 }
 
 .seat-ring:not(.seat-ring--dense) .seat-ring__seat--opponent .seat-ring__badges {
@@ -333,11 +341,14 @@
   padding: 3px 4px;
 }
 
+.seat-ring--dense .seat-ring__avatar-wrap {
+  margin-bottom: 2px;
+}
+
 .seat-ring--dense .seat-ring__avatar {
   width: 24px;
   height: 24px;
   font-size: 11px;
-  margin-bottom: 2px;
 }
 
 .seat-ring--dense .seat-ring__name {
@@ -354,9 +365,75 @@
   padding: 1px 3px;
 }
 
+.seat-ring--dense .seat-ring__mic-badge {
+  width: 13px;
+  height: 13px;
+}
+
+.seat-ring--dense .seat-ring__comm-controls {
+  margin-top: 2px;
+  gap: 3px;
+}
+
+.seat-ring--dense .seat-ring__comm-btn {
+  width: 20px;
+  height: 20px;
+}
+
 /* -------------------------------------------------------------
  * 6. Internal Seat Content Elements
  * ------------------------------------------------------------- */
+.seat-ring__avatar-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: visible;
+  margin-bottom: 3px;
+}
+
+.seat-ring__timer-ring {
+  position: absolute;
+  inset: -3.5px;
+  width: calc(100% + 7px);
+  height: calc(100% + 7px);
+  pointer-events: none;
+  transform: rotate(-90deg);
+  color: #2b8a3e;
+  z-index: 2;
+  overflow: visible;
+}
+
+.seat-ring__timer-track {
+  stroke: rgba(43, 35, 38, 0.14);
+}
+
+.seat-ring__timer-progress {
+  stroke: currentColor;
+  transition: stroke-dashoffset 0.1s linear, color 0.2s ease;
+}
+
+.seat-ring__timer-ring--warning {
+  color: #d97706;
+}
+
+.seat-ring__timer-ring--urgent {
+  color: #e03131;
+  animation: seat-timer-pulse 0.85s ease-in-out infinite;
+}
+
+@keyframes seat-timer-pulse {
+  0%, 100% {
+    opacity: 1;
+    filter: drop-shadow(0 0 2px rgba(224, 49, 49, 0.55));
+  }
+  50% {
+    opacity: 0.55;
+    filter: drop-shadow(0 0 6px rgba(224, 49, 49, 0.85));
+  }
+}
+
 .seat-ring__avatar {
   width: 28px;
   height: 28px;
@@ -368,12 +445,50 @@
   justify-content: center;
   font-weight: bold;
   font-size: 12px;
-  margin-bottom: 3px;
+  position: relative;
+  z-index: 1;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
 .seat-ring__seat--self .seat-ring__avatar {
   background-color: #1a5276;
+}
+
+.seat-ring__avatar-wrap--speaking .seat-ring__avatar {
+  box-shadow: 0 0 0 2.5px #22c55e, 0 0 10px rgba(34, 197, 94, 0.72);
+  animation: seat-speaking-pulse 1.15s ease-in-out infinite;
+}
+
+@keyframes seat-speaking-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 2.5px #22c55e, 0 0 8px rgba(34, 197, 94, 0.6);
+  }
+  50% {
+    box-shadow: 0 0 0 3px #4ade80, 0 0 14px rgba(34, 197, 94, 0.9);
+  }
+}
+
+.seat-ring__mic-badge {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  z-index: 3;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #15803d;
+  color: #ffffff;
+  border: 1.5px solid #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.28);
+  pointer-events: none;
+}
+
+.seat-ring__mic-badge--muted {
+  background-color: #b91c1c;
 }
 
 .seat-ring__details {
@@ -436,6 +551,55 @@
 
 .seat-ring__badge--offline {
   background-color: #c0392b;
+  color: #ffffff;
+}
+
+.seat-ring__comm-controls {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  flex-shrink: 0;
+  pointer-events: auto;
+}
+
+.seat-ring__comm-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border-radius: 9999px;
+  border: 1px solid #cbd5e1;
+  background-color: #ffffff;
+  color: #1f2937;
+  cursor: pointer;
+  pointer-events: auto;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.14);
+  transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+}
+
+.seat-ring__comm-btn:hover {
+  background-color: #f1f5f9;
+  border-color: #94a3b8;
+  transform: translateY(-0.5px);
+}
+
+.seat-ring__comm-btn:focus-visible {
+  outline: 2px solid #fbbf24;
+  outline-offset: 1px;
+}
+
+.seat-ring__comm-btn--muted {
+  background-color: #b91c1c;
+  border-color: #991b1b;
+  color: #ffffff;
+}
+
+.seat-ring__comm-btn--muted:hover {
+  background-color: #991b1b;
+  border-color: #7f1d1d;
   color: #ffffff;
 }
 
@@ -572,11 +736,14 @@
     border-radius: 9999px;
   }
 
+  .seat-ring__avatar-wrap {
+    margin-bottom: 3px;
+  }
+
   .seat-ring__avatar {
     width: 32px;
     height: 32px;
     font-size: 14px;
-    margin-bottom: 3px;
   }
 
   .seat-ring__name {
@@ -612,11 +779,14 @@
     padding: 2px 4px;
   }
 
+  .seat-ring--dense .seat-ring__avatar-wrap {
+    margin-bottom: 1px;
+  }
+
   .seat-ring--dense .seat-ring__avatar {
     width: 20px;
     height: 20px;
     font-size: 10px;
-    margin-bottom: 1px;
   }
 
   .seat-ring--dense .seat-ring__badges {
@@ -653,11 +823,14 @@
     padding: 3px 5px;
   }
 
+  .seat-ring--dense .seat-ring__avatar-wrap {
+    margin-bottom: 1px;
+  }
+
   .seat-ring--dense .seat-ring__avatar {
     width: 22px;
     height: 22px;
     font-size: 10px;
-    margin-bottom: 1px;
   }
 
   .seat-ring--dense .seat-ring__name {
@@ -756,13 +929,17 @@
     width: auto;
   }
 
+  .seat-ring__avatar-wrap,
+  .seat-ring--dense .seat-ring__avatar-wrap {
+    margin-bottom: 0;
+    flex-shrink: 0;
+  }
+
   .seat-ring__avatar,
   .seat-ring--dense .seat-ring__avatar {
     width: 18px;
     height: 18px;
     font-size: 9.5px;
-    margin-bottom: 0;
-    flex-shrink: 0;
   }
 
   .seat-ring__name,
@@ -792,6 +969,30 @@
   .seat-ring--dense .seat-ring__badge {
     font-size: 7.5px;
     padding: 1px 3px;
+  }
+
+  .seat-ring__seat--opponent:has(.seat-ring__comm-controls),
+  .seat-ring:not(.seat-ring--dense) .seat-ring__seat--opponent:has(.seat-ring__comm-controls),
+  .seat-ring--dense .seat-ring__seat--opponent:has(.seat-ring__comm-controls) {
+    max-width: 136px;
+  }
+
+  .seat-ring__mic-badge,
+  .seat-ring--dense .seat-ring__mic-badge {
+    width: 12px;
+    height: 12px;
+  }
+
+  .seat-ring__comm-controls,
+  .seat-ring--dense .seat-ring__comm-controls {
+    margin-top: 0;
+    gap: 2px;
+  }
+
+  .seat-ring__comm-btn,
+  .seat-ring--dense .seat-ring__comm-btn {
+    width: 18px;
+    height: 18px;
   }
 }
 
@@ -829,25 +1030,132 @@
   .seat-ring__hand-count {
     color: #d8cebe;
   }
+
+  .seat-ring__timer-ring {
+    color: #40c057;
+  }
+
+  .seat-ring__timer-ring--warning {
+    color: #f59f00;
+  }
+
+  .seat-ring__timer-ring--urgent {
+    color: #e03131;
+  }
+
+  .seat-ring__timer-track {
+    stroke: rgba(246, 239, 226, 0.18);
+  }
+
+  .seat-ring__mic-badge {
+    border-color: #272225;
+  }
+
+  .seat-ring__comm-btn {
+    background-color: #1f1b1e;
+    color: #f6efe2;
+    border-color: #5c5158;
+  }
+
+  .seat-ring__comm-btn:hover {
+    background-color: #352e32;
+    border-color: #8fa6c8;
+  }
+
+  .seat-ring__comm-btn--muted {
+    background-color: #b91c1c;
+    border-color: #fca5a5;
+    color: #ffffff;
+  }
+
+  .seat-ring__comm-btn--muted:hover {
+    background-color: #991b1b;
+    border-color: #fecaca;
+    color: #ffffff;
+  }
 }
 
 [data-theme='dark'] .seat-ring__seat,
-.dark .seat-ring__seat {
+.dark .seat-ring__seat,
+.theme-dark .seat-ring__seat {
   background-color: #272225;
   color: #f6efe2;
   border-color: #453d42;
 }
 
 [data-theme='dark'] .seat-ring__seat--self,
-.dark .seat-ring__seat--self {
+.dark .seat-ring__seat--self,
+.theme-dark .seat-ring__seat--self {
   background-color: #352e32;
   border-color: #8fa6c8;
 }
 
 [data-theme='dark'] .seat-ring__seat--eliminated,
-.dark .seat-ring__seat--eliminated {
+.dark .seat-ring__seat--eliminated,
+.theme-dark .seat-ring__seat--eliminated {
   background-color: #201c1e;
   border-color: #383034;
+}
+
+[data-theme='dark'] .seat-ring__timer-ring,
+.dark .seat-ring__timer-ring,
+.theme-dark .seat-ring__timer-ring {
+  color: #40c057;
+}
+
+[data-theme='dark'] .seat-ring__timer-ring--warning,
+.dark .seat-ring__timer-ring--warning,
+.theme-dark .seat-ring__timer-ring--warning {
+  color: #f59f00;
+}
+
+[data-theme='dark'] .seat-ring__timer-ring--urgent,
+.dark .seat-ring__timer-ring--urgent,
+.theme-dark .seat-ring__timer-ring--urgent {
+  color: #e03131;
+}
+
+[data-theme='dark'] .seat-ring__timer-track,
+.dark .seat-ring__timer-track,
+.theme-dark .seat-ring__timer-track {
+  stroke: rgba(246, 239, 226, 0.18);
+}
+
+[data-theme='dark'] .seat-ring__mic-badge,
+.dark .seat-ring__mic-badge,
+.theme-dark .seat-ring__mic-badge {
+  border-color: #272225;
+}
+
+[data-theme='dark'] .seat-ring__comm-btn,
+.dark .seat-ring__comm-btn,
+.theme-dark .seat-ring__comm-btn {
+  background-color: #1f1b1e;
+  color: #f6efe2;
+  border-color: #5c5158;
+}
+
+[data-theme='dark'] .seat-ring__comm-btn:hover,
+.dark .seat-ring__comm-btn:hover,
+.theme-dark .seat-ring__comm-btn:hover {
+  background-color: #352e32;
+  border-color: #8fa6c8;
+}
+
+[data-theme='dark'] .seat-ring__comm-btn--muted,
+.dark .seat-ring__comm-btn--muted,
+.theme-dark .seat-ring__comm-btn--muted {
+  background-color: #b91c1c;
+  border-color: #fca5a5;
+  color: #ffffff;
+}
+
+[data-theme='dark'] .seat-ring__comm-btn--muted:hover,
+.dark .seat-ring__comm-btn--muted:hover,
+.theme-dark .seat-ring__comm-btn--muted:hover {
+  background-color: #991b1b;
+  border-color: #fecaca;
+  color: #ffffff;
 }
 
 /* -------------------------------------------------------------
@@ -860,5 +1168,19 @@
 
   .seat-ring__chat-bubble {
     animation: none !important;
+  }
+
+  .seat-ring__timer-ring--urgent,
+  .seat-ring__avatar-wrap--speaking .seat-ring__avatar {
+    animation: none !important;
+  }
+
+  .seat-ring__comm-btn {
+    transition: none !important;
+    transform: none !important;
+  }
+
+  .seat-ring__timer-progress {
+    transition: none !important;
   }
 }

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Palette, HelpCircle, LogOut, X } from 'lucide-react';
+import { Palette, HelpCircle, LogOut, X, Mic, MicOff } from 'lucide-react';
 import SeatRing from '../components/SeatRing.jsx';
 import DrawPile from '../components/DrawPile.jsx';
 import DiscardPile from '../components/DiscardPile.jsx';
@@ -21,12 +21,16 @@ export function Game({
   entries = log,
   toastMessage,
   toast = toastMessage,
+  toastVariant = 'error',
+  toastKey,
+  toastCloseLabel,
   onDismissToast,
   onDismiss = onDismissToast,
   renderCard,
   renderLogLine,
   t,
   locale = 'vi',
+  cardTheme = 'deck1',
   tableTheme = 'pastel-green',
   direction = gameState?.direction,
   chatBubbles = {},
@@ -35,6 +39,14 @@ export function Game({
   onOpenHelp,
   onToggleLocale,
   onLeave,
+  micOn = false,
+  micBusy = false,
+  onToggleMic,
+  voicePeers = {},
+  mutedVoiceIds,
+  mutedChatIds,
+  onToggleMuteVoice,
+  onToggleMuteChat,
   actionBarSlot,
   handSlot,
   children,
@@ -52,9 +64,16 @@ export function Game({
   const effectiveOnDismissToast = onDismiss || onDismissToast;
   const effectiveEntries = entries || log || [];
   const hasTopControls = Boolean(
-    topControlsSlot || onOpenThemePicker || onOpenHelp || onToggleLocale
+    topControlsSlot ||
+      typeof onToggleMic === 'function' ||
+      onOpenThemePicker ||
+      onOpenHelp ||
+      onToggleLocale
   );
   const isEn = locale === 'en';
+  const micLabel = micOn
+    ? t?.micOn || (isEn ? 'Mic on' : 'Mic bật')
+    : t?.micOff || (isEn ? 'Turn on mic' : 'Bật mic');
   const themeLabel = t?.themeLabel || (isEn ? 'Themes' : 'Giao diện');
   const themeAriaLabel =
     t?.themeAriaLabel || (isEn ? 'Customize card and table theme' : 'Tùy chỉnh giao diện bài và bàn');
@@ -80,6 +99,13 @@ export function Game({
     >
       <Toast
         message={effectiveToastMessage}
+        variant={toastVariant}
+        toastKey={toastKey}
+        closeLabel={
+          toastCloseLabel ||
+          t?.toastCloseLabel ||
+          (isEn ? 'Dismiss notification' : 'Đóng thông báo')
+        }
         onDismiss={effectiveOnDismissToast}
       />
 
@@ -130,6 +156,27 @@ export function Game({
             topControlsSlot
           ) : (
             <>
+              {typeof onToggleMic === 'function' && (
+                <button
+                  type="button"
+                  className={`game-screen__utility-btn game-screen__utility-btn--mic${
+                    micOn ? ' game-screen__utility-btn--mic-on' : ''
+                  }`}
+                  onClick={onToggleMic}
+                  aria-pressed={Boolean(micOn)}
+                  aria-label={micLabel}
+                  title={micLabel}
+                  disabled={Boolean(micBusy)}
+                  data-testid="voice-mic-toggle-btn"
+                >
+                  {micOn ? (
+                    <Mic size={17} aria-hidden="true" />
+                  ) : (
+                    <MicOff size={17} aria-hidden="true" />
+                  )}
+                  <span className="game-screen__utility-label">{micLabel}</span>
+                </button>
+              )}
               {onToggleLocale && (
                 <button
                   type="button"
@@ -178,13 +225,21 @@ export function Game({
           players={players}
           myPlayerId={myPlayerId}
           currentPlayerId={currentPlayerId}
+          turnDeadline={gameState?.phase !== 'over' ? gameState?.turnDeadline : null}
+          phase={gameState?.phase}
+          pendingDefuseId={gameState?.pendingDefuseId}
           tableTheme={tableTheme}
           direction={direction}
           chatBubbles={chatBubbles}
+          voicePeers={voicePeers}
+          mutedVoiceIds={mutedVoiceIds}
+          mutedChatIds={mutedChatIds}
+          onToggleMuteVoice={onToggleMuteVoice}
+          onToggleMuteChat={onToggleMuteChat}
           t={t}
           centerContent={
             <div className="game-screen__center">
-              <DrawPile deckCount={deckCount} t={t} />
+              <DrawPile deckCount={deckCount} cardTheme={cardTheme} t={t} />
 
               <div className="game-screen__center-info">
                 {effectiveTurnsLeft > 1 && (
