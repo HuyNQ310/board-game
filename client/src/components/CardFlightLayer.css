@@ -1,0 +1,105 @@
+/* CardFlightLayer.css - Smooth GPU-accelerated card flight overlay */
+
+.card-flight-layer {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 900;
+  overflow: hidden;
+}
+
+.card-flight-item {
+  position: fixed;
+  transform-origin: center center;
+  will-change: transform, opacity;
+  filter: drop-shadow(0 10px 22px rgba(0, 0, 0, 0.35));
+  animation: card-flight-fly var(--flight-duration, 380ms) cubic-bezier(0.22, 1, 0.36, 1) var(--flight-delay, 0ms) both;
+}
+
+.card-flight-item .card {
+  width: 100%;
+  height: 100%;
+}
+
+.card-flight-item--play {
+  animation-name: card-flight-play;
+  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.card-flight-fallback {
+  width: 100%;
+  height: 100%;
+  border-radius: 8px;
+  background-color: #f6efe2;
+  color: #2b2326;
+  border: 2px solid #2b2326;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 6px;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+.card-flight-fallback--back {
+  background: linear-gradient(145deg, #3a4a60, #2e3a4b);
+  border-color: #4a5d77;
+}
+
+@keyframes card-flight-fly {
+  0% {
+    opacity: 0.92;
+    transform: translate3d(0, 0, 0) scale(1) rotate(var(--flight-rot-start, -6deg));
+  }
+  55% {
+    opacity: 1;
+    transform: translate3d(calc(var(--flight-dx, 0px) * 0.55), calc(var(--flight-dy, 0px) * 0.55 - 18px), 0)
+      scale(calc((1 + var(--flight-scale-end, 1)) * 0.54))
+      rotate(calc((var(--flight-rot-start, 0deg) + var(--flight-rot-end, 0deg)) * 0.5));
+  }
+  88% {
+    opacity: 1;
+    transform: translate3d(var(--flight-dx, 0px), var(--flight-dy, 0px), 0)
+      scale(var(--flight-scale-end, 1))
+      rotate(var(--flight-rot-end, 0deg));
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(var(--flight-dx, 0px), var(--flight-dy, 0px), 0)
+      scale(var(--flight-scale-end, 1))
+      rotate(var(--flight-rot-end, 0deg));
+  }
+}
+
+@keyframes card-flight-play {
+  0% {
+    opacity: 0.96;
+    transform: translate3d(0, 0, 0) scale(1) rotate(var(--flight-rot-start, 4deg));
+  }
+  45% {
+    opacity: 1;
+    transform: translate3d(calc(var(--flight-dx, 0px) * 0.48), calc(var(--flight-dy, 0px) * 0.48 - 22px), 0)
+      scale(1.06)
+      rotate(0deg);
+  }
+  84% {
+    opacity: 1;
+    transform: translate3d(var(--flight-dx, 0px), var(--flight-dy, 0px), 0)
+      scale(calc(var(--flight-scale-end, 1) * 1.04))
+      rotate(var(--flight-rot-end, 0deg));
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(var(--flight-dx, 0px), var(--flight-dy, 0px), 0)
+      scale(var(--flight-scale-end, 1))
+      rotate(var(--flight-rot-end, 0deg));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card-flight-layer {
+    display: none !important;
+  }
+}

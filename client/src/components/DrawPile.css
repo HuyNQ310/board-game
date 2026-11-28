@@ -27,6 +27,84 @@
   justify-content: center;
   position: relative;
   overflow: hidden;
+  transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Deck #1: Crimson Illustrated Card Back */
+.draw-pile--theme-deck1 .draw-pile__card {
+  background:
+    repeating-linear-gradient(
+      45deg,
+      rgba(253, 230, 138, 0.07) 0px,
+      rgba(253, 230, 138, 0.07) 4px,
+      transparent 4px,
+      transparent 10px
+    ),
+    radial-gradient(circle at 50% 42%, #b71c1c 0%, #8b1e1e 68%, #631111 100%);
+  border-color: #f59e0b;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.34), 1px 1px 0 #4a0e0e, 2px 2px 0 #2e0707;
+}
+
+.draw-pile--theme-deck1 .draw-pile__pattern {
+  border-color: rgba(253, 230, 138, 0.58);
+}
+
+.draw-pile--theme-deck1 .draw-pile__icon {
+  color: #fef3c7;
+}
+
+.draw-pile--theme-deck1 .draw-pile__badge {
+  background-color: #fffbeb;
+  color: #7f1d1d;
+}
+
+/* Deck #2: Classic Navy Vector Card Back */
+.draw-pile--theme-deck2 .draw-pile__card {
+  background:
+    repeating-linear-gradient(
+      45deg,
+      rgba(246, 239, 226, 0.05) 0px,
+      rgba(246, 239, 226, 0.05) 4px,
+      transparent 4px,
+      transparent 10px
+    ),
+    radial-gradient(circle at 50% 42%, #3a4a60 0%, #2e3a4b 68%, #232d3b 100%);
+  border-color: #6e85a3;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3), 1px 1px 0 #1b222d, 2px 2px 0 #121820;
+}
+
+/* Deck #3: Neon Night Card Back */
+.draw-pile--theme-deck3 .draw-pile__card {
+  background:
+    repeating-linear-gradient(
+      45deg,
+      rgba(168, 85, 247, 0.1) 0px,
+      rgba(168, 85, 247, 0.1) 4px,
+      transparent 4px,
+      transparent 10px
+    ),
+    radial-gradient(circle at 50% 42%, #241c38 0%, #15121c 70%, #0d0b12 100%);
+  border-color: #a855f7;
+  box-shadow:
+    0 0 12px rgba(168, 85, 247, 0.4),
+    0 2px 6px rgba(0, 0, 0, 0.45),
+    1px 1px 0 #0b0910,
+    2px 2px 0 #050408;
+}
+
+.draw-pile--theme-deck3 .draw-pile__pattern {
+  border-color: rgba(56, 189, 248, 0.55);
+}
+
+.draw-pile--theme-deck3 .draw-pile__icon {
+  color: #38bdf8;
+  filter: drop-shadow(0 0 4px rgba(56, 189, 248, 0.65));
+}
+
+.draw-pile--theme-deck3 .draw-pile__badge {
+  background-color: #1f172e;
+  color: #f5d0fe;
+  border: 1px solid rgba(168, 85, 247, 0.6);
 }
 
 .draw-pile__pattern {

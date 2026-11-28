@@ -131,6 +131,8 @@ export default function Hand({
   const initialDealtIdsRef = useRef(
     cardsCount > 0 ? new Set(cardsList.map(getCardKey)) : new Set()
   );
+  const prevCardCountsRef = useRef({ count: cardsCount, keys: new Set(cardsList.map(getCardKey)) });
+  const [newlyDrawnKey, setNewlyDrawnKey] = useState(null);
 
   const [isDealing, setIsDealing] = useState(() => {
     return Boolean(cardsCount > 0 && !getPrefersReducedMotion());
@@ -149,6 +151,26 @@ export default function Hand({
   if (isDealing && cardsCount !== initialDealtIdsRef.current.size) {
     setIsDealing(false);
   }
+
+  // Track single newly drawn card after initial deal so it pops in smoothly as the flight lands
+  useEffect(() => {
+    const prev = prevCardCountsRef.current;
+    const nextKeys = new Set(cardsList.map(getCardKey));
+    if (hasDealtRef.current && !isDealing && cardsCount > prev.count && !prefersReducedMotion) {
+      const added = cardsList.find((c, idx) => !prev.keys.has(getCardKey(c, idx)));
+      if (added) {
+        const addedIdx = cardsList.indexOf(added);
+        setNewlyDrawnKey(getCardKey(added, addedIdx));
+      }
+    }
+    prevCardCountsRef.current = { count: cardsCount, keys: nextKeys };
+  }, [cardsCount, cardsList, isDealing, prefersReducedMotion]);
+
+  useEffect(() => {
+    if (!newlyDrawnKey) return undefined;
+    const timer = setTimeout(() => setNewlyDrawnKey(null), 450);
+    return () => clearTimeout(timer);
+  }, [newlyDrawnKey]);
 
   // Auto-clear dealing state once the staggered entrance animation has completed
   useEffect(() => {
@@ -238,6 +260,7 @@ export default function Hand({
         {cards.map((card, index) => {
           const cardKey = getCardKey(card, index);
           const isCardDealing = isDealing && initialDealtIdsRef.current.has(cardKey);
+          const isNewlyDrawn = newlyDrawnKey === cardKey;
           const selected = isSelected(card.id);
           const playable = isPlayable(card.id);
           const cardLabel = t[card.type] || DEFAULT_CARD_LABELS[card.type] || card.type;
@@ -262,12 +285,13 @@ export default function Hand({
             hasDisabledHandler ? 'hand-card-slot--can-explain' : '',
             isFeedbackActive ? 'hand-card-slot--has-tooltip' : '',
             isCardDealing ? 'hand-card-slot--dealing' : '',
+            isNewlyDrawn ? 'hand-card-slot--drawn' : '',
           ]
             .filter(Boolean)
             .join(' ');
 
           const slotStyle = isCardDealing
-            ? { '--deal-delay': `${index * 80}ms` }
+            ? { '--deal-delay': `${index * 85}ms` }
             : undefined;
 
           return (
@@ -275,6 +299,7 @@ export default function Hand({
               key={cardKey}
               className={slotClasses}
               style={slotStyle}
+              data-card-id={card.id}
               role="listitem"
               onClick={hasDisabledHandler ? (e) => handleDisabledCardClick(card, cardKey, e) : undefined}
               onKeyDown={

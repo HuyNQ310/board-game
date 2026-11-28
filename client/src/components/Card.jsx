@@ -63,7 +63,7 @@ export function Card({
     'card',
     !faceDown && type ? `card--${type}` : '',
     faceDown ? 'card--face-down' : 'card--face-up',
-    !faceDown && cardTheme ? `card--theme-${cardTheme}` : '',
+    cardTheme ? `card--theme-${cardTheme}` : '',
     isImageCard ? 'card--image' : '',
     selected ? 'card--selected' : '',
     disabled ? 'card--disabled' : '',
@@ -92,6 +92,7 @@ export function Card({
     return (
       <div
         className={cardClasses}
+        data-card-theme={cardTheme}
         onClick={handleClick}
         onKeyDown={handleKeyDown}
         role={onClick ? 'button' : undefined}
@@ -102,7 +103,7 @@ export function Card({
         {...rest}
       >
         <div className="card__back">
-          <CardBackPattern />
+          <CardBackPattern cardTheme={cardTheme} />
         </div>
         {selectedBadge}
         {disabledBadge}

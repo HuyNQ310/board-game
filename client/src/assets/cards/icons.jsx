@@ -979,16 +979,54 @@ export function PotatoIllustration({ className = '' }) {
   );
 }
 
+const CARD_BACK_PALETTES = Object.freeze({
+  deck1: {
+    base: '#7F1D1D',
+    patternFill: '#9F2B2B',
+    outerStroke: '#FDE68A',
+    innerStroke: '#F59E0B',
+    medallionFill: '#691414',
+    medallionStroke: '#FDE68A',
+    medallionAccent: '#F59E0B',
+    emblemFill: '#FEF3C7',
+  },
+  deck2: {
+    base: '#2E3A4B',
+    patternFill: '#43556E',
+    outerStroke: '#6E85A3',
+    innerStroke: '#4D617D',
+    medallionFill: '#242F3D',
+    medallionStroke: '#8EA4C2',
+    medallionAccent: '#5C7290',
+    emblemFill: '#DCE6F2',
+  },
+  deck3: {
+    base: '#15121C',
+    patternFill: '#2E2347',
+    outerStroke: '#A855F7',
+    innerStroke: '#38BDF8',
+    medallionFill: '#1B1626',
+    medallionStroke: '#38BDF8',
+    medallionAccent: '#C084FC',
+    emblemFill: '#E9D5FF',
+  },
+});
+
 /**
  * Card Back Pattern
- * Navy #2E3A4B background with small repeating cat silhouette / paw-print tile pattern.
- * NO text, NO group color, NO group icon — identity must never be revealed.
+ * Adapts to selected deck theme (deck1 Crimson Illustrated, deck2 Classic Navy,
+ * deck3 Neon Night) while NEVER revealing card type, group color, or group icon.
  */
-export function CardBackPattern({ className = '' }) {
+export function CardBackPattern({ className = '', cardTheme = 'deck1' }) {
+  const themeKey = CARD_BACK_PALETTES[cardTheme] ? cardTheme : 'deck1';
+  const palette = CARD_BACK_PALETTES[themeKey];
+  const patternId = `cat-card-back-pattern-${themeKey}`;
+
   return (
     <svg
       viewBox="0 0 160 224"
       className={className}
+      data-card-back-theme={themeKey}
       width="100%"
       height="100%"
       preserveAspectRatio="none"
@@ -997,13 +1035,13 @@ export function CardBackPattern({ className = '' }) {
     >
       <defs>
         <pattern
-          id="cat-card-back-pattern"
+          id={patternId}
           width="32"
           height="32"
           patternUnits="userSpaceOnUse"
         >
           {/* Paw print 1 */}
-          <g fill="#43556E">
+          <g fill={palette.patternFill}>
             <ellipse cx="10" cy="11" rx="3.6" ry="2.8" />
             <circle cx="6.5" cy="6.5" r="1.2" />
             <circle cx="9.2" cy="5.2" r="1.2" />
@@ -1012,7 +1050,7 @@ export function CardBackPattern({ className = '' }) {
           </g>
 
           {/* Staggered mini cat silhouette 2 */}
-          <g fill="#43556E">
+          <g fill={palette.patternFill}>
             {/* Body */}
             <path d="M 23 29 C 23 25 25 23.5 26 23.5 C 27 23.5 29 25 29 29 Z" />
             {/* Head */}
@@ -1024,7 +1062,7 @@ export function CardBackPattern({ className = '' }) {
             <path
               d="M 28.5 28 C 30.5 28 31 25.5 30 23.5"
               fill="none"
-              stroke="#43556E"
+              stroke={palette.patternFill}
               strokeWidth="0.8"
               strokeLinecap="round"
             />
@@ -1032,11 +1070,11 @@ export function CardBackPattern({ className = '' }) {
         </pattern>
       </defs>
 
-      {/* Navy base */}
-      <rect width="100%" height="100%" fill="#2E3A4B" />
+      {/* Theme base */}
+      <rect width="100%" height="100%" fill={palette.base} />
 
       {/* Repeating cat / paw print pattern */}
-      <rect width="100%" height="100%" fill="url(#cat-card-back-pattern)" />
+      <rect width="100%" height="100%" fill={`url(#${patternId})`} />
 
       {/* Elegant card-back borders */}
       <rect
@@ -1046,7 +1084,7 @@ export function CardBackPattern({ className = '' }) {
         height="208"
         rx="8"
         fill="none"
-        stroke="#4B5E7A"
+        stroke={palette.outerStroke}
         strokeWidth="1.8"
       />
       <rect
@@ -1056,16 +1094,31 @@ export function CardBackPattern({ className = '' }) {
         height="198"
         rx="6"
         fill="none"
-        stroke="#3D4E66"
-        strokeWidth="0.8"
+        stroke={palette.innerStroke}
+        strokeWidth="0.9"
         strokeDasharray="4 2"
       />
 
       {/* Subtle symmetrical center medallion */}
-      <circle cx="80" cy="112" r="24" fill="#2E3A4B" stroke="#4B5E7A" strokeWidth="1.5" />
-      <circle cx="80" cy="112" r="20" fill="none" stroke="#3D4E66" strokeWidth="0.8" strokeDasharray="3 2" />
+      <circle
+        cx="80"
+        cy="112"
+        r="24"
+        fill={palette.medallionFill}
+        stroke={palette.medallionStroke}
+        strokeWidth="1.6"
+      />
+      <circle
+        cx="80"
+        cy="112"
+        r="20"
+        fill="none"
+        stroke={palette.medallionAccent}
+        strokeWidth="0.9"
+        strokeDasharray="3 2"
+      />
       {/* Symmetrical neutral cat paws emblem */}
-      <g fill="#4B5E7A" transform="translate(80, 112)">
+      <g fill={palette.emblemFill} transform="translate(80, 112)">
         <ellipse cx="0" cy="1" rx="5" ry="4" />
         <circle cx="-5" cy="-5" r="1.8" />
         <circle cx="-1.5" cy="-7" r="1.8" />

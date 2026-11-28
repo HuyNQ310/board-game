@@ -85,12 +85,30 @@
 
 /* -------------------------------------------------------------
  * Face-down Card Back
- * Navy #2E3A4B background, tile pattern, NO text, NO group color/icon
+ * Adapts to selected deck theme while never revealing identity
  * ------------------------------------------------------------- */
 .card--face-down {
   background-color: var(--card-back-bg);
   border-color: var(--card-back-border);
   padding: 0;
+}
+
+.card--face-down.card--theme-deck1 {
+  background-color: #7f1d1d;
+  border-color: #f59e0b;
+}
+
+.card--face-down.card--theme-deck2 {
+  background-color: #2e3a4b;
+  border-color: #6e85a3;
+}
+
+.card--face-down.card--theme-deck3 {
+  background-color: #15121c;
+  border-color: #a855f7;
+  box-shadow:
+    0 0 10px rgba(168, 85, 247, 0.35),
+    0 4px 12px rgba(0, 0, 0, 0.55);
 }
 
 .card__back {

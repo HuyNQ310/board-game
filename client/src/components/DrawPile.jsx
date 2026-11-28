@@ -1,16 +1,18 @@
 import { PawPrint } from 'lucide-react';
 import './DrawPile.css';
 
-export function DrawPile({ deckCount = 0, t }) {
+export function DrawPile({ deckCount = 0, cardTheme = 'deck1', t }) {
   const count = Number.isFinite(deckCount) ? deckCount : 0;
   const pileLabel = (t && t.drawPile) ? t.drawPile : 'Bộ rút';
   const countText =
     typeof t?.deckCount === 'function' ? t.deckCount(count) : `${count} lá`;
+  const themeKey = cardTheme || 'deck1';
 
   return (
     <div
-      className="draw-pile"
+      className={`draw-pile draw-pile--theme-${themeKey}`}
       data-testid="draw-pile"
+      data-card-theme={themeKey}
       role="region"
       aria-label={`${pileLabel}: ${countText}`}
     >

@@ -102,7 +102,7 @@ describe('Card', () => {
 
   describe('faceDown across all themes', () => {
     it.each(['deck1', 'deck2', 'deck3'])(
-      'hides card type, image, and theme on faceDown card for cardTheme="%s"',
+      'hides card type/identity while applying deck card-back theme for cardTheme="%s"',
       (cardTheme) => {
         const { container } = render(
           <Card
@@ -118,11 +118,14 @@ describe('Card', () => {
         expect(cardEl).toHaveClass('card--face-down');
         expect(cardEl).not.toHaveClass('card--boom');
         expect(cardEl).not.toHaveClass('card--image');
-        expect(cardEl).not.toHaveClass(`card--theme-${cardTheme}`);
-        expect(cardEl).not.toHaveAttribute('data-card-theme');
+        expect(cardEl).toHaveClass(`card--theme-${cardTheme}`);
+        expect(cardEl).toHaveAttribute('data-card-theme', cardTheme);
         expect(cardEl).toHaveAttribute('aria-label', 'Card face down');
 
         expect(container.querySelector('.card__back')).not.toBeNull();
+        expect(
+          container.querySelector(`[data-card-back-theme="${cardTheme}"]`)
+        ).not.toBeNull();
         expect(container.querySelector('img.card__art-img')).toBeNull();
         expect(container.querySelector('.card__name-strip')).toBeNull();
         expect(container.querySelector('.card__group-icon')).toBeNull();

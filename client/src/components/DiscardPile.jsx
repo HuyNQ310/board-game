@@ -45,7 +45,12 @@ export function DiscardPile({ discardCount = 0, discardTop = null, renderCard, t
     >
       <div className="discard-pile__slot">
         {topCardNode ? (
-          <div className="discard-pile__top-wrapper">{topCardNode}</div>
+          <div
+            key={`discard-top-${count}-${discardTop}`}
+            className="discard-pile__top-wrapper"
+          >
+            {topCardNode}
+          </div>
         ) : (
           <div className="discard-pile__empty">
             <span className="discard-pile__empty-text">{emptyText}</span>
